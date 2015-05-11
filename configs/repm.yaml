@@ -1,0 +1,59 @@
+name: repm
+
+model_type: segmented_regression
+
+segmentation_col: land_use_type_id
+
+fit_filters:
+- land_use_type_id in [3, 24]
+- parcel_sqft > 100
+- total_land_value_per_sqft > 1
+- total_land_value_per_sqft < 1096.63
+
+predict_filters: null
+
+min_segment_size: 10
+
+default_config:
+    model_expression: np.log1p(land_value) ~ np.log1p(parcel_sqft) + is_waterfront
+    ytransform: np.exp
+
+models:
+    3:
+        fit_parameters:
+            Coefficient:
+                Intercept: 4.622459584186357
+                is_waterfront: -0.0672006286421827
+                np.log1p(parcel_sqft): 0.743529503643008
+            Std. Error:
+                Intercept: 0.04933412463205472
+                is_waterfront: 0.0626515165700485
+                np.log1p(parcel_sqft): 0.005009489731672243
+            T-Score:
+                Intercept: 93.69700220003348
+                is_waterfront: -1.0726097678265776
+                np.log1p(parcel_sqft): 148.42419956309732
+        fit_rsquared: 0.5044661285869287
+        fit_rsquared_adj: 0.5044203602419197
+        fitted: true
+        name: 3
+    24:
+        fit_parameters:
+            Coefficient:
+                Intercept: 9.847345815420733
+                is_waterfront: 0.8632950061109156
+                np.log1p(parcel_sqft): 0.1283654711225306
+            Std. Error:
+                Intercept: 0.007369423502658983
+                is_waterfront: 0.003986966141927634
+                np.log1p(parcel_sqft): 0.0007904246699481255
+            T-Score:
+                Intercept: 1336.2437118544867
+                is_waterfront: 216.52930458384236
+                np.log1p(parcel_sqft): 162.4006385465614
+        fit_rsquared: 0.0885691826443572
+        fit_rsquared_adj: 0.08856708807280633
+        fitted: true
+        name: 24
+
+fitted: true
