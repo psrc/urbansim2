@@ -12,8 +12,8 @@ def repm_estimate(parcels):
 
 
 @sim.model('repm_simulate')
-def repm_simulate(buildings, zones):
-    return utils.hedonic_simulate("rsh.yaml", buildings, zones,
+def repm_simulate(parcels):
+    return utils.hedonic_simulate("repm.yaml", parcels, None,
                                   "residential_sales_price")
 
 

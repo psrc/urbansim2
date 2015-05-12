@@ -2,7 +2,7 @@ This is an urbansim-2 implementation of the PSRC land use model. It is a python 
 
 It's under construction. Currently, only a simple version of the real estate price model (REPM) is implemented.
 
-.. **Requirements:**
+**Requirements:**
 
 1. Install Anaconda Python: http://continuum.io/downloads
 #. Install the Synthicity's packages urbansim and urbansim_defaults: https://github.com/synthicity/
