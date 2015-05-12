@@ -2,6 +2,7 @@ run = "run_113"
 year = 2010
 out_directory = "output"
 output_file = "out%s%s.h5" % (year, run)
+run_directory = os.path.join(os.getenv("OPUS_HOME", "e:/opus"), "data/psrc_parcel/runs", str(run), str(year))
 
 tables = {"buildings": "building_id",
           "parcels": "parcel_id",
