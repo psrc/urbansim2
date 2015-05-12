@@ -3,7 +3,8 @@ import urbansim.sim.simulation as sim
 from urbansim.maps import dframe_explorer
 
 geo = "zone"
-geo = "parcel"
+#geo = "parcel" # does not work (probably too big)
+
 allgeo = {"zone": "TAZ",
           "parcel":"NEW_USIMPI"}
 
@@ -25,5 +26,3 @@ dframe_explorer.start(d,
                       port=8765
                       #port=8766
                       )
-#df.groupby('zone_id')['income'].mean()
-#df.groupby('zone_id')['income'].quantile(.5)
