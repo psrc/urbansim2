@@ -4,7 +4,7 @@ import pandas as pd
 execfile('inputs.py')
     
 # convert csv into hdf5 using US2
-store = pd.HDFStore(os.path.join(out_directory, output_file))
+store = pd.HDFStore(output_file)
 for table, tid in tables.iteritems():
     f = os.path.join(out_directory, table + ".csv")
     ds = pd.read_csv(f, index_col=tid)

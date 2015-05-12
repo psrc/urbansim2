@@ -37,6 +37,9 @@ def average_income(parcels, households):
     return households.income.groupby(households.parcel_id).mean().\
            reindex(parcels.index).fillna(0)
 
+@sim.column('parcels', 'faz_id', cache=True)
+def faz_id(parcels, zones):
+    return misc.reindex(zones.faz_id, parcels.zone_id)
 
 #####################
 # BUILDINGS VARIABLES
@@ -55,6 +58,10 @@ def building_sqft(buildings):
 def zone_id(buildings, parcels):
     return misc.reindex(parcels.zone_id, buildings.parcel_id)
 
+@sim.column('buildings', 'faz_id', cache=True)
+def faz_id(buildings, zones):
+    return misc.reindex(zones.faz_id, buildings.zone_id)
+
 #####################
 # HOUSEHOLDS VARIABLES
 #####################
@@ -66,3 +73,40 @@ def parcel_id(households, buildings):
 @sim.column('households', 'zone_id', cache=True)
 def zone_id(households, buildings):
     return misc.reindex(buildings.zone_id, households.building_id)
+
+@sim.column('households', 'faz_id', cache=True)
+def faz_id(households, zones):
+    return misc.reindex(zones.faz_id, households.zone_id)
+
+#####################
+# PERSONS VARIABLES
+#####################
+
+@sim.column('persons', 'parcel_id', cache=True)
+def parcel_id(persons, households):
+    return misc.reindex(households.parcel_id, persons.household_id)
+
+@sim.column('persons', 'zone_id', cache=True)
+def zone_id(persons, households):
+    return misc.reindex(households.zone_id, persons.household_id)
+
+@sim.column('persons', 'faz_id', cache=True)
+def faz_id(persons, zones):
+    return misc.reindex(zones.faz_id, persons.zone_id)
+
+
+#####################
+# JOBS VARIABLES
+#####################
+
+@sim.column('jobs', 'parcel_id', cache=True)
+def parcel_id(jobs, buildings):
+    return misc.reindex(buildings.parcel_id, jobs.building_id)
+
+@sim.column('jobs', 'zone_id', cache=True)
+def zone_id(jobs, buildings):
+    return misc.reindex(buildings.zone_id, jobs.building_id)
+
+@sim.column('jobs', 'faz_id', cache=True)
+def faz_id(jobs, zones):
+    return misc.reindex(zones.faz_id, jobs.zone_id)
