@@ -1,0 +1,6 @@
+The Synthicity code requires the Anaconda Python. Furthermore, PYTHONPATH needs to be set to point to the synthicity packages. To do that, open a terminal, go into d:/synthicity and run setpath.bat. It changes the environment only for the session in this terminal window.
+
+To convert an Opus cache into the UrbanSim-2 hdf5 file, go into data/conversion and follow the README file there. 
+
+To explore data using the DataFrameExplorer, open explore.py and set your input data file and geography. Then run the file. In a browser go to localhost:8765. See http://synthicity.github.io/urbansim/maps/index.html for help, especially the Website Description section. 
+
