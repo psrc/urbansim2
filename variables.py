@@ -37,6 +37,16 @@ def average_income(parcels, households):
     return households.income.groupby(households.parcel_id).mean().\
            reindex(parcels.index).fillna(0)
 
+@sim.column('parcels', 'number_of_households', cache=True, cache_scope='iteration')
+def number_of_households(parcels, households):
+    return households.persons.groupby(households.parcel_id).size().\
+           reindex(parcels.index).fillna(0)
+
+@sim.column('parcels', 'number_of_jobs', cache=True, cache_scope='iteration')
+def number_of_jobs(parcels, jobs):
+    return jobs.sector_id.groupby(jobs.parcel_id).size().\
+           reindex(parcels.index).fillna(0)
+
 @sim.column('parcels', 'faz_id', cache=True)
 def faz_id(parcels, zones):
     return misc.reindex(zones.faz_id, parcels.zone_id)
@@ -110,3 +120,33 @@ def zone_id(jobs, buildings):
 @sim.column('jobs', 'faz_id', cache=True)
 def faz_id(jobs, zones):
     return misc.reindex(zones.faz_id, jobs.zone_id)
+
+
+#####################
+# ZONES VARIABLES
+#####################
+
+@sim.column('zones', 'number_of_households', cache=True, cache_scope='iteration')
+def number_of_households(zones, households):
+    return households.persons.groupby(households.zone_id).size().\
+           reindex(zones.index).fillna(0)
+
+@sim.column('zones', 'number_of_jobs', cache=True, cache_scope='iteration')
+def number_of_jobs(zones, jobs):
+    return jobs.sector_id.groupby(jobs.zone_id).size().\
+           reindex(zones.index).fillna(0)
+
+
+#####################
+# FAZES VARIABLES
+#####################
+
+@sim.column('fazes', 'number_of_households', cache=True, cache_scope='iteration')
+def number_of_households(fazes, households):
+    return households.persons.groupby(households.faz_id).size().\
+           reindex(fazes.index).fillna(0)
+
+@sim.column('fazes', 'number_of_jobs', cache=True, cache_scope='iteration')
+def number_of_jobs(fazes, jobs):
+    return jobs.sector_id.groupby(jobs.faz_id).size().\
+           reindex(fazes.index).fillna(0)
