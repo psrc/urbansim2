@@ -4,6 +4,7 @@ from urbansim.maps import dframe_explorer
 from utils import change_store
 
 data_file = "conversion/out2010run_113.h5"
+data_file = "conversion/testout2010run_113.h5"
 #data_file = "data/conversion/out2040run_133.run_2015_05_08_10_27.h5"
 
 geo = "zones"
