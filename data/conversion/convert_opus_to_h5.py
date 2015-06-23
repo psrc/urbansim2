@@ -4,7 +4,8 @@ from opus_core.simulation_state import SimulationState
 from opus_core.store.attribute_cache import AttributeCache
 
 execfile('inputs.py')
-output_file = "testout%s%s.h5" % (year, run)
+output_file = "out%s%s.h5" % (year, run)
+output_file = "%s%s.h5" % (run, year)
 storage = AttributeCache(base_directory)
 SimulationState().set_current_time(year)
 

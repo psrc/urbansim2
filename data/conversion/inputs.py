@@ -1,5 +1,5 @@
-run = "run_113"
-year = 2010
+run = "run_133ref_with_school_models"
+year = 2041
 out_directory = "output%s%s" % (year, run)
 output_file = "out%s%s.h5" % (year, run)
 base_directory = os.path.join(os.getenv("OPUS_HOME", "e:/opus"), "data/psrc_parcel/runs", str(run))
@@ -11,4 +11,5 @@ tables = {"buildings": "building_id",
           "households": "household_id",
           "jobs": "job_id",
           "persons": "person_id",
-          "fazes": "faz_id"}
+          "fazes": "faz_id",
+          "schools": "school_id"}
