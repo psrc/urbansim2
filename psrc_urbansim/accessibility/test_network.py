@@ -1,8 +1,8 @@
-import pandas as pd
 import pandana as pdna
+import pandas as pd
 import os
 from urbansim.utils import misc
-import variables
+import psrc_urbansim.variables
 import urbansim.sim.simulation as sim
 
 

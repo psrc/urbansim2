@@ -1,9 +1,9 @@
-from utils import load_network, assign_nodes_to_dataset
+from psrc_urbansim.accessibility.utils import load_network, assign_nodes_to_dataset
 import pandas as pd
 import os
 from urbansim.utils import misc
 # this imports all the parcels variables we need
-import variables
+import psrc_urbansim.variables
 # this computes the variables
 import urbansim.sim.simulation as sim
 

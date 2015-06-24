@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from urbansim.utils import misc
 import urbansim.sim.simulation as sim
-import dataset
+import psrc_urbansim.dataset
 import urbansim_defaults.utils
 
 #####################
