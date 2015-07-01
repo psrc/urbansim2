@@ -7,38 +7,43 @@ import re
 from urbansim.utils import misc
 # this loads default datasets (default parcels needed since it has the right lat and long)
 import psrc_urbansim.dataset
-# this imports all the parcels variables we need
-#import psrc_urbansim.variables
-# this computes the variables
 import urbansim.sim.simulation as sim
 
-distances = { # in meters
+distances = { # in meters; 
+              # keys correspond to suffices of the resulting parcel columns
     1: 804.67, # 0.5 mile
     2: 1609.34 # 1 mile
              }
 
-# These are disaggregated to the network from the parcel data
-parcel_attributes = {"sum": ["hh_p", "stugrd_p", "stuhgh_p", "stuuni_p", "empedu_p", "empfoo_p", "empgov_p", "empind_p", 
-                      "empsvc_p", "empoth_p", "emptot_p", "parkdy_p", "parkhr_p", "nparks", "aparks"],
+# These will be disaggregated from the parcel data to the network.
+# Keys are the functions applied when aggregating over buffers.
+parcel_attributes = {
+              "sum": ["hh_p", "stugrd_p", "stuhgh_p", "stuuni_p", 
+                      "empedu_p", "empfoo_p", "empgov_p", "empind_p", 
+                      "empsvc_p", "empoth_p", "emptot_p", 
+                      "parkdy_p", "parkhr_p", "nparks", "aparks"],
               "ave": [ "ppricdyp", "pprichrp"],
               }
-# These are already on network (from add-ons)
+# These are already on network (from add-ons).
+# Keys correspond to the resulting parcel columns (minus suffix).
+# Values correspond the names in the add-on dataset.
 network_attributes = {"tstops": "busstops"}
 intersections = {"nodes1": "1-way", "nodes3": "3-way", "nodes4": "4-way"}
 
 pois = {"lbus": "busstops", "ebus": "busstops", 
         "fry": "ferry", "crt": "railway", "lrt": "lightrail"} # will compute nearest distance to these
 
-output_file = "parcel_accessibilities_soundcast.h5"
+output_file = "parcels_buffered.h5"
 
-# get input parcel data
-instore = pd.HDFStore('/Users/hana/workspace/data/soundcast/urbansim_outputs/2040/parcels.h5', "r")
+# get input parcel data (modify the path here)
+#instore = pd.HDFStore('/Users/hana/workspace/data/soundcast/urbansim_outputs/2040/parcels.h5', "r")
+instore = pd.HDFStore(os.path.join(misc.data_dir(), "parcels.h5"), "r")
 parcels = instore["parcels"]
-# merge in latitude and longitude columns 
+# merge in latitude and longitude columns (this parcels table is taken from data/base_year.h5)
 parcels_with_lat_long = sim.get_table("parcels").to_frame(['lat', 'long'])
 parcels = pd.merge(parcels, parcels_with_lat_long, left_index=True, right_index=True)
 
-# load network and assign parcels to the network 
+# load network & the various addons and assign parcels to the network 
 net = load_network(precompute=distances)
 load_network_addons(network=net)
 assign_nodes_to_dataset(parcels, net)
@@ -55,6 +60,7 @@ def process_net_attribute(network, attr, fun):
             newdf[res_name] = aggr
     return newdf
     
+# Start processing attributes
 newdf = None
 for fun, attrs in parcel_attributes.iteritems():    
     for attr in attrs:
@@ -65,16 +71,11 @@ for fun, attrs in parcel_attributes.iteritems():
         else:
             newdf = pd.merge(newdf, res, on="node_ids", copy=False)
 
-
 for new_name, attr in network_attributes.iteritems():    
     net.set(net.node_ids, variable=net.addons[attr]["has_poi"].values, name=new_name)
     newdf = pd.merge(newdf, process_net_attribute(net, new_name, "sum"), on="node_ids", copy=False)
     
 for new_name, attr in intersections.iteritems():
-    #tmp = pd.DataFrame({"node_ids": net.addons["intersections"][attr].index.values,
-    #                    "has_poi": net.addons["intersections"][attr].values})
-    #intersections_wparcels = pd.merge(parcels.loc[:,['parcelid', 'node_ids']], tmp, how='left', on="node_ids").set_index('parcelid')
-    #net.set(intersections_wparcels["node_ids"], variable=intersections_wparcels["has_poi"], name=new_name)
     net.set(net.node_ids, variable=net.addons["intersections"][attr].values, name=new_name)
     newdf = pd.merge(newdf, process_net_attribute(net, new_name, "sum"), on="node_ids", copy=False)
    
@@ -98,7 +99,7 @@ for new_name, attr in pois.iteritems():
 parcel_idx_park = np.where(parcels['nparks'] > 0)[0]
 process_dist_attribute(net, "park", parcels["long"][parcel_idx_park], parcels["lat"][parcel_idx_park])
 
-
+# write output
 outstore = pd.HDFStore(output_file)        
 outstore["parcels"] = parcels
 outstore.close()
