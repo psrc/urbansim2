@@ -36,8 +36,8 @@ pois = {"lbus": "busstops", "ebus": "busstops",
 output_file = "parcels_buffered.h5"
 
 # get input parcel data (modify the path here)
-#instore = pd.HDFStore('/Users/hana/workspace/data/soundcast/urbansim_outputs/2040/parcels.h5', "r")
-instore = pd.HDFStore(os.path.join(misc.data_dir(), "parcels.h5"), "r")
+instore = pd.HDFStore('/Users/hana/workspace/data/soundcast/urbansim_outputs/2010/parcels.h5', "r")
+#instore = pd.HDFStore(os.path.join(misc.data_dir(), "parcels.h5"), "r")
 parcels = instore["parcels"]
 # merge in latitude and longitude columns (this parcels table is taken from data/base_year.h5)
 parcels_with_lat_long = sim.get_table("parcels").to_frame(['lat', 'long'])
@@ -64,7 +64,7 @@ def process_net_attribute(network, attr, fun):
 newdf = None
 for fun, attrs in parcel_attributes.iteritems():    
     for attr in attrs:
-        net.set(parcels["node_ids"], variable=parcels[attr], name=attr)
+        net.set(parcels.node_ids, variable=parcels[attr], name=attr)
         res = process_net_attribute(net, attr, fun)
         if newdf is None:
             newdf = res
@@ -90,14 +90,14 @@ def process_dist_attribute(network, name, x, y):
     res = network.nearest_pois(max_dist, name, num_pois=1, max_distance=999)
     res[res <> 999] = (res[res <> 999]/1000. * 0.621371).astype(res.dtypes) # convert to miles
     res_name = "dist_%s" % name
-    parcels[res_name] = res.loc[parcels["node_ids"]].values
+    parcels[res_name] = res.loc[parcels.node_ids].values
     
 for new_name, attr in pois.iteritems():
     process_dist_attribute(net, new_name, net.addons[attr]["lon"], net.addons[attr]["lat"])
         
 # distance to park
-parcel_idx_park = np.where(parcels['nparks'] > 0)[0]
-process_dist_attribute(net, "park", parcels["long"][parcel_idx_park], parcels["lat"][parcel_idx_park])
+parcel_idx_park = np.where(parcels.nparks > 0)[0]
+process_dist_attribute(net, "park", parcels.long[parcel_idx_park], parcels.lat[parcel_idx_park])
 
 # write output
 outstore = pd.HDFStore(output_file)        

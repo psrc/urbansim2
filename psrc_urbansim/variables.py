@@ -32,6 +32,14 @@ def total_land_value_per_sqft(parcels):
 def invfar(parcels):
     return (parcels.parcel_sqft.astype(float)/parcels.building_sqft.astype(float)).replace(np.inf, 0)
 
+@sim.column('parcels', 'is_park', cache=True, cache_scope='iteration')
+def is_park(parcels):
+    return (parcels.land_use_type_id == 19)
+
+@sim.column('parcels', 'park_area', cache=True, cache_scope='iteration')
+def park_area(parcels):
+    return ((parcels.land_use_type_id == 19) * parcels.parcel_sqft)
+
 @sim.column('parcels', 'average_income', cache=True, cache_scope='iteration')
 def average_income(parcels, households):
     return households.income.groupby(households.parcel_id).mean().\

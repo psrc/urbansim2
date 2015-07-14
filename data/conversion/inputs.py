@@ -13,3 +13,7 @@ tables = {"buildings": "building_id",
           "persons": "person_id",
           "fazes": "faz_id",
           "schools": "school_id"}
+
+join_with_coordinates = True
+dir_with_coordinates = "/Users/hana/workspace/data/psrc_parcel/datasets" 
+parcels_with_coordinates = "parcels_for_google.csv"
