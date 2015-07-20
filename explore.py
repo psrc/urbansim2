@@ -7,10 +7,11 @@ from psrc_urbansim.utils import change_store
 # set data file to explore
 data_file = "conversion/out2010run_113.h5"
 data_file = "conversion/run_133ref_with_school_models2041.h5"
+data_file = "conversion/run_142.run_2015_07_15_13_392041.h5"
 
 # geography for the display
 geo = "zones" 
-geo = "parcels" # does not work (probably too big)
+#geo = "parcels" # does not work (probably too big)
 #geo = "fazes"
 
 allgeo = {"zones": ("TAZ", "zone_id"),
