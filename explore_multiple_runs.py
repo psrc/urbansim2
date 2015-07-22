@@ -1,18 +1,14 @@
 import os
 import pandana
+import pandas as pd
 from optparse import OptionParser
 from urbansim.maps import dframe_explorer
-#from urbansim_explorer import sim_explorer as dframe_explorer
 
 
 # set data file to explore
 #data_file = "conversion/out2010run_113.h5"
 data_file = "conversion/run_142.run_2015_07_15_13_392041.h5"
-
-# geography for the display. These are passed using the -g argument.
-#geo = "zones" 
-#geo = "parcels" # does not work (probably too big)
-#geo = "fazes"
+data_file2 = "conversion/run_133ref_with_school_models2041.h5" # for computing differences between runs
 
 # Correspondence between the data and the shape files.
 allgeo = {"zones": ("TAZ", "zone_id"),
@@ -24,6 +20,13 @@ common_tables = ['buildings', 'parcels', 'households', 'persons', 'jobs']
 tables = {"zones": common_tables + ["zones"],
           "parcels": common_tables,
           "fazes": common_tables + ["zones", "fazes"]}
+
+# Which variables should be taken out of the second run
+common_vars2 = ["number_of_households", "number_of_jobs"]
+variables2 = {"parcels": common_vars2,
+              #"zones": common_vars2,
+              #"fazes": common_vars2
+              }
 
 if __name__ == "__main__":
     parser = OptionParser()
@@ -39,12 +42,22 @@ if __name__ == "__main__":
     import urbansim.sim.simulation as sim
     from psrc_urbansim.utils import change_store
     change_store(data_file)
-    import psrc_urbansim.accessibility.variables
+    #import psrc_urbansim.accessibility.variables
     
     # create a dictionary of pandas frames
     d = {tbl: sim.get_table(tbl).to_frame() for tbl in tables[geo]}
+#    change_store(data_file2)
+#    import urbansim.sim.simulation as sim
+#    #import psrc_urbansim.accessibility.variables
+#    for tbl in variables2.keys():
+#        d2 = sim.get_table(tbl).to_frame(columns=variables2[tbl])
+#        d2.columns = map(lambda x: x + "_2", variables2[tbl])
+#        d[tbl] = pd.merge(d[tbl], d2, left_index=True, right_index=True)
+
+        
     # add the id column since the join does not work if the id is an index
     d[geo][allgeo[geo][1]] = d[geo].index.values
+    d["zones"]["area_type_id"] = 0
 
     dframe_explorer.start(d, 
                       center=[47.614848,-122.3359058],
