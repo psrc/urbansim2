@@ -24,9 +24,8 @@ tables = {"zones": common_tables + ["zones"],
 # Which variables should be taken out of the second run
 common_vars2 = ["number_of_households", "number_of_jobs"]
 variables2 = {"parcels": common_vars2,
-              #"zones": common_vars2,
-              #"fazes": common_vars2
-              }
+              "zones": common_vars2
+              }   
 
 if __name__ == "__main__":
     parser = OptionParser()
@@ -37,27 +36,30 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()    
     geo = options.geo
     port = options.port
-            
+       
+    if "fazes" in tables[geo]:
+        variables2["fazes"] = common_vars2  
+        
     import psrc_urbansim.models
     import urbansim.sim.simulation as sim
     from psrc_urbansim.utils import change_store
     change_store(data_file)
-    #import psrc_urbansim.accessibility.variables
+    import psrc_urbansim.accessibility.variables
     
     # create a dictionary of pandas frames
     d = {tbl: sim.get_table(tbl).to_frame() for tbl in tables[geo]}
-#    change_store(data_file2)
-#    import urbansim.sim.simulation as sim
-#    #import psrc_urbansim.accessibility.variables
-#    for tbl in variables2.keys():
-#        d2 = sim.get_table(tbl).to_frame(columns=variables2[tbl])
-#        d2.columns = map(lambda x: x + "_2", variables2[tbl])
-#        d[tbl] = pd.merge(d[tbl], d2, left_index=True, right_index=True)
+    change_store(data_file2)
+    sim.clear_cache()
+    #import urbansim.sim.simulation as sim
+    #import psrc_urbansim.accessibility.variables
+    for tbl in variables2.keys():
+        d2 = sim.get_table(tbl).to_frame(columns=variables2[tbl])
+        d2.columns = map(lambda x: x + "_2", variables2[tbl])
+        d[tbl] = pd.merge(d[tbl], d2, left_index=True, right_index=True)
 
-        
     # add the id column since the join does not work if the id is an index
     d[geo][allgeo[geo][1]] = d[geo].index.values
-    d["zones"]["area_type_id"] = 0
+
 
     dframe_explorer.start(d, 
                       center=[47.614848,-122.3359058],
