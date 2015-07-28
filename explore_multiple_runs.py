@@ -54,22 +54,21 @@ if __name__ == "__main__":
     #import psrc_urbansim.accessibility.variables
     for tbl in variables2.keys():
         d2 = sim.get_table(tbl).to_frame(columns=variables2[tbl])
-        d2.columns = map(lambda x: x + "_2", variables2[tbl])
+        d2.columns = map(lambda x: x + "_2", d2.columns)
         d[tbl] = pd.merge(d[tbl], d2, left_index=True, right_index=True)
 
     # add the id column since the join does not work if the id is an index
     d[geo][allgeo[geo][1]] = d[geo].index.values
 
-
     dframe_explorer.start(d, 
                       center=[47.614848,-122.3359058],
                       zoom=11,
                       #shape_json=os.path.join(os.getenv("DATA_HOME", "."), 'data', '%s.geojson' % geo),
-                      shape_json=os.path.join('data', '%s.geojson' % geo),
+                      shape_json=os.path.join('data/', '%s.geojson' % geo),
                       geom_name=allgeo[geo][0], # from JSON file
                       join_name=allgeo[geo][1], # from data frames
                       precision=2, 
-                      port=port
+                      port=int(port)
                       )
 
 # In the browser, the fifth field is a filter, e.g. number_of_households > 1000, 
