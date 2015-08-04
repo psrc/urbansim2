@@ -8,24 +8,31 @@ from urbansim.maps import dframe_explorer
 # set data file to explore
 #data_file = "conversion/out2010run_113.h5"
 data_file = "conversion/run_142.run_2015_07_15_13_392041.h5"
-data_file2 = "conversion/run_133ref_with_school_models2041.h5" # for computing differences between runs
+#data_file2 = "conversion/run_133ref_with_school_models2041.h5" # for computing differences between runs
+data_file2 = "conversion/run_138.run_2015_05_28_14_572041.h5"
 
 # Correspondence between the data and the shape files.
 allgeo = {"zones": ("TAZ", "zone_id"),
           "parcels": ("NEW_USIMPI", "parcel_id"),
-          "fazes": ("FAZ10", "faz_id")}
+          "fazes": ("FAZ10", "faz_id"),
+          "tractcity": ("ID", "tractcity_id")}
 
 # Which tables will appear in the menu in the upper right corner.
 common_tables = ['buildings', 'parcels', 'households', 'persons', 'jobs']
 tables = {"zones": common_tables + ["zones"],
           "parcels": common_tables,
-          "fazes": common_tables + ["zones", "fazes"]}
+          "fazes": common_tables + ["zones", "fazes"],
+          "tractcity": common_tables + ["tractcity"]}
 
 # Which variables should be taken out of the second run
 common_vars2 = ["number_of_households", "number_of_jobs"]
-variables2 = {"parcels": common_vars2,
-              "zones": common_vars2
-              }   
+variables2 = {"parcels": common_vars2
+              } 
+
+# the eplorer will not work with text columns, therefore remove those
+columns_to_remove = {
+    "tractcity": ["juris_d", "tract", "trctjuris"]
+}
 
 if __name__ == "__main__":
     parser = OptionParser()
@@ -37,17 +44,23 @@ if __name__ == "__main__":
     geo = options.geo
     port = options.port
        
-    if "fazes" in tables[geo]:
-        variables2["fazes"] = common_vars2  
+    for tbl in ["zones", "fazes", "tractcity"]:
+        if tbl in tables[geo]:
+            variables2[tbl] = common_vars2 
         
     import psrc_urbansim.models
     import urbansim.sim.simulation as sim
     from psrc_urbansim.utils import change_store
     change_store(data_file)
-    import psrc_urbansim.accessibility.variables
+    #import psrc_urbansim.accessibility.variables
     
     # create a dictionary of pandas frames
     d = {tbl: sim.get_table(tbl).to_frame() for tbl in tables[geo]}
+    # remove unwanted columns
+    for tbl, cols in columns_to_remove.iteritems():
+        if tbl in d.keys():
+            d[tbl].drop(cols, axis=1, inplace=True)
+            
     change_store(data_file2)
     sim.clear_cache()
     #import urbansim.sim.simulation as sim

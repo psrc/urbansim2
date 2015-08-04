@@ -42,6 +42,11 @@ def fazes(store):
     df = store['fazes']
     return df
 
+@sim.table('tractcity', cache=True)
+def tractcity(store):
+    df = store['tractcity']
+    return df
+
 sim.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
 sim.broadcast('buildings', 'households', cast_index=True, onto_on='building_id')
 sim.broadcast('buildings', 'jobs', cast_index=True, onto_on='building_id')
@@ -49,3 +54,4 @@ sim.broadcast('zones', 'parcels', cast_index=True, onto_on='zone_id')
 sim.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
 sim.broadcast('jobs', 'households', cast_index=True, onto_on='job_id')
 sim.broadcast('fazes', 'zones', cast_index=True, onto_on='faz_id')
+sim.broadcast('tractcity', 'parcels', cast_index=True, onto_on='tractcity_id')

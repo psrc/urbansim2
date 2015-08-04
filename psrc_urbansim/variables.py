@@ -80,6 +80,10 @@ def zone_id(buildings, parcels):
 def faz_id(buildings, zones):
     return misc.reindex(zones.faz_id, buildings.zone_id)
 
+@sim.column('buildings', 'tractcity_id', cache=True)
+def tractcity_id(buildings, parcels):
+    return misc.reindex(parcels.tractcity_id, buildings.parcel_id)
+
 #####################
 # HOUSEHOLDS VARIABLES
 #####################
@@ -95,6 +99,10 @@ def zone_id(households, buildings):
 @sim.column('households', 'faz_id', cache=True)
 def faz_id(households, zones):
     return misc.reindex(zones.faz_id, households.zone_id)
+
+@sim.column('households', 'tractcity_id', cache=True)
+def tractcity_id(households, parcels):
+    return misc.reindex(parcels.tractcity_id, households.parcel_id)
 
 #####################
 # PERSONS VARIABLES
@@ -112,6 +120,9 @@ def zone_id(persons, households):
 def faz_id(persons, zones):
     return misc.reindex(zones.faz_id, persons.zone_id)
 
+@sim.column('persons', 'tractcity_id', cache=True)
+def tractcity_id(persons, households):
+    return misc.reindex(households.tractcity_id, persons.household_id)
 
 #####################
 # JOBS VARIABLES
@@ -129,6 +140,9 @@ def zone_id(jobs, buildings):
 def faz_id(jobs, zones):
     return misc.reindex(zones.faz_id, jobs.zone_id)
 
+@sim.column('jobs', 'tractcity_id', cache=True)
+def tractcity_id(jobs, parcels):
+    return misc.reindex(parcels.tractcity_id, jobs.parcel_id)
 
 #####################
 # ZONES VARIABLES
@@ -158,3 +172,18 @@ def number_of_households(fazes, households):
 def number_of_jobs(fazes, jobs):
     return jobs.sector_id.groupby(jobs.faz_id).size().\
            reindex(fazes.index).fillna(0)
+
+
+#####################
+# TRACT-CITY VARIABLES
+#####################
+
+@sim.column('tractcity', 'number_of_households', cache=True, cache_scope='iteration')
+def number_of_households(tractcity, parcels):
+    return parcels.number_of_households.groupby(parcels.tractcity_id).sum().\
+           reindex(tractcity.index).fillna(0)
+
+@sim.column('tractcity', 'number_of_jobs', cache=True, cache_scope='iteration')
+def number_of_jobs(tractcity, parcels):
+    return parcels.number_of_jobs.groupby(parcels.tractcity_id).sum().\
+           reindex(tractcity.index).fillna(0)
