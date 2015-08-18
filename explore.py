@@ -54,7 +54,7 @@ if __name__ == "__main__":
                       geom_name=allgeo[geo][0], # from JSON file
                       join_name=allgeo[geo][1], # from data frames
                       precision=2, 
-                      port=port
+                      port=int(port)
                       )
 
 # In the browser, the fifth field is a filter, e.g. number_of_households > 1000, 
