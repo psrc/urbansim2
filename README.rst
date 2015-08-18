@@ -4,8 +4,8 @@ It's under construction. Currently, only a simple version of the real estate pri
 
 **Requirements:**
 
-1. Install Anaconda Python: http://continuum.io/downloads
-#. Install the UDST packages [urbansim](http://udst.github.io/urbansim/) and [urbansim_defaults](http://udst.github.io/urbansim_defaults/)
+1. Install Anaconda `Python<http://continuum.io/downloads>`_.
+#. Install the UDST packages `urbansim<http://udst.github.io/urbansim/>`_ and `urbansim_defaults<http://udst.github.io/urbansim_defaults/>`_.
 #. Set the environmental variable PYTHONPATH to point to those directories.
 #. Create a base year dataset as an hdf5 file, e.g. by running the script data/create_base_year.py. It converts csv files into hdf5.
 #. Set the environmental variable DATA_HOME to the directory with your base year dataset (minus the 'data' subdirectory). The code will look for the data file in $DATA_HOME/data.
