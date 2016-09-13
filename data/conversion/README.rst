@@ -1,8 +1,0 @@
-To convert Opus cache into an urbansim-2 file, do the following steps:
-
-1. Set the inputs in inputs.py.
-#. Make sure your PYHTONPATH points to the Opus packages.
-#. Run convert_opus_to_h5.py
-#. Re-set PYTHONPATH to point to the synthicity packages, e.g. by running synthicity/setpath.bat.
-
-Results appear in the output directory.

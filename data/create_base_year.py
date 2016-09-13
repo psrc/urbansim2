@@ -1,3 +1,6 @@
+# This script is obsolete. 
+# To convert baseyear to hdf5, use conversion/cache_to_hdf5.py
+
 import pandas as pd
 import os
 

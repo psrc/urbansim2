@@ -1,6 +1,6 @@
-import models
-import urbansim.sim.simulation as sim
-sim.run([
+import psrc_urbansim.models
+import orca
+orca.run([
     "repm_simulate",              # REPM
     #"nrh_simulate",              # non-residential rent hedonic
 
@@ -15,4 +15,4 @@ sim.run([
     #"feasibility",               # compute development feasibility
     #"residential_developer",     # build residential buildings
     #"non_residential_developer", # build non-residential buildings
-], years=[2001, 2002], data_out="simresults.h5")
+], iter_vars=[2015, 2016], data_out="simresult.h5")

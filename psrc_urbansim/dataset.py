@@ -1,57 +1,59 @@
+import orca
 import pandas as pd
 import assumptions
-import urbansim_defaults.utils
-import urbansim.sim.simulation as sim
+import urbansim_defaults.utils as utils
 
 import warnings
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 
 
-@sim.table('parcels', cache=True)
+@orca.table('parcels', cache=True)
 def parcels(store):
     df = store['parcels']
     return df
 
-@sim.table('buildings', cache=True)
+@orca.table('buildings', cache=True)
 def buildings(store):
     df = store['buildings']
+    #df = utils.fill_nas_from_config('buildings', df)
     return df
 
-@sim.table('households', cache=True)
+@orca.table('households', cache=True)
 def households(store):
     df = store['households']
     return df
 
-@sim.table('jobs', cache=True)
+@orca.table('jobs', cache=True)
 def jobs(store):
     df = store['jobs']
+    #df = utils.fill_nas_from_config('jobs', df)
     return df
 
-@sim.table('persons', cache=True)
+@orca.table('persons', cache=True)
 def persons(store):
     df = store['persons']
     return df
 
-@sim.table('zones', cache=True)
+@orca.table('zones', cache=True)
 def zones(store):
     df = store['zones']
     return df
 
-@sim.table('fazes', cache=True)
+@orca.table('fazes', cache=True)
 def fazes(store):
     df = store['fazes']
     return df
 
-@sim.table('tractcity', cache=True)
+@orca.table('tractcity', cache=True)
 def tractcity(store):
     df = store['tractcity']
     return df
 
-sim.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
-sim.broadcast('buildings', 'households', cast_index=True, onto_on='building_id')
-sim.broadcast('buildings', 'jobs', cast_index=True, onto_on='building_id')
-sim.broadcast('zones', 'parcels', cast_index=True, onto_on='zone_id')
-sim.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
-sim.broadcast('jobs', 'households', cast_index=True, onto_on='job_id')
-sim.broadcast('fazes', 'zones', cast_index=True, onto_on='faz_id')
-sim.broadcast('tractcity', 'parcels', cast_index=True, onto_on='tractcity_id')
+orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
+orca.broadcast('buildings', 'households', cast_index=True, onto_on='building_id')
+orca.broadcast('buildings', 'jobs', cast_index=True, onto_on='building_id')
+orca.broadcast('zones', 'parcels', cast_index=True, onto_on='zone_id')
+orca.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
+orca.broadcast('jobs', 'households', cast_index=True, onto_on='job_id')
+orca.broadcast('fazes', 'zones', cast_index=True, onto_on='faz_id')
+orca.broadcast('tractcity', 'parcels', cast_index=True, onto_on='tractcity_id')
