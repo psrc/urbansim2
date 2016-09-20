@@ -14,13 +14,32 @@ It's under construction. Currently, only a simple version of the real estate pri
 
 ### Setup Note for modelsrv3
 
-The packages are already installed there as well as the baseyear data is available. To set the environment variables in step 4 and 6, open a terminal, go into ``d:/synthicity`` and run ``setpath.bat``. It changes the environment only for the session in this terminal window.
+The packages are already installed there as well as the baseyear data is available. To set the environment variables in step 4 and 6, open a terminal, go into ``d:/synthicity`` and run ``setpath.bat``. Alternatively, in a Git Bash window do
+
+```
+cd /d/synthicity
+source setpath.sh
+```
+
+In both cases, it changes the environment only for the session in this terminal or bash window.
 
 ### Estimation
 
-To estimate, run the ``estimate.py`` script. The configuration of the REPM can be found in ``configs/repm.yaml`` where the outputs are also written into. New variables can be defined in ``psrc_urbansim/psrc_urbansim/variables.py``.
+To estimate, go to the ``psrc_urbansim`` directory and do
+
+```
+python estimate.py
+```
+ 
+The configuration of the REPM can be found in ``configs/repm.yaml`` where the outputs are also written into. New variables can be defined in ``psrc_urbansim/variables.py``.
 
 ### Simulation
 
-To simulate, run the script ``simulate.py``. It contains a name of the output file.
+To simulate, from the ``psrc_urbansim`` directory run
+
+```
+python simulate.py
+```
+
+The script contains the name of the output file.
 
