@@ -1,7 +1,7 @@
 # PSRC UrbanSim
 
 [![Travis-CI Build Status] (https://travis-ci.org/psrc/urbansim2.svg?branch=master)] (https://travis-ci.org/psrc/urbansim2)
-[![Coveralls Test Coverage] (https://coveralls.io/repos/psrc/urbansim2/badge.png?branch=master)] (https://coveralls.io/r/psrc/urbansim2)
+[![Coverage Status](https://coveralls.io/repos/github/psrc/urbansim2/badge.svg?branch=master)](https://coveralls.io/github/psrc/urbansim2?branch=master)
 
 This is an urbansim-2 implementation of the PSRC land use model. It is a python package that contains PSRC-specfic modifications to the urbansim package developed by Synthicity.
 
