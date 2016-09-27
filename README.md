@@ -1,3 +1,7 @@
+# PSRC UrbanSim
+
+[![Travis-CI Build Status] (https://travis-ci.org/psrc/urbansim2.svg?branch=master)] (https://travis-ci.org/psrc/urbansim2)
+
 This is an urbansim-2 implementation of the PSRC land use model. It is a python package that contains PSRC-specfic modifications to the urbansim package developed by Synthicity.
 
 It's under construction. Currently, only a simple version of the real estate price model (REPM) is implemented.
