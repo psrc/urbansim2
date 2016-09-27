@@ -24,3 +24,5 @@ install:
 script:
 - pep8 psrc_urbansim
 - py.test --cov psrc_urbansim --cov-report term-missing
+after_success:
+- coveralls
