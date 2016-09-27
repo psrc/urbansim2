@@ -22,7 +22,6 @@ install:
 - pip install pytest-cov coveralls pep8
 - pip install urbansim
 script:
-- pep8 psrc_urbansim
 - py.test --cov psrc_urbansim --cov-report term-missing
 after_success:
 - coveralls
