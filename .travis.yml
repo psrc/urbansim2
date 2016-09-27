@@ -20,7 +20,7 @@ install:
 - source activate test-environment
 - pip install bottle orca simplejson zbox
 - pip install pytest-cov coveralls pep8
-- pip install .
+- pip install urbansim
 script:
 - pep8 psrc_urbansim scripts
 - py.test --cov psrc_urbansim --cov-report term-missing
