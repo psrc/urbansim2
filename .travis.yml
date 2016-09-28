@@ -20,7 +20,8 @@ install:
 - source activate test-environment
 - pip install bottle orca simplejson zbox
 - pip install pytest-cov coveralls pep8
-- pip install urbansim_defaults urbansim
+- pip install https://github.com/UDST/urbansim_defaults/urbansim_defaults/zipball/master
+- pip install urbansim
 script:
 - py.test --cov psrc_urbansim --cov-report term-missing
 after_success:
