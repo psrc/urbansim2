@@ -1,4 +1,7 @@
 import psrc_urbansim.models
 import orca
 
-orca.run(["repm_estimate"])
+# models defined in psrc_urbansim.models
+orca.run(["repmres_estimate"])
+
+orca.run(["repmnr_estimate"])

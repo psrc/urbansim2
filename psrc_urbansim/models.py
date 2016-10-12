@@ -10,26 +10,23 @@ import numpy as np
 def year(iter_var):
     return iter_var
 
-@orca.step('repm_estimate')
-def repm_estimate(parcels):
-    return utils.hedonic_estimate("repm.yaml", parcels, None)
+# Residential REPM
+@orca.step('repmres_estimate')
+def repmres_estimate(parcels):
+    return utils.hedonic_estimate("repmres.yaml", parcels, None)
 
+@orca.step('repmres_simulate')
+def repmres_simulate(parcels):
+    return psrcutils.hedonic_simulate("repmres.yaml", parcels, None, "land_value")
 
-@orca.step('repm_simulate')
-def repm_simulate(parcels):
-    return psrcutils.hedonic_simulate("repm.yaml", parcels, None,
-                                  "land_value")
+# Non-Residential REPM
+@orca.step('repmnr_estimate')
+def repmnr_estimate(parcels):
+    return utils.hedonic_estimate("repmnr.yaml", parcels, None)
 
-
-@orca.step('nrh_estimate')
-def nrh_estimate(buildings, zones):
-    return utils.hedonic_estimate("nrh.yaml", buildings, zones)
-
-
-@orca.step('nrh_simulate')
-def nrh_simulate(buildings, zones):
-    return utils.hedonic_simulate("nrh.yaml", buildings, zones,
-                                  "non_residential_rent")
+@orca.step('repmnr_simulate')
+def repmnr_simulate(parcels):
+    return psrcutils.hedonic_simulate("repmnr.yaml", parcels, None, "land_value")
 
 
 @orca.step('hlcm_estimate')
