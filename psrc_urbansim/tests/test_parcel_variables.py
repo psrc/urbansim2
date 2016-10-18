@@ -20,7 +20,7 @@ def test_dummy(dummy):
 @pytest.fixture
 def expected_pcl():
     return pd.DataFrame(
-        {'residential_units' : [8, 9, 11]})
+        {'sum_residential_units' : [8, 9, 11]})
 
 @pytest.fixture
 def input_pcl():
@@ -41,10 +41,10 @@ def inputs(input_pcl, input_bld):
     orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
     import psrc_urbansim.vars.variables_parcels
 
-def test_residential_units(inputs, expected_pcl):
+def test_sum_residential_units(inputs, expected_pcl):
     pcl = orca.get_table('parcels')
     #pytest.set_trace()
-    assert (pcl['residential_units'] == expected_pcl['residential_units']).all()
+    assert (pcl['sum_residential_units'] == expected_pcl['sum_residential_units']).all()
 
 
 #pytest.main()
