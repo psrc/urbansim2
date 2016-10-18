@@ -1,0 +1,47 @@
+name: Household Location Choice Model
+
+model_type: discretechoice
+
+choosers_fit_filters: building_id > 0
+
+choosers_predict_filters: null
+
+alts_fit_filters:
+- residential_units > 0
+
+alts_predict_filters:
+- vacant_residential_units > 0
+
+interaction_predict_filters: null
+
+choice_column: null
+
+sample_size: 100
+
+estimation_sample_size: 3000
+
+prediction_sample_size: null
+
+model_expression: np.log1p(sqft_per_unit) + np.log1p(avg_income)
+
+fitted: true
+
+choice_mode: aggregate
+
+fit_parameters:
+    Coefficient:
+        np.log1p(avg_income): -3.0
+        np.log1p(sqft_per_unit): -0.23568216882109977
+    Std. Error:
+        np.log1p(avg_income): 0.06016735209614324
+        np.log1p(sqft_per_unit): 0.020938444511839637
+    T-Score:
+        np.log1p(avg_income): -49.8609278202273
+        np.log1p(sqft_per_unit): -11.255954026949487
+
+probability_mode: single_chooser
+
+log_likelihoods:
+    convergence: -13669.49157268397
+    'null': -13815.51055796495
+    ratio: 0.01056920659343974

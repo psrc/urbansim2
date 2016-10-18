@@ -9,7 +9,7 @@ import urbansim_defaults.utils
 # PARCELS VARIABLES
 #####################
 
-@orca.column('parcels', 'residential_units', cache=True, cache_scope='iteration')
+@orca.column('parcels', 'sum_residential_units', cache=True, cache_scope='iteration')
 def residential_units(parcels, buildings):
     return buildings.residential_units.groupby(buildings.parcel_id).sum().\
            reindex(parcels.index).fillna(0)

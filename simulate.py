@@ -1,15 +1,14 @@
 import psrc_urbansim.models
 import orca
 orca.run([
-    "repmres_simulate",           # residential REPM
-    "repmnr_simulate",            # non-residential REPM
-    #"nrh_simulate",              # non-residential rent hedonic
+    #"repmres_simulate",           # residential REPM
+    #"repmnr_simulate",            # non-residential REPM
 
-    #"households_relocation",     # households relocation model
-    #"hlcm_simulate",            # households location choice
+    "households_relocation",     # households relocation model
+    #"hlcm_simulate",              # households location choice
     #"households_transition",     # households transition
 
-    #"jobs_relocation",           # jobs relocation model
+    "jobs_relocation",           # jobs relocation model
     #"elcm_simulate",             # employment location choice
     #"jobs_transition",           # jobs transition
 

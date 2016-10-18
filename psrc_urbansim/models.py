@@ -29,17 +29,16 @@ def repmnr_simulate(parcels):
     return psrcutils.hedonic_simulate("repmnr.yaml", parcels, None, "land_value")
 
 
+# HLCM
 @orca.step('hlcm_estimate')
-def hlcm_estimate(households, buildings, zones):
+def hlcm_estimate(households, buildings, parcels, zones):
     return utils.lcm_estimate("hlcm.yaml", households, "building_id",
-                              buildings, zones)
-
+                              buildings, [parcels, zones])
 
 @orca.step('hlcm_simulate')
-def hlcm_simulate(households, buildings, zones):
-    return utils.lcm_simulate("hlcm.yaml", households, buildings, zones,
-                              "building_id", "residential_units",
-                              "vacant_residential_units")
+def hlcm_simulate(households, buildings, parcels, zones):
+    return psrcutils.lcm_simulate("hlcm.yaml", households, buildings, [parcels, zones],
+                              "building_id", "residential_units", "vacant_residential_units")
 
 
 @orca.step('elcm_estimate')
@@ -56,12 +55,12 @@ def elcm_simulate(jobs, buildings, zones):
 
 @orca.step('households_relocation')
 def households_relocation(households):
-    return utils.simple_relocation(households, .05, "building_id")
+    return psrcutils.simple_relocation(households, .05, "building_id")
 
 
 @orca.step('jobs_relocation')
 def jobs_relocation(jobs):
-    return utils.simple_relocation(jobs, .05, "building_id")
+    return psrcutils.simple_relocation(jobs, .05, "building_id")
 
 
 @orca.step('households_transition')

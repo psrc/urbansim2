@@ -1,7 +1,14 @@
 import psrc_urbansim.models
 import orca
 
-# models defined in psrc_urbansim.models
-orca.run(["repmres_estimate"])
+# models are defined in psrc_urbansim.models
 
-orca.run(["repmnr_estimate"])
+# uncomment models you want to estimate
+
+# REPM
+#orca.run(["repmres_estimate"])
+#orca.run(["repmnr_estimate"])
+
+# HLCM
+orca.run(["hlcm_estimate"])
+

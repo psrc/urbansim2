@@ -18,3 +18,8 @@ def number_of_households(zones, households):
 def number_of_jobs(zones, jobs):
     return jobs.sector_id.groupby(jobs.zone_id).size().\
            reindex(zones.index).fillna(0)
+
+@orca.column('zones', 'avg_income')
+def ave_income(households, zones):
+    s = households.income.groupby(households.zone_id).quantile().apply(np.log1p)
+    return s.reindex(zones.index).fillna(s.quantile())

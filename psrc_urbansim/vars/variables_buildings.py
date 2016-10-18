@@ -15,7 +15,7 @@ def building_sqft(buildings):
     results[where_res] = buildings.residential_units[where_res] * buildings.sqft_per_unit[where_res]
     where_nonres = np.where(buildings.non_residential_sqft > 0)[0]
     results[where_nonres] = results[where_nonres] + buildings.non_residential_sqft[where_nonres]
-    return pd.Series(results)
+    return pd.Series(results).reindex(buildings.index)
 
 @orca.column('buildings', 'zone_id', cache=True)
 def zone_id(buildings, parcels):
@@ -29,3 +29,7 @@ def faz_id(buildings, zones):
 def tractcity_id(buildings, parcels):
     return misc.reindex(parcels.tractcity_id, buildings.parcel_id)
 
+@orca.column('buildings', 'vacant_residential_units')
+def vacant_residential_units(buildings, households):
+    return buildings.residential_units.sub(
+        households.building_id.value_counts(), fill_value=0)
