@@ -50,7 +50,7 @@ def elcm_estimate(jobs, buildings, parcels, zones):
 
 @orca.step('elcm_simulate')
 def elcm_simulate(jobs, buildings, parcels, zones):
-    return utils.lcm_simulate("elcm.yaml", jobs, buildings, [parcels, zones],
+    return psrcutils.lcm_simulate("elcm.yaml", jobs, buildings, [parcels, zones],
                               "building_id", "job_spaces", "vacant_job_spaces")
 
 
