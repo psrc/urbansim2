@@ -1,0 +1,304 @@
+name: elcm
+
+model_type: segmented_discretechoice
+
+segmentation_col: sector_id
+
+choosers_fit_filters: building_id > 0
+
+choosers_predict_filters: null
+
+alts_fit_filters:
+- not building_type_id in [4, 11, 12, 19]
+
+alts_predict_filters:
+- not building_type_id in [4, 11, 12, 19]
+
+interaction_predict_filters: null
+
+choice_column: null
+
+sample_size: 100
+
+estimation_sample_size: 5000
+
+prediction_sample_size: null
+
+default_config:
+    model_expression: np.log1p(non_residential_sqft)
+
+models:
+    1:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.11095900495279166
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0022515077051451188
+            T-Score:
+                np.log1p(non_residential_sqft): 49.2820898188487
+        fitted: true
+        log_likelihoods:
+            convergence: -12933.94438621298
+            'null': -12995.790264858952
+            ratio: 0.004758916340255603
+        name: 1
+    2:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.49894206443936506
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0018783182180124103
+            T-Score:
+                np.log1p(non_residential_sqft): 265.6323404919818
+        fitted: true
+        log_likelihoods:
+            convergence: -13865.30350041283
+            'null': -15238.508145435475
+            ratio: 0.09011411300350769
+        name: 2
+    3:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 1.1206217618698706
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0013898413852397172
+            T-Score:
+                np.log1p(non_residential_sqft): 806.2947137500787
+        fitted: true
+        log_likelihoods:
+            convergence: -13943.179429330085
+            'null': -23012.035419381875
+            ratio: 0.3940918664853762
+        name: 3
+    4:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.761443662789022
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0014483300439317405
+            T-Score:
+                np.log1p(non_residential_sqft): 525.7390509706976
+        fitted: true
+        log_likelihoods:
+            convergence: -17622.352979836367
+            'null': -22123.237573486396
+            ratio: 0.2034460181833475
+        name: 4
+    5:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.8524898698484712
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0014447811856958886
+            T-Score:
+                np.log1p(non_residential_sqft): 590.0477375318698
+        fitted: true
+        log_likelihoods:
+            convergence: -16235.694817819249
+            'null': -21635.08953377178
+            ratio: 0.24956655286885798
+        name: 5
+    6:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.9248331726515321
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0014876384923974155
+            T-Score:
+                np.log1p(non_residential_sqft): 621.6787057997605
+        fitted: true
+        log_likelihoods:
+            convergence: -14448.117842251273
+            'null': -20244.328137603727
+            ratio: 0.286312801094447
+        name: 6
+    7:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.8097627962492925
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0014597239159594658
+            T-Score:
+                np.log1p(non_residential_sqft): 554.7369522386987
+        fitted: true
+        log_likelihoods:
+            convergence: -16780.88847447535
+            'null': -21759.42912879343
+            ratio: 0.22879923112183886
+        name: 7
+    8:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.6792674736479882
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0015089625214198873
+            T-Score:
+                np.log1p(non_residential_sqft): 450.15529809767474
+        fitted: true
+        log_likelihoods:
+            convergence: -17644.61358513096
+            'null': -21192.993195917035
+            ratio: 0.16743173453524696
+        name: 8
+    9:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.5269775396016803
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0023461535992633834
+            T-Score:
+                np.log1p(non_residential_sqft): 224.61340117165994
+        fitted: true
+        log_likelihoods:
+            convergence: -8528.65188661624
+            'null': -9491.25575332151
+            ratio: 0.1014200746164069
+        name: 9
+    10:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 1.0254904403084275
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0013894667061239464
+            T-Score:
+                np.log1p(non_residential_sqft): 738.0460688900806
+        fitted: true
+        log_likelihoods:
+            convergence: -14833.992013818764
+            'null': -22611.38561320101
+            ratio: 0.34395917757652317
+        name: 10
+    11:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 1.4761214915618335
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0014196433577604948
+            T-Score:
+                np.log1p(non_residential_sqft): 1039.7833255039727
+        fitted: true
+        log_likelihoods:
+            convergence: -9977.969987968183
+            'null': -21883.768723815076
+            ratio: 0.5440470005922871
+        name: 11
+    12:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.9303699303948137
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0015398016752679333
+            T-Score:
+                np.log1p(non_residential_sqft): 604.2141305197143
+        fitted: true
+        log_likelihoods:
+            convergence: -13880.20783917009
+            'null': -20032.490309048328
+            ratio: 0.3071152100894494
+        name: 12
+    13:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.9743926570916852
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0015948719350905728
+            T-Score:
+                np.log1p(non_residential_sqft): 610.9535415684329
+        fitted: true
+        log_likelihoods:
+            convergence: -12392.591196911137
+            'null': -18545.020338974547
+            ratio: 0.331756397653194
+        name: 13
+    14:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.5074996523575301
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.001577256137813679
+            T-Score:
+                np.log1p(non_residential_sqft): 321.76108888756846
+        fitted: true
+        log_likelihoods:
+            convergence: -19689.756176526866
+            'null': -21741.00844804948
+            ratio: 0.09434945377184867
+        name: 14
+    15:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.7262563555687299
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.001575077979804486
+            T-Score:
+                np.log1p(non_residential_sqft): 461.0923172571303
+        fitted: true
+        log_likelihoods:
+            convergence: -15477.472204431246
+            'null': -18973.301166271332
+            ratio: 0.18424990628697713
+        name: 15
+    16:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.7968951838738397
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0015410365682381642
+            T-Score:
+                np.log1p(non_residential_sqft): 517.1163360418591
+        fitted: true
+        log_likelihoods:
+            convergence: -15166.315073575848
+            'null': -19576.57846063562
+            ratio: 0.22528264558221367
+        name: 16
+    17:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.6544547653233803
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0016108049025052723
+            T-Score:
+                np.log1p(non_residential_sqft): 406.29052240001994
+        fitted: true
+        log_likelihoods:
+            convergence: -16015.284001077833
+            'null': -18973.301166271332
+            ratio: 0.15590419080322937
+        name: 17
+    18:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): -0.14926330939690438
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.001664484934590397
+            T-Score:
+                np.log1p(non_residential_sqft): -89.6753742223781
+        fitted: true
+        log_likelihoods:
+            convergence: -22545.963221179445
+            'null': -22800.197590826476
+            ratio: 0.01115053361420515
+        name: 18
+    19:
+        fit_parameters:
+            Coefficient:
+                np.log1p(non_residential_sqft): 0.603423826328218
+            Std. Error:
+                np.log1p(non_residential_sqft): 0.0014641400599749905
+            T-Score:
+                np.log1p(non_residential_sqft): 412.13531602879937
+        fitted: true
+        log_likelihoods:
+            convergence: -19828.376807547447
+            'null': -22855.45963305832
+            ratio: 0.13244462697798798
+        name: 19
+
+fitted: true
+
+choice_mode: aggregate
+
+remove_alts: true
+
+probability_mode: single_chooser

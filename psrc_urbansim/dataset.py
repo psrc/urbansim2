@@ -1,5 +1,6 @@
 import orca
 import pandas as pd
+import numpy as np
 import assumptions
 import urbansim_defaults.utils as utils
 
@@ -47,6 +48,31 @@ def fazes(store):
 @orca.table('tractcity', cache=True)
 def tractcity(store):
     df = store['tractcity']
+    return df
+
+@orca.table('household_relocation_rates', cache=True)
+def households_relocation_rates(store):
+    df = store['annual_household_relocation_rates']
+    # if the dataset was indexed by one of the columns, make it again a regular column
+    if df.index.name is not None:
+        df[df.index.name] = df.index
+    #TODO: this is a hack! Update this in the input data. 
+    df = df.rename(columns={"age_min": "age_of_head_min", "age_max": "age_of_head_max"})
+    df[df < 0] = np.nan 
+    return df
+
+@orca.table('job_relocation_rates', cache=True)
+def jobs_relocation_rates(store):
+    df = store['annual_job_relocation_rates']
+    # if the dataset was indexed by one of the columns, make it again a regular column
+    if df.index.name is not None:
+        df[df.index.name] = df.index    
+    df[df < 0] = np.nan 
+    return df
+
+@orca.table('building_sqft_per_job', cache=True)
+def buildings(store):
+    df = store['building_sqft_per_job']
     return df
 
 orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')

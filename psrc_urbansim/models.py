@@ -5,6 +5,7 @@ import psrc_urbansim.utils as psrcutils
 import dataset
 import variables
 import numpy as np
+import pandas as pd
 
 @orca.injectable()
 def year(iter_var):
@@ -40,27 +41,36 @@ def hlcm_simulate(households, buildings, parcels, zones):
     return psrcutils.lcm_simulate("hlcm.yaml", households, buildings, [parcels, zones],
                               "building_id", "residential_units", "vacant_residential_units")
 
-
+# ELCM
 @orca.step('elcm_estimate')
-def elcm_estimate(jobs, buildings, zones):
+def elcm_estimate(jobs, buildings, parcels, zones):
     return utils.lcm_estimate("elcm.yaml", jobs, "building_id",
-                              buildings, zones)
+                              buildings, [parcels, zones])
 
 
 @orca.step('elcm_simulate')
-def elcm_simulate(jobs, buildings, zones):
-    return utils.lcm_simulate("elcm.yaml", jobs, buildings, zones,
+def elcm_simulate(jobs, buildings, parcels, zones):
+    return utils.lcm_simulate("elcm.yaml", jobs, buildings, [parcels, zones],
                               "building_id", "job_spaces", "vacant_job_spaces")
 
 
 @orca.step('households_relocation')
-def households_relocation(households):
-    return psrcutils.simple_relocation(households, .05, "building_id")
-
+def households_relocation(households, household_relocation_rates):
+    from urbansim.models import relocation as relo
+    rm = relo.RelocationModel(household_relocation_rates.to_frame())
+    movers = rm.find_movers(households.to_frame())
+    print "%s households selected to move." % movers.size
+    households.update_col_from_series("building_id",
+                            pd.Series(-1, index=movers), cast=True)    
 
 @orca.step('jobs_relocation')
-def jobs_relocation(jobs):
-    return psrcutils.simple_relocation(jobs, .05, "building_id")
+def jobs_relocation(jobs, job_relocation_rates):
+    from urbansim.models import relocation as relo
+    rm = relo.RelocationModel(job_relocation_rates.to_frame(), rate_column='job_relocation_probability')
+    movers = rm.find_movers(jobs.to_frame())
+    print "%s jobs selected to move." % movers.size
+    jobs.update_col_from_series("building_id",
+                            pd.Series(-1, index=movers), cast=True) 
 
 
 @orca.step('households_transition')

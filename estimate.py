@@ -10,5 +10,7 @@ import orca
 #orca.run(["repmnr_estimate"])
 
 # HLCM
-orca.run(["hlcm_estimate"])
+#orca.run(["hlcm_estimate"])
 
+# ELCM
+orca.run(["elcm_estimate"])
