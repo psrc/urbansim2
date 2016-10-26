@@ -2,14 +2,12 @@ import orca
 import random
 import urbansim_defaults.utils as utils
 import psrc_urbansim.utils as psrcutils
-import dataset
+#import urbansim_defaults.models
+import datasources
 import variables
 import numpy as np
 import pandas as pd
 
-@orca.injectable()
-def year(iter_var):
-    return iter_var
 
 # Residential REPM
 @orca.step('repmres_estimate')
@@ -74,67 +72,26 @@ def jobs_relocation(jobs, job_relocation_rates):
 
 
 @orca.step('households_transition')
-def households_transition(households):
-    return utils.simple_transition(households, .05, "building_id")
+def households_transition(households, household_controls, year, settings):
+    return utils.full_transition(households, household_controls, year, 
+                                 settings['households_transition'], "building_id")
 
 
 @orca.step('jobs_transition')
-def jobs_transition(jobs):
-    return utils.simple_transition(jobs, .05, "building_id")
+def jobs_transition(jobs, employment_controls, year, settings):
+    return utils.full_transition(jobs,
+                                 employment_controls,
+                                 year,
+                                 settings['jobs_transition'],
+                                 "building_id")
 
 
-@orca.step('feasibility')
-def feasibility(parcels):
-    utils.run_feasibility(parcels,
-                          variables.parcel_average_price,
-                          variables.parcel_is_allowed,
-                          residential_to_yearly=True)
 
 
-def random_type(form):
-    form_to_btype = sim.get_injectable("form_to_btype")
-    return random.choice(form_to_btype[form])
 
 
-def add_extra_columns(df):
-    for col in ["residential_sales_price", "non_residential_rent"]:
-        df[col] = 0
-    return df
 
 
-@orca.step('residential_developer')
-def residential_developer(feasibility, households, buildings, parcels, year):
-    utils.run_developer("residential",
-                        households,
-                        buildings,
-                        "residential_units",
-                        parcels.parcel_size,
-                        parcels.ave_unit_size,
-                        parcels.total_units,
-                        feasibility,
-                        year=year,
-                        target_vacancy=.15,
-                        form_to_btype_callback=random_type,
-                        add_more_columns_callback=add_extra_columns,
-                        bldg_sqft_per_job=400.0)
-
-
-@orca.step('non_residential_developer')
-def non_residential_developer(feasibility, jobs, buildings, parcels, year):
-    utils.run_developer(["office", "retail", "industrial"],
-                        jobs,
-                        buildings,
-                        "job_spaces",
-                        parcels.parcel_size,
-                        parcels.ave_unit_size,
-                        parcels.total_job_spaces,
-                        feasibility,
-                        year=year,
-                        target_vacancy=.15,
-                        form_to_btype_callback=random_type,
-                        add_more_columns_callback=add_extra_columns,
-                        residential=False,
-                        bldg_sqft_per_job=400.0)
 
 
 

@@ -1,0 +1,12 @@
+store: psrc_base_year_2014.h5
+
+households_transition:
+  total_column: total_number_of_households
+  add_columns:
+    - income
+    
+jobs_transition:
+  add_columns:
+    - sector_id
+  total_column: total_number_of_jobs
+  

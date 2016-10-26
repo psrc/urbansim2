@@ -24,6 +24,10 @@ def faz_id(households, zones):
 def tractcity_id(households, parcels):
     return misc.reindex(parcels.tractcity_id, households.parcel_id)
 
+@orca.column('households', 'city_id', cache=True)
+def city_id(households, parcels):
+    return misc.reindex(parcels.city_id, households.parcel_id)
+
 @orca.column('households', 'is_inmigrant', cache=True)
 def is_inmigrant(households, parcels):
     return (households.building_id < 0).reindex(households.index)
