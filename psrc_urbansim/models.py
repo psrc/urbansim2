@@ -73,17 +73,23 @@ def jobs_relocation(jobs, job_relocation_rates):
 
 @orca.step('households_transition')
 def households_transition(households, household_controls, year, settings):
-    return utils.full_transition(households, household_controls, year, 
+    orig_size = households.local.shape[0]
+    res = utils.full_transition(households, household_controls, year, 
                                  settings['households_transition'], "building_id")
+    print "Change: %s households" % (orca.get_table("households").local.shape[0] - orig_size)
+    return res
 
 
 @orca.step('jobs_transition')
 def jobs_transition(jobs, employment_controls, year, settings):
-    return utils.full_transition(jobs,
+    orig_size = jobs.local.shape[0]
+    res = utils.full_transition(jobs,
                                  employment_controls,
                                  year,
                                  settings['jobs_transition'],
                                  "building_id")
+    print "Change: %s jobs" % (orca.get_table("jobs").local.shape[0] - orig_size)
+    return res    
 
 
 

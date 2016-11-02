@@ -61,13 +61,14 @@ def cache_to_df(dir_path):
 
 
 DIRECTORIES = {
-    'parcels', 'buildings', 'households', 'jobs', 'zones', 'travel_data',
+    'parcels', 'buildings', 'households', 'jobs', 'persons', 'zones', 'travel_data',
     'annual_employment_control_totals', 'annual_household_control_totals',
     'annual_household_relocation_rates', 'annual_job_relocation_rates',
     'building_sqft_per_job', 'building_types', 'counties', 'target_vacancies',
     'development_event_history'
 }
 
+NO_INDEX = ['annual_household_relocation_rates', 'annual_job_relocation_rates']
 
 def convert_dirs(base_dir, hdf_name, complib=None, complevel=0):
     """
@@ -93,14 +94,14 @@ def convert_dirs(base_dir, hdf_name, complib=None, complevel=0):
         if dirname == 'travel_data':
             keys = ['from_zone_id', 'to_zone_id']
         elif dirname == 'annual_employment_control_totals':
-            keys = ['sector_id', 'year', 'home_based_status']
-        elif dirname == 'annual_job_relocation_rates':
-            keys = ['sector_id']
+            keys = ['year']
+        #elif dirname == 'annual_job_relocation_rates':
+        #    keys = ['sector_id']
         elif dirname == 'annual_household_control_totals':
             keys = ['year']
-        elif dirname == 'annual_household_relocation_rates':
-            keys = ['age_of_head_max', 'age_of_head_min',
-                    'income_min', 'income_max']
+        #elif dirname == 'annual_household_relocation_rates':
+        #    keys = ['age_of_head_max', 'age_of_head_min',
+        #            'income_min', 'income_max']
         elif dirname == 'building_sqft_per_job':
             keys = ['zone_id', 'building_type_id']
         elif dirname == 'counties':
@@ -112,7 +113,7 @@ def convert_dirs(base_dir, hdf_name, complib=None, complevel=0):
         else:
             keys = [dirname[:-1] + '_id']
 
-        if dirname != 'annual_household_relocation_rates':
+        if dirname not in NO_INDEX:
             df = df.set_index(keys)
 
         for colname in df.columns:

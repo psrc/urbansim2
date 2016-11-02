@@ -8,13 +8,14 @@ orca.run([
     #"repmres_simulate",           # residential REPM
     #"repmnr_simulate",            # non-residential REPM
 
-    #"households_relocation",     # households relocation model
-    #"hlcm_simulate",              # households location choice
-    #"households_transition",     # households transition
+    "households_transition",     # households transition
+    "households_relocation",     # households relocation model
+    "hlcm_simulate",              # households location choice
 
-    #"jobs_relocation",           # jobs relocation model
-    #"elcm_simulate",             # employment location choice
     "jobs_transition",           # jobs transition
+    "jobs_relocation",           # jobs relocation model
+    "elcm_simulate",             # employment location choice
+
 
     #"feasibility",               # compute development feasibility
     #"residential_developer",     # build residential buildings
