@@ -76,7 +76,7 @@ def households_transition(households, household_controls, year, settings):
     orig_size = households.local.shape[0]
     res = utils.full_transition(households, household_controls, year, 
                                  settings['households_transition'], "building_id")
-    print "Change: %s households" % (orca.get_table("households").local.shape[0] - orig_size)
+    print "Net change: %s households" % (orca.get_table("households").local.shape[0] - orig_size)
     return res
 
 
@@ -88,7 +88,7 @@ def jobs_transition(jobs, employment_controls, year, settings):
                                  year,
                                  settings['jobs_transition'],
                                  "building_id")
-    print "Change: %s jobs" % (orca.get_table("jobs").local.shape[0] - orig_size)
+    print "Net change: %s jobs" % (orca.get_table("jobs").local.shape[0] - orig_size)
     return res    
 
 
