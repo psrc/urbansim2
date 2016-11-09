@@ -34,6 +34,14 @@ def vacant_residential_units(buildings, households):
     return buildings.residential_units.sub(
         households.building_id.value_counts(), fill_value=0)
 
+@orca.column('buildings', 'number_of_jobs', cache=True, cache_scope='iteration')
+def number_of_jobs(buildings, jobs):
+    return jobs.sector_id.groupby(jobs.building_id).size().reindex(buildings.index).fillna(0).astype("int32")
+
+@orca.column('buildings', 'number_of_governmental_jobs', cache=True, cache_scope='iteration')
+def number_of_governmental_jobs(buildings, jobs):
+    return jobs.sector_id.groupby(jobs.building_id[np.in1d(jobs.sector_id, [18, 19])]).size().reindex(buildings.index).fillna(0).astype("int32")
+
 @orca.column('buildings', 'sqft_per_job', cache=True, cache_scope='iteration')
 def sqft_per_job(buildings, building_sqft_per_job):
     series1 = building_sqft_per_job.building_sqft_per_job.to_frame()    
