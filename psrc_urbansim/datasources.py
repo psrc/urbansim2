@@ -54,21 +54,12 @@ def tractcity(store):
 @orca.table('household_relocation_rates', cache=True)
 def households_relocation_rates(store):
     df = store['annual_household_relocation_rates']
-    # if the dataset was indexed by one of the columns, make it again a regular column
-    # TODO: change it  in the conversion script
-    #if df.index.name is not None:
-    #    df[df.index.name] = df.index
-    #TODO: this is a hack! Update this in the input data. 
-    df = df.rename(columns={"age_min": "age_of_head_min", "age_max": "age_of_head_max"})
     df[df < 0] = np.nan 
     return df
 
 @orca.table('job_relocation_rates', cache=True)
 def jobs_relocation_rates(store):
-    df = store['annual_job_relocation_rates']
-    # if the dataset was indexed by one of the columns, make it again a regular column
-    #if df.index.name is not None:
-    #    df[df.index.name] = df.index    
+    df = store['annual_job_relocation_rates']  
     df[df < 0] = np.nan 
     return df
 
@@ -80,36 +71,13 @@ def buildings(store):
 @orca.table('household_controls', cache=True)
 def household_controls(store):
     df = store["annual_household_control_totals"]
-    # TODO: This is a hack to overcome the fact that the transition model canot deal with -1s
-    # remove 2015 controls and replace them with 2016
-    del df['city_id']
-    df = df.drop(2015)
-    df2 = df.loc[2016]
-    df2.index = df2.index-1
-    df = df.append(df2)
     df[df < 0] = np.inf
-    # TODO: This should be changed in the input data
-    # add 0.5 to max of workers and persons, since an open right bracket is used, i.e. [min, max)
-    df['persons_max'] = df['persons_max'] + 0.5
-    df['workers_max'] = df['workers_max'] + 0.5
     return df
 
 @orca.table('employment_controls', cache=True)
 def employment_controls(store):
     df = store["annual_employment_control_totals"]
-    # if the dataset was indexed by one of the columns, make it again a regular column
-    # TODO: change it  in the conversion script
-    #if df.index.names is not None:
-    #    for name in df.index.names:
-    #        df[name] = df.index.get_level_values(name)
-    #df = df.set_index('year')
-    # TODO: This is a hack to overcome the fact that the transition model canot deal with -1s
-    # remove 2015 controls and replace them with 2016
-    del df['city_id']
-    df = df.drop(2015)
-    df2 = df.loc[2016]
-    df2.index = df2.index-1
-    df = df.append(df2)
+    df[df < 0] = np.inf
     return df
 
 

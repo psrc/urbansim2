@@ -54,13 +54,14 @@ def elcm_simulate(jobs, buildings, parcels, zones):
 
 @orca.step('households_relocation')
 def households_relocation(households, household_relocation_rates):
-    return utils.simple_relocation(households, .05, "building_id", cast=True)
-    #from urbansim.models import relocation as relo
-    #rm = relo.RelocationModel(household_relocation_rates.to_frame())
-    #movers = rm.find_movers(households.to_frame())
-    #print "%s households selected to move." % movers.size
-    #households.update_col_from_series("building_id",
-                            #pd.Series(-1, index=movers), cast=True)    
+    #return utils.simple_relocation(households, .05, "building_id", cast=True)
+    from urbansim.models import relocation as relo
+    rm = relo.RelocationModel(household_relocation_rates.to_frame(), rate_column='probability_of_relocating')
+    movers = rm.find_movers(households.to_frame())
+    print "%s households selected to move." % movers.size
+    households.update_col_from_series("building_id",
+                            pd.Series(-1, index=movers), cast=True)
+    print "%s households are unplaced in total." % ((households.local["building_id"] <= 0).sum())
 
 @orca.step('jobs_relocation')
 def jobs_relocation(jobs, job_relocation_rates):
@@ -70,6 +71,7 @@ def jobs_relocation(jobs, job_relocation_rates):
     print "%s jobs selected to move." % movers.size
     jobs.update_col_from_series("building_id",
                             pd.Series(-1, index=movers), cast=True) 
+    print "%s jobs are unplaced in total." % ((jobs.local["building_id"] <= 0).sum())
 
 
 @orca.step('households_transition')

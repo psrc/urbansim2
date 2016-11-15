@@ -29,16 +29,16 @@ def faz_id(buildings, zones):
 def tractcity_id(buildings, parcels):
     return misc.reindex(parcels.tractcity_id, buildings.parcel_id)
 
-@orca.column('buildings', 'vacant_residential_units', cache=True, cache_scope='iteration')
+@orca.column('buildings', 'vacant_residential_units', cache=False, cache_scope='iteration')
 def vacant_residential_units(buildings, households):
     return buildings.residential_units.sub(
         households.building_id.value_counts(), fill_value=0)
 
-@orca.column('buildings', 'number_of_jobs', cache=True, cache_scope='iteration')
+@orca.column('buildings', 'number_of_jobs', cache=True, cache_scope='step')
 def number_of_jobs(buildings, jobs):
     return jobs.sector_id.groupby(jobs.building_id).size().reindex(buildings.index).fillna(0).astype("int32")
 
-@orca.column('buildings', 'number_of_governmental_jobs', cache=True, cache_scope='iteration')
+@orca.column('buildings', 'number_of_governmental_jobs', cache=True, cache_scope='step')
 def number_of_governmental_jobs(buildings, jobs):
     return jobs.sector_id.groupby(jobs.building_id[np.in1d(jobs.sector_id, [18, 19])]).size().reindex(buildings.index).fillna(0).astype("int32")
 
@@ -50,10 +50,9 @@ def sqft_per_job(buildings, building_sqft_per_job):
     return df.building_sqft_per_job
 
 
-@orca.column('buildings', 'job_spaces', cache=True, cache_scope='iteration')
+@orca.column('buildings', 'job_spaces', cache=False)
 def job_spaces(buildings):
     # TODO: get base year as an argument
-    # TODO: base buildings table has 803 records with year built 2015
     results = np.zeros(buildings.local.shape[0],dtype=np.int32)
     iexisting = np.where(buildings.year_built <= 2014)[0]
     ifuture = np.where(buildings.year_built > 2014)[0]
@@ -62,7 +61,7 @@ def job_spaces(buildings):
             buildings.sqft_per_job).fillna(0).astype('int')).iloc[ifuture]
     return pd.Series(results, index=buildings.index)
 
-@orca.column('buildings', 'vacant_job_spaces', cache=True, cache_scope='iteration')
+@orca.column('buildings', 'vacant_job_spaces', cache=False)
 def vacant_job_spaces(buildings, jobs):
     return buildings.job_spaces.sub(
         jobs.building_id.value_counts(), fill_value=0)

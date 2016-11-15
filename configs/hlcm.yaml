@@ -31,17 +31,17 @@ choice_mode: aggregate
 fit_parameters:
     Coefficient:
         np.log1p(avg_income): -3.0
-        np.log1p(sqft_per_unit): -0.2465721039643284
+        np.log1p(sqft_per_unit): -0.21496798146824875
     Std. Error:
-        np.log1p(avg_income): 0.05992448079189128
-        np.log1p(sqft_per_unit): 0.020880205464550956
+        np.log1p(avg_income): 0.07091738927488632
+        np.log1p(sqft_per_unit): 0.02458171956807579
     T-Score:
-        np.log1p(avg_income): -50.06301198367574
-        np.log1p(sqft_per_unit): -11.808892608022578
+        np.log1p(avg_income): -42.302741692472
+        np.log1p(sqft_per_unit): -8.745034328169094
 
 probability_mode: single_chooser
 
 log_likelihoods:
-    convergence: -13654.700164455518
+    convergence: -13689.691469409012
     'null': -13815.51055796495
-    ratio: 0.011639844422305479
+    ratio: 0.009107089312989647
