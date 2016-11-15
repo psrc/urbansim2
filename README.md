@@ -123,6 +123,8 @@ To set the environment variables in step 4, 5 and 7, depending where you want to
 
 In both cases, it changes the environment only for the session in this terminal or bash window.
 
+The base year data are stored in ``/d/udst/psrc_urbansim/data/psrc_base_year_2014.h5``.
+
 
 ## Using UrbanSim-2
 
@@ -130,21 +132,36 @@ The code is under construction. Currently, only a prototype of the model system 
 
 ### Estimation
 
-To estimate, go to the ``psrc_urbansim`` directory and do
+Model estimation is controlled from the file ``estimate.py``. In that file, uncomment a line corresponding to the model to be estimated. For example, for estimating residential real estate price model, make sure the line  
+
+```
+orca.run(["repmres_estimate"])
+```
+
+is uncommented, while all other lines except imports are commented out. Then run 
 
 ```
 python estimate.py
 ```
- 
-The configuration of the REPM can be found in ``configs/repm.yaml`` where the outputs are also written into. New variables can be defined in ``psrc_urbansim/variables.py``.
+
+The UI of the various models is implemented in ``psrc_urbansim/models.py``. For the example above, we'll find the following section in the ``models.py`` file:
+
+```
+@orca.step('repmres_estimate')
+def repmres_estimate(parcels):
+    return utils.hedonic_estimate("repmres.yaml", parcels, None)
+```
+
+This tells us that the model is using a specification defined in the file  ``configs/repmres.yaml``. Note that this file is used as an input as well as output, so the estimation results can be found there. New variables should be implemented in the directory ``psrc_urbansim/vars``, depending on the corresponding dataset. 
+
+
 
 ### Simulation
 
-To simulate, from the ``psrc_urbansim`` directory run
+A simulation can be started from the file ``simulate.py``. Here, uncomment all models you want to run and define the set of simulation years. Outputs will be written into a file defined in the argument ``data_out``.
 
 ```
 python simulate.py
 ```
 
-The script contains the name of the output file.
 
