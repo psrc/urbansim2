@@ -35,10 +35,23 @@ In the examples below it will be assumed that the base directory for the install
    SET PYTHONPATH=D:/udst/psrc_urbansim;D:/udst/urbansim;D:/udst/urbansim_defaults;D:/udst/orca;D:/udst/pandana
    ```
    
+   If you prefer to work with Git Bash, you can put something like this into a file called ``setpath.sh``:
+   
+   ```
+   DIR=/d/udst
+   EXPORT PYTHONPATH=$DIR/psrc_urbansim:$DIR/urbansim:$DIR/urbansim_defaults:$DIR/orca:$DIR/pandana
+   ```
+   
 5. Set the PATH variable to point to the Anaconda directory. E.g. add this line to the ``setpath.bat`` file:
    
    ```
    SET PATH=c:/Anaconda;c:/Anaconda/Scripts;%PATH%
+   ```
+   
+   or in bash:
+   
+   ```
+   EXPORT PATH=/c/Anaconda:/c/Anaconda/Scripts:$PATH
    ```
     
 6. Create a base year dataset as an hdf5 file by running the script [``psrc_urbansim/data/conversion/cache_to_hdf5.py``](https://github.com/psrc/urbansim2/tree/master/data/conversion/cache_to_hdf5.py) (see [more info](https://github.com/psrc/urbansim2/tree/master/data/conversion)). Move the resulting file into ``psrc_urbansim/data``.
@@ -47,26 +60,21 @@ In the examples below it will be assumed that the base directory for the install
    ```
    SET DATA_HOME=D:/udst/psrc_urbansim
    ```
+   
+   or in bash:
+   
+   ```
+   EXPORT DATA_HOME=$DIR/psrc_urbansim
+   ```
 
 8. Put the name of the data file into ``psrc_urbansim/configs/settings.yaml`` (node ``store``).
 9. There might be a few changes to the ``urbansim_defaults`` package that were submitted as pull requests to UDST but were not accepted yet. To keep the repository in sync with those changes do
   
   ```
-  cd /d/udst/psrc_urbansim
+  cd /d/udst/urbansim_defaults
   git remote add psrcedits https://github.com/hanase/urbansim_defaults.git
-  git pull psrcedits master
+  git pull psrcedits dev
   ``` 
-
-### Setup Note for modelsrv3
-
-The packages are already installed there as well as the baseyear data is available. To set the environment variables in step 4, 5 and 7, open a terminal, go into ``d:/synthicity`` and run ``setpath.bat``. Alternatively, in a Git Bash window do
-
-```
-cd /d/synthicity
-source setpath.sh
-```
-
-In both cases, it changes the environment only for the session in this terminal or bash window.
 
 ### Code Update
 
@@ -81,8 +89,40 @@ cd ../pandana
 git pull
 cd ../urbansim_defaults
 git pull
-git pull psrcedits master
+git pull psrcedits dev
 ```
+
+This can be automated as has been done on modelsrv3, see the next section.
+
+### Setup Note for modelsrv3
+
+On modelsrv3, the packages are already installed, as well as the baseyear data is available. To update the code, open a Git Bash and do:
+
+```
+cd /d/udst
+./update_all.sh
+```
+
+The script iterates over the packages and pulls from the corresponding repositories.
+
+To set the environment variables in step 4, 5 and 7, depending where you want to run UrbanSim-2:
+
+1. **Windows command line:** Open a terminal, go into the ``d:/udst`` directory and do:
+
+   ```
+   setpath.bat
+   ```
+ 
+2. **Git Bash**: Open a Git Bash window and do 
+ 
+
+   ```
+   cd /d/udst
+   source setpath.sh
+   ```
+
+In both cases, it changes the environment only for the session in this terminal or bash window.
+
 
 ## Using UrbanSim-2
 
