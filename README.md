@@ -11,7 +11,7 @@ This is an urbansim-2 implementation of the PSRC land use model. It is a python 
 In the examples below it will be assumed that the base directory for the installation is ``d:/udst``.
 
 
-1. Install [Anaconda Python](http://continuum.io/downloads). By default it will be installed in a different directory than existing Python, so there is no danger in messing up the current Python installation.
+1. Install [Anaconda Python](http://continuum.io/downloads), the latest of the 2.* series (not 3.*). By default it will be installed in a different directory than existing Python, so there is no danger in messing up the current Python installation.
 2. Clone this repository into a directory called ``psrc_urbansim``:
    
    ```
