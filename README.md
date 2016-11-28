@@ -39,7 +39,7 @@ In the examples below it will be assumed that the base directory for the install
    
    ```
    DIR=/d/udst
-   EXPORT PYTHONPATH=$DIR/psrc_urbansim:$DIR/urbansim:$DIR/urbansim_defaults:$DIR/orca:$DIR/pandana
+   export PYTHONPATH=$DIR/psrc_urbansim:$DIR/urbansim:$DIR/urbansim_defaults:$DIR/orca:$DIR/pandana
    ```
    
 5. Set the PATH variable to point to the Anaconda directory. E.g. add this line to the ``setpath.bat`` file:
@@ -51,7 +51,7 @@ In the examples below it will be assumed that the base directory for the install
    or in bash:
    
    ```
-   EXPORT PATH=/c/Anaconda:/c/Anaconda/Scripts:$PATH
+   export PATH=/c/Anaconda:/c/Anaconda/Scripts:$PATH
    ```
     
 6. Create a base year dataset as an hdf5 file by running the script [``psrc_urbansim/data/conversion/cache_to_hdf5.py``](https://github.com/psrc/urbansim2/tree/master/data/conversion/cache_to_hdf5.py) (see [more info](https://github.com/psrc/urbansim2/tree/master/data/conversion)). Move the resulting file into ``psrc_urbansim/data``.
@@ -64,7 +64,7 @@ In the examples below it will be assumed that the base directory for the install
    or in bash:
    
    ```
-   EXPORT DATA_HOME=$DIR/psrc_urbansim
+   export DATA_HOME=$DIR/psrc_urbansim
    ```
 
 8. Put the name of the data file into ``psrc_urbansim/configs/settings.yaml`` (node ``store``).
