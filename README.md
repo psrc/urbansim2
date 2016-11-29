@@ -171,3 +171,37 @@ python simulate.py
 ```
 
 
+## Pushing Changes to GitHub
+
+For now, since everything is under development, we will push all our changes into the master branch (unless you want to have your own experimental branch). 
+
+### Exclusions
+
+There are a few files that are either automatically overwritten by the estimation procedure (e.g. yaml config files) or that have temporary changes not to be committed (e.g. estimate.py, simulate.py) and thus, we want them to be excluded from commits. There are bash scripts in the main directory that can help with that. First check with ``git status`` if some of these "unwanted" files are in line for a commit. If it is the case, BEFORE you run commit, you can use (from a bash terminal):
+
+* ``source gitexclude_yaml.sh``: excludes all yaml files found in the configs directory.
+* ``source gitexclude.sh filename``: excludes a specific file given by the filename.
+* ``source gitinclude.sh filename``: includes a previously excluded file given by the filename. 
+
+Then run commit and push. For example, you made changes in the HLCM specification that should be committed, but you also ran test estimations of other models results of which should not be pushed to GitHub, neither the estimate.py file. In such a case, you can do:
+
+```
+source gitexclude_yaml.sh
+source gitinclude.sh configs/hlcm.yaml
+source gitexclude.sh estimate.py
+git status
+git commit -am 'describe your changes'
+git push
+```
+
+The first line excludes all yaml files while the second line "unexcludes" hlcm.yaml and the third line adds the estimate.py file to the exclusions. Always check with ``git status`` that it is doing what you want.
+
+### Merging
+
+If you excluded a file and somebody else makes changes to it that collide with yours, the ``git pull`` command will most likely throw an error. There are various ways to deal with it depending on if you want to keep your changes or not. For keeping your changes look at the [git stash documentation](https://git-scm.com/book/en/v1/Git-Tools-Stashing). If you want to throw your changes away, do 
+
+```
+git checkout filename
+```
+
+with filename being the file you want to overwrite.
