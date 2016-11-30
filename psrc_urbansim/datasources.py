@@ -8,10 +8,16 @@ from urbansim_defaults import datasources
 import warnings
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 
+# datasets in alphabetical order
 
-@orca.table('parcels', cache=True)
-def parcels(store):
-    df = store['parcels']
+@orca.table('building_sqft_per_job', cache=True)
+def buildings(store):
+    df = store['building_sqft_per_job']
+    return df
+
+@orca.table('building_types', cache=True)
+def building_types(store):
+    df = store['building_types']
     return df
 
 @orca.table('buildings', cache=True)
@@ -20,52 +26,15 @@ def buildings(store):
     #df = utils.fill_nas_from_config('buildings', df)
     return df
 
-@orca.table('households', cache=True)
-def households(store):
-    df = store['households']
-    return df
-
-@orca.table('jobs', cache=True)
-def jobs(store):
-    df = store['jobs']
-    #df = utils.fill_nas_from_config('jobs', df)
-    return df
-
-@orca.table('persons', cache=True)
-def persons(store):
-    df = store['persons']
-    return df
-
-@orca.table('zones', cache=True)
-def zones(store):
-    df = store['zones']
+@orca.table('employment_controls', cache=True)
+def employment_controls(store):
+    df = store["annual_employment_control_totals"]
+    df[df < 0] = np.inf
     return df
 
 @orca.table('fazes', cache=True)
 def fazes(store):
     df = store['fazes']
-    return df
-
-@orca.table('tractcity', cache=True)
-def tractcity(store):
-    df = store['tractcity']
-    return df
-
-@orca.table('household_relocation_rates', cache=True)
-def households_relocation_rates(store):
-    df = store['annual_household_relocation_rates']
-    df[df < 0] = np.nan 
-    return df
-
-@orca.table('job_relocation_rates', cache=True)
-def jobs_relocation_rates(store):
-    df = store['annual_job_relocation_rates']  
-    df[df < 0] = np.nan 
-    return df
-
-@orca.table('building_sqft_per_job', cache=True)
-def buildings(store):
-    df = store['building_sqft_per_job']
     return df
 
 @orca.table('household_controls', cache=True)
@@ -74,12 +43,48 @@ def household_controls(store):
     df[df < 0] = np.inf
     return df
 
-@orca.table('employment_controls', cache=True)
-def employment_controls(store):
-    df = store["annual_employment_control_totals"]
-    df[df < 0] = np.inf
+@orca.table('household_relocation_rates', cache=True)
+def households_relocation_rates(store):
+    df = store['annual_household_relocation_rates']
+    df[df < 0] = np.nan 
     return df
 
+@orca.table('households', cache=True)
+def households(store):
+    df = store['households']
+    return df
+
+@orca.table('job_relocation_rates', cache=True)
+def jobs_relocation_rates(store):
+    df = store['annual_job_relocation_rates']  
+    df[df < 0] = np.nan 
+    return df
+
+@orca.table('jobs', cache=True)
+def jobs(store):
+    df = store['jobs']
+    #df = utils.fill_nas_from_config('jobs', df)
+    return df
+
+@orca.table('parcels', cache=True)
+def parcels(store):
+    df = store['parcels']
+    return df
+
+@orca.table('persons', cache=True)
+def persons(store):
+    df = store['persons']
+    return df
+
+@orca.table('tractcity', cache=True)
+def tractcity(store):
+    df = store['tractcity']
+    return df
+
+@orca.table('zones', cache=True)
+def zones(store):
+    df = store['zones']
+    return df
 
 
 orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
