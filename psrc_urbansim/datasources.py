@@ -81,6 +81,11 @@ def tractcity(store):
     df = store['tractcity']
     return df
 
+@orca.table('travel_data', cache=True)
+def tractcity(store):
+    df = store['travel_data']
+    return df
+
 @orca.table('zones', cache=True)
 def zones(store):
     df = store['zones']
