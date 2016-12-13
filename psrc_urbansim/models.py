@@ -32,7 +32,7 @@ def repmnr_simulate(parcels):
 @orca.step('hlcm_estimate')
 def hlcm_estimate(households, buildings, parcels, zones):
     return utils.lcm_estimate("hlcm.yaml", households, "building_id",
-                              buildings, [parcels, zones])
+                              buildings, None)
 
 @orca.step('hlcm_simulate')
 def hlcm_simulate(households, buildings, parcels, zones):

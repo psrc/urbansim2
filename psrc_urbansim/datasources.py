@@ -66,6 +66,11 @@ def jobs(store):
     #df = utils.fill_nas_from_config('jobs', df)
     return df
 
+@orca.table('land_use_types', cache=True)
+def land_use_types(store):
+    df = store['land_use_types']
+    return df
+
 @orca.table('parcels', cache=True)
 def parcels(store):
     df = store['parcels']

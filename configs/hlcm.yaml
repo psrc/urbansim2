@@ -29,40 +29,40 @@ default_config:
         == "single_family_residential")*1) + I((persons > 3)*1):I(np.logical_not(large_area_id
         == 6)*1) + I((tenure == 1)*1):I(np.logical_not(building_type_name == "multi_family_residential")*1)
         + I((persons-2)*(persons > 2)):I((building_type_name == "condo_residential")*1)
-        + I(np.log1p(income)/(persons*persons*1.0)):I(np.log1p(sqft_per_unit)) + np.log1p(avg_income)
+        + I(np.log1p(income)/(persons*persons*1.0)):I(np.log1p(sqft_per_unit)) + unit_price
 
 models:
     false:
         fit_parameters:
             Coefficient:
                 I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): -3.0
-                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 1.2558798077884405
-                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 0.08951133993722467
-                I((tenure == 1) * 1):I(np.logical_not(building_type_name == "multi_family_residential") * 1): 1.67382518082361
-                I(np.log1p(income) / (persons * persons * 1.0)):I(np.log1p(sqft_per_unit)): -0.01581061539909715
-                multifamily_type: 1.8090876038081396
-                np.log1p(avg_income): -2.2712813465393227
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 1.2272662810294346
+                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 0.3711509594039995
+                I((tenure == 1) * 1):I(np.logical_not(building_type_name == "multi_family_residential") * 1): 1.4967511105398754
+                I(np.log1p(income) / (persons * persons * 1.0)):I(np.log1p(sqft_per_unit)): -0.023332086894502585
+                multifamily_type: 1.7904645722040466
+                unit_price: -0.0006637777567056774
             Std. Error:
-                I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): 180.77228192486075
-                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 0.07260814784084359
-                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 0.052395953434458305
-                I((tenure == 1) * 1):I(np.logical_not(building_type_name == "multi_family_residential") * 1): 0.04678472777526475
-                I(np.log1p(income) / (persons * persons * 1.0)):I(np.log1p(sqft_per_unit)): 0.0009155929374965299
-                multifamily_type: 0.05427522323269794
-                np.log1p(avg_income): 0.018793750439233016
+                I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): 146.3150396884436
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 0.07066306817647498
+                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 0.047544847176097096
+                I((tenure == 1) * 1):I(np.logical_not(building_type_name == "multi_family_residential") * 1): 0.039613972025247385
+                I(np.log1p(income) / (persons * persons * 1.0)):I(np.log1p(sqft_per_unit)): 0.000803504948522404
+                multifamily_type: 0.044183340755269716
+                unit_price: 0.00013316265572520716
             T-Score:
-                I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): -0.01659546457043105
-                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 17.2966787493508
-                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 1.708363605773368
-                I((tenure == 1) * 1):I(np.logical_not(building_type_name == "multi_family_residential") * 1): 35.77717046605468
-                I(np.log1p(income) / (persons * persons * 1.0)):I(np.log1p(sqft_per_unit)): -17.268170986909862
-                multifamily_type: 33.3317395315338
-                np.log1p(avg_income): -120.85301195645839
+                I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): -0.02050370219211955
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 17.36786008165456
+                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 7.806334049814625
+                I((tenure == 1) * 1):I(np.logical_not(building_type_name == "multi_family_residential") * 1): 37.78341413443577
+                I(np.log1p(income) / (persons * persons * 1.0)):I(np.log1p(sqft_per_unit)): -29.037888238782912
+                multifamily_type: 40.5235217979867
+                unit_price: -4.984714018286336
         fitted: true
         log_likelihoods:
-            convergence: -12762.058480411511
+            convergence: -12737.190555796627
             'null': -13815.51055796495
-            ratio: 0.07625140403849207
+            ratio: 0.07805140444459702
         name: false
 
 fitted: true

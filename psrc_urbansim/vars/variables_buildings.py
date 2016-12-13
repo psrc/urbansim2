@@ -17,6 +17,10 @@ def building_sqft(buildings):
     results[where_nonres] = results[where_nonres] + buildings.non_residential_sqft.iloc[where_nonres]
     return pd.Series(results, index=buildings.index)
 
+@orca.column('buildings', 'building_sqft_per_unit', cache=True, cache_scope='iteration')
+def building_sqft_per_unit(buildings):
+    return (buildings.building_sqft / buildings.residential_units).fillna(0)
+
 @orca.column('buildings', 'building_type_name', cache=True, cache_scope='iteration')
 def building_type_name(buildings, building_types):
     return misc.reindex(building_types.building_type_name, buildings.building_type_id)
@@ -35,6 +39,14 @@ def job_spaces(buildings):
     results[ifuture] = ((buildings.non_residential_sqft /
             buildings.sqft_per_job).fillna(0).astype('int')).iloc[ifuture]
     return pd.Series(results, index=buildings.index)
+
+@orca.column('buildings', 'large_area_id', cache=True)
+def large_area_id(buildings, parcels):
+    return misc.reindex(parcels.large_area_id, buildings.parcel_id)
+
+@orca.column('buildings', 'mortgage_cost', cache=True, cache_scope='iteration')
+def mortgage_cost(buildings, parcels):
+    pass
 
 @orca.column('buildings', 'multifamily_type', cache=True, cache_scope='iteration')
 def multifamily_type(buildings):
@@ -58,6 +70,10 @@ def sqft_per_job(buildings, building_sqft_per_job):
 @orca.column('buildings', 'tractcity_id', cache=True)
 def tractcity_id(buildings, parcels):
     return misc.reindex(parcels.tractcity_id, buildings.parcel_id)
+
+@orca.column('buildings', 'unit_price', cache=True)
+def unit_price(buildings, parcels):
+    return misc.reindex(parcels.unit_price, buildings.parcel_id)
 
 @orca.column('buildings', 'vacant_job_spaces', cache=False)
 def vacant_job_spaces(buildings, jobs):

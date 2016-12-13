@@ -61,11 +61,12 @@ def cache_to_df(dir_path):
 
 
 DIRECTORIES = {
-    'parcels', 'buildings', 'households', 'jobs', 'persons', 'zones', 'travel_data',
     'annual_employment_control_totals', 'annual_household_control_totals',
-    'annual_household_relocation_rates', 'annual_job_relocation_rates',
-    'building_sqft_per_job', 'building_types', 'counties', 'target_vacancies',
-    'development_event_history'
+    'annual_household_relocation_rates', 'annual_job_relocation_rates',    
+    'buildings', 'building_sqft_per_job', 'building_types', 
+    'development_event_history', 'counties', 'households', 
+    'jobs', 'land_use_types',
+    'parcels', 'persons', 'target_vacancies', 'travel_data', 'zones'
 }
 
 NO_INDEX = ['annual_household_relocation_rates', 'annual_job_relocation_rates']

@@ -21,7 +21,7 @@ def test_dummy(dummy):
 @pytest.fixture
 def expected_tm_variables():
     return pd.DataFrame(
-        {'jobs_within_20_min_tt_hbw_am_drive_alone' : [0, 10, 0]})
+        {'jobs_within_20_min_tt_hbw_am_drive_alone' : np.array([0, 10, 0], dtype=np.int32)})
 
 @pytest.fixture
 def input_travel_data():
@@ -54,7 +54,7 @@ def test_jobs_within_20_min_tt(inputs, expected_tm_variables):
     zones = orca.get_table('zones')
     td = orca.get_table('travel_data')
     #pytest.set_trace()
-    assert (zones.jobs_within_20_min_tt_hbw_am_drive_alone == expected_tm_variables['jobs_within_20_min_tt_hbw_am_drive_alone']).all()
+    assert (zones.jobs_within_20_min_tt_hbw_am_drive_alone.values == expected_tm_variables['jobs_within_20_min_tt_hbw_am_drive_alone'].values).all()
 
 
 # pytest.main('-k test_jobs')

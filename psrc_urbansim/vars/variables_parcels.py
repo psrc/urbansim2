@@ -18,6 +18,14 @@ def building_sqft(parcels, buildings):
     return buildings.building_sqft.groupby(buildings.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
 
+@orca.column('parcels', 'existing_units', cache=True, cache_scope='iteration')
+def existing_units(parcels):
+    results = np.zeros(parcels.local.shape[0], dtype=np.int32)
+    for name in ["building_sqft", "parcel_sqft", "residential_units"]:
+        w = np.where(parcels.unit_name == name)[0]
+        results[w] = parcels[name].iloc[w].astype(np.int32)
+    return pd.Series(results, index=parcels.index)
+
 @orca.column('parcels', 'faz_id', cache=True)
 def faz_id(parcels, zones):
     return misc.reindex(zones.faz_id, parcels.zone_id)
@@ -48,8 +56,8 @@ def number_of_jobs(parcels, jobs):
 def park_area(parcels):
     return ((parcels.land_use_type_id == 19) * parcels.parcel_sqft)
 
-@orca.column('parcels', 'sum_residential_units', cache=True, cache_scope='iteration')
-def sum_residential_units(parcels, buildings):
+@orca.column('parcels', 'residential_units', cache=True, cache_scope='iteration')
+def residential_units(parcels, buildings):
     return buildings.residential_units.groupby(buildings.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
 
@@ -61,3 +69,11 @@ def total_improvement_value(parcels, buildings):
 @orca.column('parcels', 'total_land_value_per_sqft', cache=True, cache_scope='iteration')
 def total_land_value_per_sqft(parcels):
     return ((parcels.land_value + parcels.total_improvement_value)/parcels.parcel_sqft).replace(np.inf, 0).fillna(0)
+
+@orca.column('parcels', 'unit_name', cache=True)
+def unit_name(parcels, land_use_types):
+    return misc.reindex(land_use_types.unit_name, parcels.land_use_type_id)
+
+@orca.column('parcels', 'unit_price', cache=True, cache_scope='iteration')
+def unit_price(parcels):
+    return ((parcels.land_value + parcels.total_improvement_value)/parcels.existing_units).replace(np.inf, 0).fillna(0)
