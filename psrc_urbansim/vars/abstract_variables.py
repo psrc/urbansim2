@@ -23,4 +23,16 @@ def abstract_access_within_threshold_variable_from_origin(travel_data_attribute,
     result[np.isnan(result)] = 0
     return result
 
+def abstract_iv_residual(dependent_var, iv, filter):
+    """Abstract variable for constructing an instrumental variable, such as price residuals."""
+    ifilter = np.where(filter)
+    y = dependent_var.iloc[ifilter]
+    z = iv.iloc[ifilter]
+    zdf = pd.concat([pd.Series(1,index=z.index), z], axis=1)
+    zt = np.transpose(zdf.values)
+    est = np.dot( np.dot( np.linalg.inv(np.dot(zt, zdf.values)), zt), y )
+    r =  y - np.dot( zdf, est )
+    results = pd.Series(0, index=dependent_var.index)
+    results.iloc[ifilter] = r
+    return results
     

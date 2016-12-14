@@ -8,6 +8,11 @@ import urbansim_defaults.utils
 # BUILDINGS VARIABLES (in alphabetic order)
 #####################
 
+@orca.column('buildings', 'avg_price_per_unit_in_zone', cache=True, cache_scope='iteration')
+def avg_price_per_unit_in_zone(buildings, zones):
+    zone_avg_price = buildings.unit_price.groupby(buildings.zone_id).mean()
+    return misc.reindex(zone_avg_price, buildings.zone_id)
+
 @orca.column('buildings', 'building_sqft', cache=True, cache_scope='iteration')
 def building_sqft(buildings):
     results = np.zeros(buildings.local.shape[0],dtype=np.int32)
@@ -19,7 +24,8 @@ def building_sqft(buildings):
 
 @orca.column('buildings', 'building_sqft_per_unit', cache=True, cache_scope='iteration')
 def building_sqft_per_unit(buildings):
-    return (buildings.building_sqft / buildings.residential_units).fillna(0)
+    a = buildings.residential_units.replace(0, np.nan)
+    return buildings.building_sqft.divide(a).fillna(0)
 
 @orca.column('buildings', 'building_type_name', cache=True, cache_scope='iteration')
 def building_type_name(buildings, building_types):
@@ -44,9 +50,19 @@ def job_spaces(buildings):
 def large_area_id(buildings, parcels):
     return misc.reindex(parcels.large_area_id, buildings.parcel_id)
 
+@orca.column('buildings', 'ln_price_residual', cache=True, cache_scope='iteration')
+def ln_price_residual(buildings):
+    from abstract_variables import abstract_iv_residual
+    return abstract_iv_residual(np.log(buildings.price_per_unit), np.log(buildings.avg_price_per_unit_in_zone),
+                                buildings.price_per_unit > 0)
+
 @orca.column('buildings', 'mortgage_cost', cache=True, cache_scope='iteration')
 def mortgage_cost(buildings, parcels):
-    pass
+    pbsqft = misc.reindex(parcels.building_sqft, buildings.parcel_id).replace(0, np.nan)
+    return (0.06/12 * (1+0.06/12)**360)/((((1+0.06/12)**360)-1)*12) * (
+        buildings.unit_price * buildings.building_sqft_per_unit + 
+        buildings.sqft_per_unit.divide(pbsqft).fillna(0) * 
+        misc.reindex(parcels.land_value, buildings.parcel_id))
 
 @orca.column('buildings', 'multifamily_type', cache=True, cache_scope='iteration')
 def multifamily_type(buildings):
@@ -59,6 +75,11 @@ def number_of_governmental_jobs(buildings, jobs):
 @orca.column('buildings', 'number_of_jobs', cache=True, cache_scope='step')
 def number_of_jobs(buildings, jobs):
     return jobs.sector_id.groupby(jobs.building_id).size().reindex(buildings.index).fillna(0).astype("int32")
+
+@orca.column('buildings', 'price_per_unit', cache=True)
+def price_per_unit(buildings):
+    """Price per sqft"""
+    return buildings.unit_price * buildings.building_sqft_per_unit
 
 @orca.column('buildings', 'sqft_per_job', cache=True, cache_scope='iteration')
 def sqft_per_job(buildings, building_sqft_per_job):
@@ -73,6 +94,7 @@ def tractcity_id(buildings, parcels):
 
 @orca.column('buildings', 'unit_price', cache=True)
 def unit_price(buildings, parcels):
+    """total parcel value per unit (either building_sqft or DU)"""
     return misc.reindex(parcels.unit_price, buildings.parcel_id)
 
 @orca.column('buildings', 'vacant_job_spaces', cache=False)
