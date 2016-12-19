@@ -36,3 +36,21 @@ def abstract_iv_residual(dependent_var, iv, filter):
     results.iloc[ifilter] = r
     return results
     
+def abstract_within_given_radius(radius, quantity, x, y, filter=None):
+    from scipy.spatial import cKDTree
+    if filter is not None:
+        index = np.where(filter > 0)[0]
+    else:
+        index = np.arange(quantity.size)
+    arr = quantity.iloc[index]
+    coords = np.column_stack((x.iloc[index], y.iloc[index]))
+    kd_tree = cKDTree(coords, 100)
+    KDTresults = kd_tree.query_ball_tree(kd_tree, radius)
+    result = np.zeros(quantity.size, dtype=arr.dtype)
+    tmp = np.array(map(lambda l: arr.iloc[l].sum(), KDTresults)) #TODO: optimize this line
+    result[index] = tmp
+    return result    
+
+def abstract_within_walking_distance(*args, **kwargs):
+    # TODO: Should within-walking-distance be a radius of 2000 feet?
+    return abstract_within_given_radius(2000, *args, **kwargs)

@@ -8,7 +8,7 @@ import urbansim_defaults.utils
 # JOBS VARIABLES
 #####################
 
-@orca.column('jobs', 'parcel_id', cache=True)
+@orca.column('jobs', 'parcel_id', cache=True, cache_scope='step')
 def parcel_id(jobs, buildings):
     return misc.reindex(buildings.parcel_id, jobs.building_id)
 
