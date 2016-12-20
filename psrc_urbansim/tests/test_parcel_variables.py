@@ -7,15 +7,6 @@ def setup_function(func):
 
 def teardown_function(func):
     orca.clear_all()
-
-
-@pytest.fixture
-def dummy():
-    return 0
-
-def test_dummy(dummy):
-    assert dummy == 0
-    
     
 @pytest.fixture
 def expected_pcl():
@@ -38,7 +29,7 @@ def input_bld():
 def inputs(input_pcl, input_bld):
     orca.add_table('parcels', input_pcl)
     orca.add_table('buildings', input_bld)
-    orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
+    #orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
     import psrc_urbansim.vars.variables_parcels
 
 def test_residential_units(inputs, expected_pcl):
@@ -47,4 +38,4 @@ def test_residential_units(inputs, expected_pcl):
     assert (pcl['residential_units'] == expected_pcl['residential_units']).all()
     
     
-#pytest.main()
+#pytest.main(["test_parcel_variables.py"])

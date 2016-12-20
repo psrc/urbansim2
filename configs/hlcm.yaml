@@ -31,6 +31,7 @@ default_config:
         + I((persons-2)*(persons > 2)):I((building_type_name == "condo_residential")*1)
         + I(np.log1p(income)/(persons*persons*1.0)):I(np.log1p(sqft_per_unit)) + I(1*np.logical_or(mortgage_cost/income
         < 0.1, mortgage_cost/income > 0.3)) + ln_price_residual
+        + I((employment_density_wwd > 25) * np.log(employment_density_wwd-25+1))
 
 models:
     false:

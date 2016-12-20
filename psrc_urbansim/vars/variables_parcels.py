@@ -8,6 +8,10 @@ import urbansim_defaults.utils
 # PARCELS VARIABLES (in alphabetic order)
 #####################
 
+@orca.column('parcels', 'acres_wwd', cache=True, cache_scope='iteration')
+def acres_wwd(parcels):
+    return parcels.parcel_sqft_wwd / 43560.0
+
 @orca.column('parcels', 'average_income', cache=True, cache_scope='iteration')
 def average_income(parcels, households):
     return households.income.groupby(households.parcel_id).mean().\
@@ -20,7 +24,7 @@ def building_sqft(parcels, buildings):
 
 @orca.column('parcels', 'employment_density_wwd', cache=True, cache_scope='step')
 def employment_density_wwd(parcels):
-    pass
+    return (parcels.number_of_jobs_wwd / parcels.acres_wwd).replace(np.inf, 0).fillna(0)
 
 @orca.column('parcels', 'existing_units', cache=True, cache_scope='iteration')
 def existing_units(parcels):
@@ -57,9 +61,14 @@ def number_of_jobs(parcels, jobs):
            reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'number_of_jobs_wwd', cache=True, cache_scope='iteration')
-def number_of_jobs_wwd(parcels):
-    from abstract_variables import abstract_within_walking_distance
-    return abstract_within_walking_distance(parcels.number_of_jobs, parcels.x_coord_sp, parcels.y_coord_sp)
+def number_of_jobs_wwd(parcels, gridcells, settings):
+    from abstract_variables import abstract_within_walking_distance_parcels
+    return abstract_within_walking_distance_parcels("number_of_jobs", parcels, gridcells, settings)
+
+@orca.column('parcels', 'parcel_sqft_wwd', cache=True, cache_scope='iteration')
+def parcel_sqft_wwd(parcels, gridcells, settings):
+    from abstract_variables import abstract_within_walking_distance_parcels
+    return abstract_within_walking_distance_parcels("parcel_sqft", parcels, gridcells, settings)
 
 @orca.column('parcels', 'park_area', cache=True, cache_scope='iteration')
 def park_area(parcels):

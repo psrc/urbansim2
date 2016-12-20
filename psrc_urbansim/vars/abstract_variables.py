@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import scipy.ndimage as ndi
 import orca
 from urbansim.utils import misc
 import urbansim_defaults.utils
@@ -42,15 +43,46 @@ def abstract_within_given_radius(radius, quantity, x, y, filter=None):
         index = np.where(filter > 0)[0]
     else:
         index = np.arange(quantity.size)
-    arr = quantity.iloc[index]
+    arr = quantity.iloc[index].values
     coords = np.column_stack((x.iloc[index], y.iloc[index]))
     kd_tree = cKDTree(coords, 100)
     KDTresults = kd_tree.query_ball_tree(kd_tree, radius)
     result = np.zeros(quantity.size, dtype=arr.dtype)
-    tmp = np.array(map(lambda l: arr.iloc[l].sum(), KDTresults)) #TODO: optimize this line
+    # This solution can lead to an out-of-memory crash when executed on all parcels
+    #akd = pd.DataFrame(KDTresults)
+    #def get_quant_sum(x):
+    #    return arr[x[~np.isnan(x)]].sum()
+    #tmp = akd.apply(get_quant_sum, axis=1, raw=True)
+    # This solution is very slow when executed on all parcels
+    tmp = np.array(map(lambda l: arr[l].sum(), KDTresults))
     result[index] = tmp
     return result    
 
-def abstract_within_walking_distance(*args, **kwargs):
-    # TODO: Should within-walking-distance be a radius of 2000 feet?
-    return abstract_within_given_radius(2000, *args, **kwargs)
+def set_walking_distance_footprint(cell_size=150, walking_distance_circle_radius=600):
+    wd_gc = int(2*walking_distance_circle_radius/float(cell_size)+1)
+    center = (wd_gc-1)/2
+    distance = np.ones((wd_gc,wd_gc), dtype="float32")
+    distance[center,center]=0.0
+    distance = ndi.distance_transform_edt(distance)
+    return np.where(distance*cell_size <= walking_distance_circle_radius, 1, 0)
+
+def get2Dattribute(attribute, dataset, x_name='relative_x', y_name='relative_y'):
+    df = pd.DataFrame({"value": attribute, "x": dataset[x_name], "y": dataset[y_name]})
+    df = df.set_index(["x", "y"])
+    return (df.unstack(), df.index)
+    
+def abstract_within_walking_distance_gridcells(attribute, gridcells, filled_value=0, 
+                        mode="reflect", x_name='relative_x', y_name='relative_y', **kwargs):
+    wd_footprint = set_walking_distance_footprint(**kwargs)
+    attr2d, index2d = get2Dattribute( attribute, gridcells, x_name=x_name, y_name=y_name)
+    summed = ndi.correlate( np.ma.filled(attr2d, filled_value ), wd_footprint, mode=mode)
+    attr2d[:] = summed
+    return pd.Series(attr2d.stack().loc[index2d]["value"].values, index=gridcells.index)
+    
+    
+def abstract_within_walking_distance_parcels(attribute_name, parcels, gridcells, settings, **kwargs):
+    gcl_values = parcels[attribute_name].groupby(parcels.grid_id).sum().reindex(gridcells.index).fillna(0) 
+    return misc.reindex(abstract_within_walking_distance_gridcells(gcl_values, gridcells, 
+                cell_size=settings.get('cell_size', 150), walking_distance_circle_radius=settings.get('cell_walking_radius', 600), 
+                mode=settings.get("wwd_correlate_mode", "reflect"), **kwargs), 
+                        parcels.grid_id)
