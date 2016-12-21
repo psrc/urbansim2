@@ -5,4 +5,8 @@ households_transition:
 
 jobs_transition:
   total_column: total_number_of_jobs
+  
 
+cell_walking_radius: 600
+
+cell_size: 150
