@@ -32,6 +32,24 @@ def employment_controls(store):
     df[df < 0] = np.inf
     return df
 
+@orca.table('employment_sector_group_definitions', cache=True)
+def employment_sector_group_definitions(store):
+    df = store["employment_adhoc_sector_group_definitions"]
+    # Add a dummy because both columns (group_id, sector_id) are indices.
+    # Otherwise it would be an empty dataframe
+    df['dummy'] = 0 
+    return df
+
+@orca.table('employment_sector_groups', cache=True)
+def employment_sector_groups(store):
+    df = store["employment_adhoc_sector_groups"]
+    return df
+
+@orca.table('employment_sectors', cache=True)
+def employment_sectors(store):
+    df = store["employment_sectors"]
+    return df
+
 @orca.table('fazes', cache=True)
 def fazes(store):
     df = store['fazes']

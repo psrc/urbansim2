@@ -62,9 +62,11 @@ def cache_to_df(dir_path):
 
 DIRECTORIES = {
     'annual_employment_control_totals', 'annual_household_control_totals',
-    'annual_household_relocation_rates', 'annual_job_relocation_rates',    
-    'buildings', 'building_sqft_per_job', 'building_types', 
-    'development_event_history', 'counties', 'gridcells', 'households', 
+    'annual_household_relocation_rates', 'annual_job_relocation_rates',
+    'buildings', 'building_sqft_per_job', 'building_types',
+    'development_event_history', 'counties',
+    'employment_adhoc_sector_group_definitions', 'employment_adhoc_sector_groups', 'employment_sectors',
+    'gridcells', 'households', 
     'jobs', 'land_use_types',
     'parcels', 'persons', 'target_vacancies', 'travel_data', 'zones'
 }
@@ -112,7 +114,13 @@ def convert_dirs(base_dir, hdf_name, complib=None, complevel=0):
         elif dirname == 'target_vacancies':
             keys = ['building_type_id', 'year']
         elif dirname == 'gridcells':
-                        keys = ['grid_id']        
+            keys = ['grid_id']
+        elif dirname == 'employment_adhoc_sector_groups':
+            keys=['group_id']
+        elif dirname == 'employment_sectors':
+            keys=['sector_id'] 
+        elif dirname == 'employment_adhoc_sector_group_definitions':
+            keys=['sector_id', 'group_id'] 
         else:
             keys = [dirname[:-1] + '_id']
 

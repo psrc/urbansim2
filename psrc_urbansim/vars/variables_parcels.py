@@ -26,6 +26,11 @@ def building_sqft(parcels, buildings):
 def employment_density_wwd(parcels):
     return (parcels.number_of_jobs_wwd / parcels.acres_wwd).replace(np.inf, 0).fillna(0)
 
+@orca.column('parcels', 'employment_retail_wwd', cache=True, cache_scope='iteration')
+def employment_retail_wwd(parcels, gridcells, settings):
+    from abstract_variables import abstract_within_walking_distance_parcels
+    return abstract_within_walking_distance_parcels("number_of_retail_jobs", parcels, gridcells, settings)
+
 @orca.column('parcels', 'existing_units', cache=True, cache_scope='iteration')
 def existing_units(parcels):
     results = np.zeros(parcels.local.shape[0], dtype=np.int32)
@@ -64,6 +69,11 @@ def number_of_jobs(parcels, jobs):
 def number_of_jobs_wwd(parcels, gridcells, settings):
     from abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("number_of_jobs", parcels, gridcells, settings)
+
+@orca.column('parcels', 'number_of_retail_jobs', cache=True, cache_scope='iteration')
+def number_of_retail_jobs(parcels, jobs):
+    return jobs.is_in_sector_group_retail.groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'parcel_sqft_wwd', cache=True, cache_scope='iteration')
 def parcel_sqft_wwd(parcels, gridcells, settings):

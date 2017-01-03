@@ -77,12 +77,17 @@ def abstract_within_walking_distance_gridcells(attribute, gridcells, filled_valu
     attr2d, index2d = get2Dattribute( attribute, gridcells, x_name=x_name, y_name=y_name)
     summed = ndi.correlate( np.ma.filled(attr2d, filled_value ), wd_footprint, mode=mode)
     attr2d[:] = summed
-    return pd.Series(attr2d.stack().loc[index2d]["value"].values, index=gridcells.index)
+    res = pd.Series(attr2d.stack().loc[index2d]["value"].values, index=gridcells.index)
+    res[np.isnan(res)] = filled_value
+    return res
     
     
 def abstract_within_walking_distance_parcels(attribute_name, parcels, gridcells, settings, **kwargs):
     gcl_values = parcels[attribute_name].groupby(parcels.grid_id).sum().reindex(gridcells.index).fillna(0) 
-    return misc.reindex(abstract_within_walking_distance_gridcells(gcl_values, gridcells, 
+    res = misc.reindex(abstract_within_walking_distance_gridcells(gcl_values, gridcells, 
                 cell_size=settings.get('cell_size', 150), walking_distance_circle_radius=settings.get('cell_walking_radius', 600), 
                 mode=settings.get("wwd_correlate_mode", "reflect"), **kwargs), 
                         parcels.grid_id)
+    #TODO: this step should not be needed if all parcels have an exisitng gridcell assigned
+    res[np.isnan(res)] = 0
+    return res    

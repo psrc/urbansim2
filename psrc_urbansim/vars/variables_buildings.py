@@ -35,6 +35,10 @@ def building_type_name(buildings, building_types):
 def employment_density_wwd(buildings, parcels):
     return misc.reindex(parcels.employment_density_wwd, buildings.parcel_id)
 
+@orca.column('buildings', 'employment_retail_wwd', cache=True, cache_scope='step')
+def employment_retail_wwd(buildings, parcels):
+    return misc.reindex(parcels.employment_retail_wwd, buildings.parcel_id)
+
 @orca.column('buildings', 'faz_id', cache=True)
 def faz_id(buildings, zones):
     return misc.reindex(zones.faz_id, buildings.zone_id)
@@ -79,6 +83,10 @@ def number_of_governmental_jobs(buildings, jobs):
 @orca.column('buildings', 'number_of_jobs', cache=True, cache_scope='step')
 def number_of_jobs(buildings, jobs):
     return jobs.sector_id.groupby(jobs.building_id).size().reindex(buildings.index).fillna(0).astype("int32")
+
+@orca.column('buildings', 'number_of_retail_jobs', cache=True, cache_scope='step')
+def number_of_retail_jobs(buildings, jobs):
+    return jobs.is_in_sector_group_retail.groupby(jobs.building_id).sum().reindex(buildings.index).fillna(0).astype("int32")
 
 @orca.column('buildings', 'price_per_unit', cache=True)
 def price_per_unit(buildings):
