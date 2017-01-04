@@ -29,7 +29,6 @@ def input_bld():
 def inputs(input_pcl, input_bld):
     orca.add_table('parcels', input_pcl)
     orca.add_table('buildings', input_bld)
-    #orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
     import psrc_urbansim.vars.variables_parcels
 
 def test_residential_units(inputs, expected_pcl):

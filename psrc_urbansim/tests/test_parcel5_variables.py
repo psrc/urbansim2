@@ -2,11 +2,11 @@ import pandas as pd
 import pytest
 import orca
 
-def setup_function(func):
-    orca.clear_all()
+#def setup_function(func):
+#    orca.clear_all()
 
-def teardown_function(func):
-    orca.clear_all()
+#def teardown_function(func):
+#    orca.clear_all()
     
 @pytest.fixture
 def input_pcl():
@@ -76,11 +76,9 @@ def test_number_of_jobs_within_radius(inputs, expected_pcl):
     #pytest.set_trace()
     assert (av.abstract_within_given_radius(2000, pcl.number_of_jobs, pcl.x_coord_sp, pcl.y_coord_sp).astype("int32") == expected_pcl['number_of_jobs_within_radius'].values).all()
     
-def xtest_number_of_jobs_within_walking_distance(inputs, expected_pcl):
-    # TODO: Not sure why this fails
+def test_number_of_jobs_within_walking_distance(inputs, expected_pcl):
     pcl = orca.get_table('parcels')
     #pytest.set_trace()
-    assert (pcl["number_of_jobs_wwd.values"].values == expected_pcl['number_of_jobs_wwd'].values).all()
+    assert (pcl["number_of_jobs_wwd"].values == expected_pcl['number_of_jobs_wwd'].values).all()
     
-#pytest.main(['test_parcel5_variables.py'])
 #pytest.main(['-k test_number_of_jobs_within_walking'])
