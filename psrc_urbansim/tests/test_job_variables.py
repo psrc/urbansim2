@@ -67,6 +67,6 @@ def inputs(input_jobs, input_sectors, input_groups, input_group_def):
 def test_retail_sector(inputs, expected_sector_group_variables):
     jobs = orca.get_table('jobs')
     #pytest.set_trace()
-    assert (jobs.is_in_sector_group_retail.values == expected_sector_group_variables['is_in_sector_group_retail'].values).all()
+    assert (jobs["is_in_sector_group_retail"].values == expected_sector_group_variables['is_in_sector_group_retail'].values).all()
 
-pytest.main('-k test_retail_sector')
+#pytest.main('-k test_retail_sector')

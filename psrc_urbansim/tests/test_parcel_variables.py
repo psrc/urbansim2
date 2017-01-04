@@ -35,7 +35,7 @@ def inputs(input_pcl, input_bld):
 def test_residential_units(inputs, expected_pcl):
     pcl = orca.get_table('parcels')
     #pytest.set_trace()
-    assert (pcl['residential_units'] == expected_pcl['residential_units']).all()
+    assert (pcl['residential_units'].values == expected_pcl['residential_units'].values).all()
     
     
-#pytest.main(["test_parcel_variables.py"])
+#pytest.main("-k test_residential_units")
