@@ -24,6 +24,17 @@ def abstract_access_within_threshold_variable_from_origin(travel_data_attribute,
     result[np.isnan(result)] = 0
     return result
 
+def abstract_travel_time_interaction_variable(travel_data_attribute, agent_zone_id, location_zone_id, 
+                                              direction_from_home = True):
+    if direction_from_home:
+        home_zone = agent_zone_id
+        work_zone = location_zone_id
+    else:
+        home_zone = location_zone_id
+        work_zone = agent_zone_id
+    idx = pd.MultiIndex.from_arrays([home_zone.values, work_zone.values], names=["from_zone_id", "to_zone_id"])
+    return travel_data_attribute[idx].reset_index(drop=True)
+        
 def abstract_iv_residual(dependent_var, iv, filter):
     """Abstract variable for constructing an instrumental variable, such as price residuals."""
     ifilter = np.where(filter)

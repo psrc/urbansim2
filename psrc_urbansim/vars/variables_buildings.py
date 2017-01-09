@@ -123,6 +123,11 @@ def vacant_residential_units(buildings, households):
 def zone_id(buildings, parcels):
     return misc.reindex(parcels.zone_id, buildings.parcel_id)
 
+@orca.column('buildings', 'building_zone_id', cache=True)
+def building_zone_id(buildings, parcels):
+    return misc.reindex(parcels.zone_id, buildings.parcel_id)
+
+
 
 
 

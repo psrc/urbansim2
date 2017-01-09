@@ -37,9 +37,21 @@ def parcel_id(households, buildings):
 def tractcity_id(households, parcels):
     return misc.reindex(parcels.tractcity_id, households.parcel_id)
 
+@orca.column('households', 'worker1_zone_id', cache=True)
+def worker1_zone_id(households, persons):
+    return misc.reindex(persons.workplace_zone_id[persons.worker1==True], households.building_id).fillna(-1)
+
+@orca.column('households', 'worker2_zone_id', cache=True)
+def worker2_zone_id(households, persons):
+    return misc.reindex(persons.workplace_zone_id[persons.worker2==True], households.building_id).fillna(-1)
+
+@orca.column('households', 'work_zone_id', cache=True)
+def work_zone_id(households, buildings):
+    return misc.reindex(buildings.zone_id, households.building_id).fillna(-1)
+
 @orca.column('households', 'zone_id', cache=True)
 def zone_id(households, buildings):
-    return misc.reindex(buildings.zone_id, households.building_id)
+    return misc.reindex(buildings.zone_id, households.building_id).fillna(-1)
 
 
 
