@@ -25,6 +25,17 @@ def faz_id(households, zones):
 def grid_id(households, parcels):
     return misc.reindex(parcels.grid_id, households.parcel_id)
 
+@orca.column('households', 'income_category', cache=True)
+def income_category(households, settings):
+    income_breaks = settings.get('income_breaks', [34000, 64000, 102000])
+    res = households.income.values
+    res[:] = np.nan
+    res[(households.income < income_breaks[0]).values] = 1
+    res[(np.logical_and(households.income >= income_breaks[0], households.income < income_breaks[1])).values] = 2
+    res[(np.logical_and(households.income >= income_breaks[1], households.income < income_breaks[2])).values] = 3
+    res[(households.income >= income_breaks[2]).values] = 4
+    return res
+
 @orca.column('households', 'is_inmigrant', cache=True)
 def is_inmigrant(households, parcels):
     return (households.building_id < 0).reindex(households.index)

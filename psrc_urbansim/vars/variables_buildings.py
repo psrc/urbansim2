@@ -104,6 +104,22 @@ def sqft_per_job(buildings, building_sqft_per_job):
 def tractcity_id(buildings, parcels):
     return misc.reindex(parcels.tractcity_id, buildings.parcel_id)
 
+@orca.column('buildings', 'twa_logsum_hbw_1', cache=True, cache_scope='iteration')
+def twa_logsum_hbw_1(buildings, zones):
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_1, buildings.zone_id)
+
+@orca.column('buildings', 'twa_logsum_hbw_2', cache=True, cache_scope='iteration')
+def twa_logsum_hbw_2(buildings, zones):
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_2, buildings.zone_id)
+
+@orca.column('buildings', 'twa_logsum_hbw_3', cache=True, cache_scope='iteration')
+def twa_logsum_hbw_3(buildings, zones):
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_3, buildings.zone_id)
+
+@orca.column('buildings', 'twa_logsum_hbw_4', cache=True, cache_scope='iteration')
+def twa_logsum_hbw_4(buildings, zones):
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_4, buildings.zone_id)
+
 @orca.column('buildings', 'unit_price', cache=True)
 def unit_price(buildings, parcels):
     """total parcel value per unit (either building_sqft or DU)"""

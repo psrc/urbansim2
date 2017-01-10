@@ -28,3 +28,25 @@ def number_of_households(zones, households):
 def number_of_jobs(zones, jobs):
     return jobs.zone_id.groupby(jobs.zone_id).size().\
            reindex(zones.index).fillna(0)
+
+def trip_weighted_average_logsum_hbw_am_income_category(zones, travel_data, income_category):
+    from abstract_variables import abstract_trip_weighted_average_from_home
+    return abstract_trip_weighted_average_from_home(travel_data["logsum_hbw_am_income_%s" % income_category], 
+                                                    travel_data["am_pk_period_drive_alone_vehicle_trips"],
+                                                    travel_data.index.get_level_values('from_zone_id'), zones)
+
+@orca.column('zones', 'trip_weighted_average_logsum_hbw_am_income_1', cache=True, cache_scope='iteration')
+def trip_weighted_average_logsum_hbw_am_income_1(zones, travel_data):
+    return trip_weighted_average_logsum_hbw_am_income_category(zones, travel_data, 1)
+
+@orca.column('zones', 'trip_weighted_average_logsum_hbw_am_income_2', cache=True, cache_scope='iteration')
+def trip_weighted_average_logsum_hbw_am_income_2(zones, travel_data):
+    return trip_weighted_average_logsum_hbw_am_income_category(zones, travel_data, 2)
+
+@orca.column('zones', 'trip_weighted_average_logsum_hbw_am_income_3', cache=True, cache_scope='iteration')
+def trip_weighted_average_logsum_hbw_am_income_3(zones, travel_data):
+    return trip_weighted_average_logsum_hbw_am_income_category(zones, travel_data, 3)
+
+@orca.column('zones', 'trip_weighted_average_logsum_hbw_am_income_4', cache=True, cache_scope='iteration')
+def trip_weighted_average_logsum_hbw_am_income_4(zones, travel_data):
+    return trip_weighted_average_logsum_hbw_am_income_category(zones, travel_data, 4)

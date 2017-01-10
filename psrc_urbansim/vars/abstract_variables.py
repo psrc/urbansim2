@@ -24,6 +24,23 @@ def abstract_access_within_threshold_variable_from_origin(travel_data_attribute,
     result[np.isnan(result)] = 0
     return result
 
+def abstract_logsum_interaction_variable(travel_data_attribute_dict, agent_categories, agent_zone_id, location_zone_id, 
+                                              direction_from_home = True):
+    if direction_from_home:
+        home_zone = agent_zone_id
+        work_zone = location_zone_id
+    else:
+        home_zone = location_zone_id
+        work_zone = agent_zone_id
+
+    idx = pd.MultiIndex.from_arrays([home_zone.values, work_zone.values], names=["from_zone_id", "to_zone_id"])    
+    max_choices = agent_categories.values.max() + 1
+    tmlist = [np.nan] * max_choices
+    for i in range(max_choices): # iterate ofve income categories
+        if travel_data_attribute_dict.has_key(i):
+            tmlist[i] = travel_data_attribute_dict[i][idx].reset_index(drop=True)
+    return agent_categories.values.choose(tmlist)
+            
 def abstract_travel_time_interaction_variable(travel_data_attribute, agent_zone_id, location_zone_id, 
                                               direction_from_home = True):
     if direction_from_home:
@@ -102,3 +119,24 @@ def abstract_within_walking_distance_parcels(attribute_name, parcels, gridcells,
     #TODO: this step should not be needed if all parcels have an exisitng gridcell assigned
     res[np.isnan(res)] = 0
     return res    
+
+def abstract_trip_weighted_average_from_home(time_attribute, trips_attribute, from_zone_id, zones, missing_value=999):
+    """Trip-weighted averaging for zone dataset."""
+    non_missing_idx = np.where(np.logical_and(time_attribute <> missing_value, trips_attribute <> missing_value))
+    numerator = np.array(ndi.sum(time_attribute.iloc[non_missing_idx] * trips_attribute.iloc[non_missing_idx],
+                            labels = from_zone_id[non_missing_idx], index=zones.index))
+    denominator = np.array(ndi.sum(trips_attribute.iloc[non_missing_idx],
+                            labels = from_zone_id[non_missing_idx], index=zones.index), dtype="float32")
+    # if there is a divide by zero then substitute the values from the next zone below 
+    # if there are contiguous places of zero division the values should propagate upon iteration
+    no_trips_from_here = np.where(denominator == 0)[0]
+    if no_trips_from_here.size == denominator.size:
+        print "%s attribute of travel_data is all zeros; trip_weighted_average_from_home returns all zeros" % trips_attribute.name
+        return np.zeros(numerator.size)
+    while no_trips_from_here.size != 0:             
+        substitute_locations = no_trips_from_here - 1    # a mapping, what zone the new data will come from
+        if substitute_locations[0] < 0: substitute_locations[0] = 1
+        numerator[no_trips_from_here] = numerator[substitute_locations]
+        denominator[no_trips_from_here] = denominator[substitute_locations] 
+        no_trips_from_here = np.where(denominator == 0)[0]
+    return pd.Series(numerator/denominator, index=zones.index)
