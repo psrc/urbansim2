@@ -3,21 +3,59 @@ import numpy as np
 import orca
 from urbansim.utils import misc
 import urbansim_defaults.utils
-
+from abstract_variables import abstract_trip_weighted_average_from_home
+from abstract_variables import abstract_access_within_threshold_variable_from_origin
+from abstract_variables import abstract_travel_time_variable_to_destination
 
 #####################
 # ZONES VARIABLES (in alphabetic order)
 #####################
+@orca.column('zones', 'acres', cache=True, cache_scope='session')
+def acres(zones):
+    # sum of parcel sqft
+    return zones.area / 43560.0
+
+@orca.column('zones', 'area', cache=True, cache_scope='session')
+def area(zones, parcels):
+    # sum of parcel sqft
+    return parcels.parcel_sqft.groupby(parcels.zone_id).sum().reindex(zones.index).fillna(0)
 
 @orca.column('zones', 'avg_income')
-def ave_income(zones, households):
+def avg_income(zones, households):
     s = households.income.groupby(households.zone_id).quantile().apply(np.log1p)
     return s.reindex(zones.index).fillna(s.quantile())
 
+@orca.column('zones', 'generalized_cost_hbw_am_drive_alone_to_bellevue_cbd')
+def generalized_cost_hbw_am_drive_alone_to_bellevue_cbd(zones, travel_data):
+    """Generalized cost for travel to the Bellevue CBD. It is the minimum of costs for travels to zones that have bellevue_cbd=1.
+    """
+    is_in_cbd = np.where(zones.bellevue_cbd == 1)[0]
+    min_values = np.array(zones.local.shape[0]*[np.inf], dtype="float32")
+    for zone in zones.index[is_in_cbd]:
+        min_values = np.minimum(min_values, abstract_travel_time_variable_to_destination(travel_data.single_vehicle_to_work_travel_cost, zone))
+    # zones within CBD get the minimum, so that all of them have the same number
+    min_values.iloc[is_in_cbd] = min_values.iloc[is_in_cbd].min()
+    return min_values
+
+@orca.column('zones', 'generalized_cost_hbw_am_drive_alone_to_seattle_cbd')
+def generalized_cost_hbw_am_drive_alone_to_seattle_cbd(zones, travel_data):
+    """Generalized cost for travel to the Seattle CBD. It is the minimum of costs for travels to zones that have seattle_cbd=1.
+    """
+    is_in_cbd = np.where(zones.seattle_cbd == 1)[0]
+    min_values = np.array(zones.local.shape[0]*[np.inf], dtype="float32")
+    for zone in zones.index[is_in_cbd]:
+        min_values = np.minimum(min_values, abstract_travel_time_variable_to_destination(travel_data.single_vehicle_to_work_travel_cost, zone))
+    # zones within CBD get the minimum, so that all of them have the same number
+    min_values.iloc[is_in_cbd] = min_values.iloc[is_in_cbd].min()
+    return min_values
+            
 @orca.column('zones', 'jobs_within_20_min_tt_hbw_am_drive_alone')
-def jobs_within_20_min_tt_hbw_am_drive_alone(zones, travel_data):
-    from abstract_variables import abstract_access_within_threshold_variable_from_origin
+def jobs_within_20_min_tt_hbw_am_drive_alone(zones, travel_data):    
     return abstract_access_within_threshold_variable_from_origin(travel_data.am_single_vehicle_to_work_travel_time, zones.number_of_jobs, 20)
+
+@orca.column('zones', 'jobs_within_30_min_tt_hbw_am_drive_alone')
+def jobs_within_30_min_tt_hbw_am_drive_alone(zones, travel_data):
+    return abstract_access_within_threshold_variable_from_origin(travel_data.am_single_vehicle_to_work_travel_time, zones.number_of_jobs, 30)
 
 @orca.column('zones', 'number_of_households', cache=True, cache_scope='iteration')
 def number_of_households(zones, households):
@@ -29,8 +67,20 @@ def number_of_jobs(zones, jobs):
     return jobs.zone_id.groupby(jobs.zone_id).size().\
            reindex(zones.index).fillna(0)
 
+@orca.column('zones', 'number_of_jobs_per_acre', cache=True, cache_scope='iteration')
+def number_of_jobs_per_acre(zones):
+    return (zones.number_of_jobs/zones.acres).replace(np.inf,0).fillna(0)
+
+@orca.column('zones', 'population', cache=True, cache_scope='iteration')
+def population(zones, households):
+    return households.persons.groupby(households.zone_id).sum().\
+           reindex(zones.index).fillna(0)
+
+@orca.column('zones', 'population_per_acre', cache=True, cache_scope='iteration')
+def population_per_acre(zones):
+    return (zones.population/zones.acres).replace(np.inf,0).fillna(0)
+
 def trip_weighted_average_logsum_hbw_am_income_category(zones, travel_data, income_category):
-    from abstract_variables import abstract_trip_weighted_average_from_home
     return abstract_trip_weighted_average_from_home(travel_data["logsum_hbw_am_income_%s" % income_category], 
                                                     travel_data["am_pk_period_drive_alone_vehicle_trips"],
                                                     travel_data.index.get_level_values('from_zone_id'), zones)
@@ -50,3 +100,16 @@ def trip_weighted_average_logsum_hbw_am_income_3(zones, travel_data):
 @orca.column('zones', 'trip_weighted_average_logsum_hbw_am_income_4', cache=True, cache_scope='iteration')
 def trip_weighted_average_logsum_hbw_am_income_4(zones, travel_data):
     return trip_weighted_average_logsum_hbw_am_income_category(zones, travel_data, 4)
+
+@orca.column('zones', 'trip_weighted_average_time_hbw_from_home_am_drive_alone', cache=True, cache_scope='iteration')
+def trip_weighted_average_time_hbw_from_home_am_drive_alone(zones, travel_data):
+    return abstract_trip_weighted_average_from_home(travel_data["am_single_vehicle_to_work_travel_time"], 
+                                                    travel_data["am_pk_period_drive_alone_vehicle_trips"],
+                                                    travel_data.index.get_level_values('from_zone_id'), zones)
+
+# Functions
+def number_of_jobs_of_sector(sector, zones, jobs):
+    return (jobs.sector_id==sector).groupby(jobs.zone_id).sum().reindex(zones.index).fillna(0).astype("int32")
+
+def generalized_cost_hbw_am_drive_alone_to_zone(zone_id, travel_data):
+    return 

@@ -17,8 +17,8 @@ def average_income(parcels, households):
     return households.income.groupby(households.parcel_id).mean().\
            reindex(parcels.index).fillna(0)
 
-@orca.column('parcels', 'building_sqft', cache=True, cache_scope='iteration')
-def building_sqft(parcels, buildings):
+@orca.column('parcels', 'building_sqft_pcl', cache=True, cache_scope='iteration')
+def building_sqft_pcl(parcels, buildings):
     return buildings.building_sqft.groupby(buildings.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
 
@@ -34,7 +34,7 @@ def employment_retail_wwd(parcels, gridcells, settings):
 @orca.column('parcels', 'existing_units', cache=True, cache_scope='iteration')
 def existing_units(parcels):
     results = np.zeros(parcels.local.shape[0], dtype=np.int32)
-    for name in ["building_sqft", "parcel_sqft", "residential_units"]:
+    for name in ["building_sqft_pcl", "parcel_sqft", "residential_units"]:
         w = np.where(parcels.unit_name == name)[0]
         results[w] = parcels[name].iloc[w].astype(np.int32)
     return pd.Series(results, index=parcels.index)
@@ -45,7 +45,7 @@ def faz_id(parcels, zones):
 
 @orca.column('parcels', 'invfar', cache=True, cache_scope='iteration')
 def invfar(parcels):
-    return (parcels.parcel_sqft.astype(float)/parcels.building_sqft.astype(float)).replace(np.inf, 0).fillna(0)
+    return (parcels.parcel_sqft.astype(float)/parcels.building_sqft_pcl.astype(float)).replace(np.inf, 0).fillna(0)
 
 @orca.column('parcels', 'is_park', cache=True, cache_scope='iteration')
 def is_park(parcels):
@@ -105,3 +105,11 @@ def unit_name(parcels, land_use_types):
 @orca.column('parcels', 'unit_price', cache=True, cache_scope='iteration')
 def unit_price(parcels):
     return ((parcels.land_value + parcels.total_improvement_value)/parcels.existing_units).replace(np.inf, 0).fillna(0)
+
+@orca.column('parcels', 'unit_price_trunc', cache=True, cache_scope='iteration')
+def unit_price_trunc(parcels):
+    price = parcels.unit_price
+    price[price < 1] = 1
+    price[price > 1500] = 1500
+    return price
+

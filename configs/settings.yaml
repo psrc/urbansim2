@@ -12,3 +12,5 @@ cell_walking_radius: 600
 cell_size: 150
 
 income_breaks: [34000, 64000, 102000]
+
+near_arterial_threshold: 300

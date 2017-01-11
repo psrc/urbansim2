@@ -31,6 +31,54 @@ def building_sqft_per_unit(buildings):
 def building_type_name(buildings, building_types):
     return misc.reindex(building_types.building_type_name, buildings.building_type_id)
     
+@orca.column('buildings', 'empden_zone_s1', cache=True, cache_scope='step')
+def empden_zone_s1(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(1, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s2', cache=True, cache_scope='step')
+def empden_zone_s2(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(2, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s3', cache=True, cache_scope='step')
+def empden_zone_s3(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(3, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s4', cache=True, cache_scope='step')
+def empden_zone_s4(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(4, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s5', cache=True, cache_scope='step')
+def empden_zone_s5(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(5, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s6', cache=True, cache_scope='step')
+def empden_zone_s6(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(6, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s7', cache=True, cache_scope='step')
+def empden_zone_s7(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(7, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s8', cache=True, cache_scope='step')
+def empden_zone_s8(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(8, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s9', cache=True, cache_scope='step')
+def empden_zone_s9(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(9, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s10', cache=True, cache_scope='step')
+def empden_zone_s10(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(10, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s11', cache=True, cache_scope='step')
+def empden_zone_s11(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(11, buildings, zones, jobs)
+
+@orca.column('buildings', 'empden_zone_s12', cache=True, cache_scope='step')
+def empden_zone_s12(buildings, zones, jobs):
+    return density_of_jobs_of_sector_from_zone(12, buildings, zones, jobs)
+
 @orca.column('buildings', 'employment_density_wwd', cache=True, cache_scope='step')
 def employment_density_wwd(buildings, parcels):
     return misc.reindex(parcels.employment_density_wwd, buildings.parcel_id)
@@ -42,6 +90,30 @@ def employment_retail_wwd(buildings, parcels):
 @orca.column('buildings', 'faz_id', cache=True)
 def faz_id(buildings, zones):
     return misc.reindex(zones.faz_id, buildings.zone_id)
+
+@orca.column('buildings', 'is_commercial', cache=True, cache_scope='iteration')
+def is_commercial(buildings):
+    return (buildings.building_type_name == 'commercial').astype("int16")
+
+@orca.column('buildings', 'is_industrial', cache=True, cache_scope='iteration')
+def is_industrial(buildings):
+    return (buildings.building_type_name == 'industrial').astype("int16")
+
+@orca.column('buildings', 'is_mixed_use', cache=True, cache_scope='iteration')
+def is_mixed_use(buildings):
+    return (buildings.building_type_name == 'mixed_use').astype("int16")
+
+@orca.column('buildings', 'is_office', cache=True, cache_scope='iteration')
+def is_office(buildings):
+    return (buildings.building_type_name == 'office').astype("int16")
+
+@orca.column('buildings', 'is_tcu', cache=True, cache_scope='iteration')
+def is_tcu(buildings):
+    return (buildings.building_type_name == 'tcu').astype("int16")
+
+@orca.column('buildings', 'is_warehouse', cache=True, cache_scope='iteration')
+def is_warehouse(buildings):
+    return (buildings.building_type_name == 'warehousing').astype("int16")
 
 @orca.column('buildings', 'job_spaces', cache=False)
 def job_spaces(buildings):
@@ -66,7 +138,7 @@ def ln_price_residual(buildings):
 
 @orca.column('buildings', 'mortgage_cost', cache=True, cache_scope='iteration')
 def mortgage_cost(buildings, parcels):
-    pbsqft = misc.reindex(parcels.building_sqft, buildings.parcel_id).replace(0, np.nan)
+    pbsqft = misc.reindex(parcels.building_sqft_pcl, buildings.parcel_id).replace(0, np.nan)
     return (0.06/12 * (1+0.06/12)**360)/((((1+0.06/12)**360)-1)*12) * (
         buildings.unit_price * buildings.building_sqft_per_unit + 
         buildings.sqft_per_unit.divide(pbsqft).fillna(0) * 
@@ -144,8 +216,16 @@ def building_zone_id(buildings, parcels):
     return misc.reindex(parcels.zone_id, buildings.parcel_id)
 
 
+# Functions
+def number_of_jobs_of_sector_from_zone(sector, buildings, zones, jobs):
+    from variables_zones import number_of_jobs_of_sector
+    return misc.reindex(number_of_jobs_of_sector(sector, zones, jobs), buildings.zone_id)
 
-
+def density_of_jobs_of_sector_from_zone(sector, buildings, zones, jobs):
+    from variables_zones import number_of_jobs_of_sector
+    zone_density = number_of_jobs_of_sector(sector, zones, jobs)/zones.acres
+    zone_density[~np.isfinite(zone_density)] = 0
+    return misc.reindex(zone_density, buildings.zone_id)
 
 
 

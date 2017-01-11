@@ -40,7 +40,10 @@ def abstract_logsum_interaction_variable(travel_data_attribute_dict, agent_categ
         if travel_data_attribute_dict.has_key(i):
             tmlist[i] = travel_data_attribute_dict[i][idx].reset_index(drop=True)
     return agent_categories.values.choose(tmlist)
-            
+          
+def abstract_travel_time_variable_to_destination(travel_data_attribute, destination):
+    return travel_data_attribute.xs(destination, level='to_zone_id')
+
 def abstract_travel_time_interaction_variable(travel_data_attribute, agent_zone_id, location_zone_id, 
                                               direction_from_home = True):
     if direction_from_home:

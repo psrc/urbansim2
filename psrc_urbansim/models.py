@@ -41,9 +41,9 @@ def hlcm_simulate(households, buildings, parcels, zones):
 
 # ELCM
 @orca.step('elcm_estimate')
-def elcm_estimate(jobs, buildings, parcels, zones):
+def elcm_estimate(jobs, buildings, parcels, zones, gridcells):
     return utils.lcm_estimate("elcm.yaml", jobs, "building_id",
-                              buildings, [parcels, zones])
+                              buildings, [parcels, zones, gridcells])
 
 
 @orca.step('elcm_simulate')
@@ -111,5 +111,7 @@ def governmental_jobs_scaling(jobs, buildings, year):
 
 
 
-
+@orca.step('add_lag_tables')
+def add_lag_tables(households):
+    orca.add_table("households_lag1", households, cache=True)
 
