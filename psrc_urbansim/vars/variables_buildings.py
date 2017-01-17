@@ -30,54 +30,6 @@ def building_sqft_per_unit(buildings):
 @orca.column('buildings', 'building_type_name', cache=True, cache_scope='iteration')
 def building_type_name(buildings, building_types):
     return misc.reindex(building_types.building_type_name, buildings.building_type_id)
-    
-@orca.column('buildings', 'empden_zone_s1', cache=True, cache_scope='step')
-def empden_zone_s1(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(1, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s2', cache=True, cache_scope='step')
-def empden_zone_s2(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(2, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s3', cache=True, cache_scope='step')
-def empden_zone_s3(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(3, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s4', cache=True, cache_scope='step')
-def empden_zone_s4(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(4, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s5', cache=True, cache_scope='step')
-def empden_zone_s5(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(5, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s6', cache=True, cache_scope='step')
-def empden_zone_s6(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(6, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s7', cache=True, cache_scope='step')
-def empden_zone_s7(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(7, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s8', cache=True, cache_scope='step')
-def empden_zone_s8(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(8, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s9', cache=True, cache_scope='step')
-def empden_zone_s9(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(9, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s10', cache=True, cache_scope='step')
-def empden_zone_s10(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(10, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s11', cache=True, cache_scope='step')
-def empden_zone_s11(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(11, buildings, zones, jobs)
-
-@orca.column('buildings', 'empden_zone_s12', cache=True, cache_scope='step')
-def empden_zone_s12(buildings, zones, jobs):
-    return density_of_jobs_of_sector_from_zone(12, buildings, zones, jobs)
 
 @orca.column('buildings', 'employment_density_wwd', cache=True, cache_scope='step')
 def employment_density_wwd(buildings, parcels):
@@ -221,11 +173,6 @@ def number_of_jobs_of_sector_from_zone(sector, buildings, zones, jobs):
     from variables_zones import number_of_jobs_of_sector
     return misc.reindex(number_of_jobs_of_sector(sector, zones, jobs), buildings.zone_id)
 
-def density_of_jobs_of_sector_from_zone(sector, buildings, zones, jobs):
-    from variables_zones import number_of_jobs_of_sector
-    zone_density = number_of_jobs_of_sector(sector, zones, jobs)/zones.acres
-    zone_density[~np.isfinite(zone_density)] = 0
-    return misc.reindex(zone_density, buildings.zone_id)
 
 
 

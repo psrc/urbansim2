@@ -47,7 +47,16 @@ def max_logsum_hbw_am_from_home_to_work_wzone_logsum(work1_zones, work2_zones, l
 def avg_trip_weighted_zone_logsum(income_categories, twa_logsum_1, twa_logsum_2, twa_logsum_3, twa_logsum_4):
     return (income_categories == 1)*twa_logsum_1 + (income_categories == 2)*twa_logsum_2 + (income_categories == 3)*twa_logsum_3 + (income_categories == 4)*twa_logsum_4
 
+def empden_zone_sector(sector, bzone_id):
+    # non-interaction
+    from variables_zones import number_of_jobs_of_sector
+    zones = orca.get_table('zones')
+    zone_density = number_of_jobs_of_sector(sector, zones, orca.get_table('jobs'))/zones.acres
+    zone_density[~np.isfinite(zone_density)] = 0
+    return misc.reindex(zone_density, bzone_id)
+
 
 from urbansim.models import dcm
 dcm.avg_network_distance_from_home_to_work = avg_network_distance_from_home_to_work
 dcm.max_logsum_hbw_am_from_home_to_work_wzone_logsum = max_logsum_hbw_am_from_home_to_work_wzone_logsum
+dcm.empden_zone_sector = empden_zone_sector
