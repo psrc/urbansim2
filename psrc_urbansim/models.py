@@ -12,43 +12,43 @@ from psrc_urbansim.mod.allocation import AgentAllocationModel
 # Residential REPM
 @orca.step('repmres_estimate')
 def repmres_estimate(parcels):
-    return utils.hedonic_estimate("repmres.yaml", parcels, None)
+    return utils.hedonic_estimate("repmres.yaml", parcels, None, out_cfg="repmrescoef.yaml")
 
 @orca.step('repmres_simulate')
 def repmres_simulate(parcels):
-    return utils.hedonic_simulate("repmres.yaml", parcels, None, "land_value", cast=True)
+    return utils.hedonic_simulate("repmrescoef.yaml", parcels, None, "land_value", cast=True)
 
 # Non-Residential REPM
 @orca.step('repmnr_estimate')
 def repmnr_estimate(parcels):
-    return utils.hedonic_estimate("repmnr.yaml", parcels, None)
+    return utils.hedonic_estimate("repmnr.yaml", parcels, None, out_cfg="repmnrcoef.yaml")
 
 @orca.step('repmnr_simulate')
 def repmnr_simulate(parcels):
-    return utils.hedonic_simulate("repmnr.yaml", parcels, None, "land_value", cast=True)
+    return utils.hedonic_simulate("repmnrcoef.yaml", parcels, None, "land_value", cast=True)
 
 
 # HLCM
 @orca.step('hlcm_estimate')
 def hlcm_estimate(households, buildings, parcels, zones):
     return utils.lcm_estimate("hlcm.yaml", households, "building_id",
-                              buildings, None)
+                              buildings, None, out_cfg="hlcmcoef.yaml")
 
 @orca.step('hlcm_simulate')
 def hlcm_simulate(households, buildings, parcels, zones):
-    return utils.lcm_simulate("hlcm.yaml", households, buildings, [parcels, zones],
+    return utils.lcm_simulate("hlcmcoef.yaml", households, buildings, [parcels, zones],
                               "building_id", "residential_units", "vacant_residential_units", cast=True)
 
 # ELCM
 @orca.step('elcm_estimate')
 def elcm_estimate(jobs, buildings, parcels, zones, gridcells):
     return utils.lcm_estimate("elcm.yaml", jobs, "building_id",
-                              buildings, [parcels, zones, gridcells])
+                              buildings, [parcels, zones, gridcells], out_cfg="elcmcoef.yaml")
 
 
 @orca.step('elcm_simulate')
 def elcm_simulate(jobs, buildings, parcels, zones):
-    return utils.lcm_simulate("elcm.yaml", jobs, buildings, [parcels, zones],
+    return utils.lcm_simulate("elcmcoef.yaml", jobs, buildings, [parcels, zones],
                               "building_id", "job_spaces", "vacant_job_spaces", cast=True)
 
 

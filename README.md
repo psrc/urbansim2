@@ -74,11 +74,15 @@ In the examples below it will be assumed that the base directory for the install
    ```
 
 8. Put the name of the data file into ``psrc_urbansim/configs/settings.yaml`` (node ``store``).
-9. There might be a few changes to the ``urbansim_defaults`` package that were submitted as pull requests to UDST but were not accepted yet. To keep the repository in sync with those changes do
+9. There might be a few changes to the ``urbansim_defaults`` and ``urbansim`` packages that were submitted as pull requests to UDST but were not accepted yet. To keep the repository in sync with those changes do
   
   ```
   cd /d/udst/urbansim_defaults
   git remote add psrcedits https://github.com/hanase/urbansim_defaults.git
+  git pull psrcedits dev
+  
+  cd /d/udst/urbansim
+  git remote add psrcedits https://github.com/hanase/urbansim.git
   git pull psrcedits dev
   ``` 
 
@@ -88,7 +92,8 @@ The code is evolving fast, so update it regularly.
 
 ```
 cd /d/udst/urbansim
-git pull 
+git pull
+git pull psrcedits dev
 cd ../orca
 git pull
 cd ../pandana
@@ -134,7 +139,7 @@ The base year data are stored in ``/d/udst/psrc_urbansim/data/psrc_base_year_201
 
 ## Using UrbanSim-2
 
-The code is under construction. Currently, only a prototype of the model system is implemented. One can estimate the real estate price model, household location choice model and job location choice model,  using currently only placeholder variables. A simulation script is also available. 
+The code is under construction. Currently, only a prototype of the model system is implemented. One can estimate the real estate price model, household location choice model and job location choice model. A simulation script is also available. 
 
 ### Estimation
 
