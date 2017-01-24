@@ -1,6 +1,8 @@
 import psrc_urbansim.models
 import orca
 import logging
+import psrc_urbansim.vars.variables_interactions
+import psrc_urbansim.vars.variables_generic
 
 #logging.basicConfig(level=logging.DEBUG)
 

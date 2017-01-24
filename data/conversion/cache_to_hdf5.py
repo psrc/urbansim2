@@ -68,7 +68,7 @@ DIRECTORIES = {
     'employment_adhoc_sector_group_definitions', 'employment_adhoc_sector_groups', 'employment_sectors',
     'gridcells', 'households', 
     'jobs', 'land_use_types',
-    'parcels', 'persons', 'target_vacancies', 'travel_data', 'zones'
+    'parcels', 'persons', 'schools', 'target_vacancies', 'travel_data', 'zones'
 }
 
 NO_INDEX = ['annual_household_relocation_rates', 'annual_job_relocation_rates']

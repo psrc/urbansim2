@@ -11,8 +11,8 @@ from psrc_urbansim.mod.allocation import AgentAllocationModel
 
 # Residential REPM
 @orca.step('repmres_estimate')
-def repmres_estimate(parcels):
-    return utils.hedonic_estimate("repmres.yaml", parcels, None, out_cfg="repmrescoef.yaml")
+def repmres_estimate(parcels, zones, gridcells):
+    return utils.hedonic_estimate("repmres.yaml", parcels, [zones, gridcells], out_cfg="repmrescoef.yaml")
 
 @orca.step('repmres_simulate')
 def repmres_simulate(parcels):

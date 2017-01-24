@@ -37,6 +37,12 @@ def generalized_cost_hbw_am_drive_alone_to_bellevue_cbd(zones, travel_data):
     min_values.iloc[is_in_cbd] = min_values.iloc[is_in_cbd].min()
     return min_values
 
+@orca.column('zones', 'generalized_cost_hbw_am_drive_alone_to_cbd')
+def generalized_cost_hbw_am_drive_alone_to_cbd(zones):
+    """Generalized cost for travel to either the Seattle CBD or Bellevue CBD, which ever is closer, i.e. take the minimum of these.
+    """
+    return np.minimum(zones.generalized_cost_hbw_am_drive_alone_to_seattle_cbd, zones.generalized_cost_hbw_am_drive_alone_to_bellevue_cbd)
+    
 @orca.column('zones', 'generalized_cost_hbw_am_drive_alone_to_seattle_cbd')
 def generalized_cost_hbw_am_drive_alone_to_seattle_cbd(zones, travel_data):
     """Generalized cost for travel to the Seattle CBD. It is the minimum of costs for travels to zones that have seattle_cbd=1.
@@ -48,10 +54,22 @@ def generalized_cost_hbw_am_drive_alone_to_seattle_cbd(zones, travel_data):
     # zones within CBD get the minimum, so that all of them have the same number
     min_values.iloc[is_in_cbd] = min_values.iloc[is_in_cbd].min()
     return min_values
-            
+
+@orca.column('zones', 'jobs_within_10_min_tt_hbw_am_walk')
+def jobs_within_10_min_tt_hbw_am_walk(zones, travel_data):    
+    return abstract_access_within_threshold_variable_from_origin(travel_data.am_walk_time_in_minutes, zones.number_of_jobs, 10)
+
+@orca.column('zones', 'jobs_within_10_min_tt_hbw_am_drive_alone')
+def jobs_within_10_min_tt_hbw_am_drive_alone(zones, travel_data):    
+    return abstract_access_within_threshold_variable_from_origin(travel_data.am_single_vehicle_to_work_travel_time, zones.number_of_jobs, 10)
+
 @orca.column('zones', 'jobs_within_20_min_tt_hbw_am_drive_alone')
 def jobs_within_20_min_tt_hbw_am_drive_alone(zones, travel_data):    
     return abstract_access_within_threshold_variable_from_origin(travel_data.am_single_vehicle_to_work_travel_time, zones.number_of_jobs, 20)
+
+@orca.column('zones', 'jobs_within_20_min_tt_hbw_am_transit_walk')
+def jobs_within_20_min_tt_hbw_am_transit_walk(zones, travel_data):    
+    return abstract_access_within_threshold_variable_from_origin(travel_data.am_total_transit_time_walk, zones.number_of_jobs, 20)
 
 @orca.column('zones', 'jobs_within_30_min_tt_hbw_am_drive_alone')
 def jobs_within_30_min_tt_hbw_am_drive_alone(zones, travel_data):

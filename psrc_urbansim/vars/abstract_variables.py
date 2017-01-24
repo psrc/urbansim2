@@ -113,10 +113,10 @@ def abstract_within_walking_distance_gridcells(attribute, gridcells, filled_valu
     return res
     
     
-def abstract_within_walking_distance_parcels(attribute_name, parcels, gridcells, settings, **kwargs):
+def abstract_within_walking_distance_parcels(attribute_name, parcels, gridcells, settings, walking_radius=None, **kwargs):
     gcl_values = parcels[attribute_name].groupby(parcels.grid_id).sum().reindex(gridcells.index).fillna(0) 
     res = misc.reindex(abstract_within_walking_distance_gridcells(gcl_values, gridcells, 
-                cell_size=settings.get('cell_size', 150), walking_distance_circle_radius=settings.get('cell_walking_radius', 600), 
+                cell_size=settings.get('cell_size', 150), walking_distance_circle_radius=(walking_radius or settings.get('cell_walking_radius', 600)), 
                 mode=settings.get("wwd_correlate_mode", "reflect"), **kwargs), 
                         parcels.grid_id)
     #TODO: this step should not be needed if all parcels have an exisitng gridcell assigned

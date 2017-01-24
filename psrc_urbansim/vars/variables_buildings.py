@@ -3,10 +3,16 @@ import numpy as np
 import orca
 from urbansim.utils import misc
 import urbansim_defaults.utils
-
+#import urbansim_defaults.datasources
 #####################
 # BUILDINGS VARIABLES (in alphabetic order)
 #####################
+
+@orca.column('buildings', 'age', cache=True, cache_scope='iteration')
+def age(buildings, year):
+    year_built = buildings.year_built
+    year_built[buildings.has_valid_age_built==0] = np.nan
+    return np.maximum(0, year - year_built)
 
 @orca.column('buildings', 'avg_price_per_unit_in_zone', cache=True, cache_scope='iteration')
 def avg_price_per_unit_in_zone(buildings, zones):
@@ -42,6 +48,10 @@ def employment_retail_wwd(buildings, parcels):
 @orca.column('buildings', 'faz_id', cache=True)
 def faz_id(buildings, zones):
     return misc.reindex(zones.faz_id, buildings.zone_id)
+
+@orca.column('buildings', 'has_valid_age_built', cache=True, cache_scope='iteration')
+def has_valid_age_built(buildings, settings):
+    return buildings.year_built > settings.get('abs_min_year_built', 1800)
 
 @orca.column('buildings', 'is_commercial', cache=True, cache_scope='iteration')
 def is_commercial(buildings):

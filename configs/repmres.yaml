@@ -16,11 +16,11 @@ min_segment_size: 10
 
 default_config:
     model_expression: np.log1p(land_value) ~ np.log1p(parcel_sqft) + np.log1p(residential_units)  +
-        np.log1p(building_sqft_pcl) + np.log1p(invfar+1) + I(lnemp20da - lnemp20da.mean())
+        np.log1p(building_sqft_pcl) + np.log1p(invfar+1) 
     ytransform: np.exp
 
 models:
-    14:
+    14: # multi-family
         fit_parameters:
             Coefficient:
                 I(lnemp20da - lnemp20da.mean()): 0.45069889367451554
@@ -46,8 +46,15 @@ models:
         fit_rsquared: 0.5559753584593955
         fit_rsquared_adj: 0.5559088498704465
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd)) + np.log1p(park_area_wwd) + 
+            subtract_mean(np.log1p(jobs_within_20_min_tt_hbw_am_transit_walk)) + subtract_mean(np.log1p(jobs_within_20_min_tt_hbw_am_drive_alone)) +
+            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)) + 
+            I(avg_building_age > 60) + I(blds_with_valid_age == 0) + np.log1p(avg_building_age) + np.log1p(building_sqft_pcl) +
+            subtract_mean(np.log1p(building_density_wwd)) + np.log1p(parcel_sqft) + number_of_good_public_schools_within_3000_radius +
+            is_waterfront + I(distance_to_arterial < 600) + np.log1p(residential_units) + np.log1p(number_of_jobs_per_acre) + np.log1p(income_per_person_wwd) + 
+            I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0)
         name: 14
-    15:
+    15: # Condo
         fit_parameters:
             Coefficient:
                 I(lnemp20da - lnemp20da.mean()): 0.8339903151551975
@@ -73,8 +80,13 @@ models:
         fit_rsquared: 0.5043366228725188
         fit_rsquared_adj: 0.5038553962927834
         fitted: true
+        model_expression: np.log1p(land_value) ~ np.log1p(population_per_acre) + np.log1p(park_area_wwd) + 
+            subtract_mean(np.log1p(jobs_within_20_min_tt_hbw_am_drive_alone)) + subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + 
+            subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)) + np.log1p(residential_units) + np.log1p(building_sqft_pcl) + 
+            np.log1p(parcel_sqft) + I(number_of_good_public_schools_within_3000_radius == 0) + number_of_good_public_schools_within_3000_radius + 
+            np.log1p(income_per_person_wwd) + is_waterfront + np.log1p(number_of_jobs_per_acre) + np.log1p(total_improvement_value) + I(total_improvement_value <= 0)
         name: 15
-    24:
+    24: # single-family
         fit_parameters:
             Coefficient:
                 I(lnemp20da - lnemp20da.mean()): 0.23560446014880126
@@ -100,6 +112,17 @@ models:
         fit_rsquared: 0.19687389129776778
         fit_rsquared_adj: 0.1968693669800905
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd)) + np.log1p(park_area_wwd) + np.log1p(avg_income) + 
+            subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)) + subtract_mean(np.log1p(jobs_within_20_min_tt_hbw_am_transit_walk)) + 
+            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + 
+            I(distance_to_arterial < 600) + I(distance_to_highway < 200) + 
+            I(avg_building_age > 60) + I(avg_building_age < 10) + np.log1p(avg_building_age) + I(blds_with_valid_age == 0) +
+            np.log1p(parcel_sqft) + np.log1p(building_sqft_pcl) +
+            I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0) +
+            I(number_of_good_public_schools_within_3000_radius == 0) +
+            is_waterfront + subtract_mean(np.log1p(building_density_wwd)) + 
+            np.log1p(total_improvement_value) + I(total_improvement_value <= 0) +
+            np.log1p(income_per_person_wwd)
         name: 24
 
 fitted: true

@@ -104,6 +104,11 @@ def persons(store):
     df = store['persons']
     return df
 
+@orca.table('schools', cache=True)
+def schools(store):
+    df = store['schools']
+    return df
+
 @orca.table('tractcity', cache=True)
 def tractcity(store):
     df = store['tractcity']
@@ -127,6 +132,7 @@ orca.broadcast('gridcells', 'parcels', cast_index=True, onto_on='grid_id')
 orca.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
 orca.broadcast('jobs', 'households', cast_index=True, onto_on='job_id')
 orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
+orca.broadcast('parcels', 'schools', cast_index=True, onto_on='parcel_id')
 orca.broadcast('tractcity', 'parcels', cast_index=True, onto_on='tractcity_id')
 orca.broadcast('zones', 'parcels', cast_index=True, onto_on='zone_id')
 
