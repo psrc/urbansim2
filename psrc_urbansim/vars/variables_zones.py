@@ -25,6 +25,10 @@ def avg_income(zones, households):
     s = households.income.groupby(households.zone_id).quantile().apply(np.log1p)
     return s.reindex(zones.index).fillna(s.quantile())
 
+@orca.column('zones', 'avg_school_score', cache=True, cache_scope='iteration')
+def avg_school_score(zones, fazes):
+    return misc.reindex(fazes.avg_school_score, zones.faz_id)
+
 @orca.column('zones', 'generalized_cost_hbw_am_drive_alone_to_bellevue_cbd')
 def generalized_cost_hbw_am_drive_alone_to_bellevue_cbd(zones, travel_data):
     """Generalized cost for travel to the Bellevue CBD. It is the minimum of costs for travels to zones that have bellevue_cbd=1.

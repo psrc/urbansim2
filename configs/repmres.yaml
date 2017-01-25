@@ -122,7 +122,7 @@ models:
             I(number_of_good_public_schools_within_3000_radius == 0) +
             is_waterfront + subtract_mean(np.log1p(building_density_wwd)) + 
             np.log1p(total_improvement_value) + I(total_improvement_value <= 0) +
-            np.log1p(income_per_person_wwd)
+            np.log1p(income_per_person_wwd) + avg_school_score
         name: 24
 
 fitted: true

@@ -8,4 +8,5 @@ import psrc_urbansim.vars.variables_zones
 import psrc_urbansim.vars.variables_fazes
 import psrc_urbansim.vars.variables_tractcity
 import psrc_urbansim.vars.variables_gridcells
+import psrc_urbansim.vars.variables_schools
 
