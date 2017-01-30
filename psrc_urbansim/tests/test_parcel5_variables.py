@@ -43,13 +43,13 @@ def input_jobs():
             })
     return df.set_index("job_id")
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def input_settings():
     return {"cell_size": 150, 
             "cell_walking_radius": 150,
             "wwd_correlate_mode": "constant"}
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def expected_pcl():
     return pd.DataFrame(
         {'number_of_jobs_within_radius' : [4, 3, 6, 6, 3],

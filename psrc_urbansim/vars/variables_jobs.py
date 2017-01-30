@@ -12,7 +12,9 @@ def is_in_sector_group(group_name, jobs, employment_sectors, employment_sector_g
     group = employment_sector_groups.index[employment_sector_groups['name'] == group_name]
     idx = [jobs.sector_id.values, group[0]*np.ones(jobs.sector_id.size)]
     midx = pd.MultiIndex.from_arrays(idx, names=('sector_id', 'group_id'))
-    return np.logical_not(np.isnan(employment_sector_group_definitions.dummy[midx])).reset_index("group_id").dummy    
+    res = np.logical_not(np.isnan(employment_sector_group_definitions.dummy[midx])).reset_index("group_id").dummy
+    res.index = jobs.index
+    return res
 
 @orca.column('jobs', 'faz_id', cache=True)
 def faz_id(jobs, zones):
