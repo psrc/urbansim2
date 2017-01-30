@@ -3,12 +3,6 @@ import numpy as np
 import pytest
 import orca
 
-def setup_function(func):
-    orca.clear_all()
-
-def teardown_function(func):
-    orca.clear_all()
-
 @pytest.fixture
 def input_jobs():
     df = pd.DataFrame({
@@ -56,8 +50,9 @@ def expected_sector_group_variables():
         {'is_in_sector_group_retail' : [True, True, False, True]})
 
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def inputs(input_jobs, input_sectors, input_groups, input_group_def):
+    orca.clear_all()
     orca.add_table('jobs', input_jobs)
     orca.add_table('employment_sectors', input_sectors)
     orca.add_table('employment_sector_groups', input_groups)
@@ -66,7 +61,6 @@ def inputs(input_jobs, input_sectors, input_groups, input_group_def):
     
 def test_retail_sector(inputs, expected_sector_group_variables):
     jobs = orca.get_table('jobs')
-    #pytest.set_trace()
     assert (jobs["is_in_sector_group_retail"].values == expected_sector_group_variables['is_in_sector_group_retail'].values).all()
 
 #pytest.main('-k test_retail_sector')

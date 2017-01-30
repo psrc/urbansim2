@@ -1,14 +1,8 @@
 import pandas as pd
 import pytest
 import orca
-
-#def setup_function(func):
-#    orca.clear_all()
-
-#def teardown_function(func):
-#    orca.clear_all()
     
-@pytest.fixture
+@pytest.fixture(scope='function')
 def input_pcl():
     df = pd.DataFrame(
         {
@@ -19,7 +13,7 @@ def input_pcl():
         })
     return df.set_index("parcel_id")
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def input_gcl():
     df = pd.DataFrame(
         {
@@ -30,7 +24,7 @@ def input_gcl():
     return df.set_index("grid_id")
 
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def input_bld():
     df = pd.DataFrame(
         {
@@ -39,29 +33,31 @@ def input_bld():
         })
     return df.set_index("building_id")
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def input_jobs():
     df = pd.DataFrame(
             {
                 "job_id":     [1,2,3,4,5,6],
-                "building_id":[1,2,3,4,5,6]
+                "building_id":[1,2,3,4,5,6],
+                "parcel_id":  [1,1,2,1,4,5]
             })
     return df.set_index("job_id")
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def input_settings():
     return {"cell_size": 150, 
             "cell_walking_radius": 150,
             "wwd_correlate_mode": "constant"}
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def expected_pcl():
     return pd.DataFrame(
         {'number_of_jobs_within_radius' : [4, 3, 6, 6, 3],
          'number_of_jobs_wwd' : [3, 2, 3, 3, 2]})
     
-@pytest.fixture
+@pytest.fixture(scope='function')
 def inputs(input_pcl, input_bld, input_jobs, input_gcl, input_settings):
+    #orca.clear_all()
     orca.add_table('parcels', input_pcl)
     orca.add_table('buildings', input_bld)
     orca.add_table('jobs', input_jobs)
@@ -69,7 +65,7 @@ def inputs(input_pcl, input_bld, input_jobs, input_gcl, input_settings):
     orca.add_injectable('settings', input_settings)
     import psrc_urbansim.vars.variables_jobs
     import psrc_urbansim.vars.variables_parcels
-
+    
 def test_number_of_jobs_within_radius(inputs, expected_pcl):
     import psrc_urbansim.vars.abstract_variables as av
     pcl = orca.get_table('parcels')

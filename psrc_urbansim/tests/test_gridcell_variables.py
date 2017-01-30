@@ -1,12 +1,6 @@
 import pandas as pd
 import pytest
 import orca
-
-def setup_function(func):
-    orca.clear_all()
-
-def teardown_function(func):
-    orca.clear_all()
     
 @pytest.fixture
 def input_gcl():
@@ -24,8 +18,9 @@ def expected_gcl():
     return pd.DataFrame(
         {'hhs_wwd' : [1800.0, 3100.0, 4600.0, 6000.0]})
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def inputs(input_gcl):
+    orca.clear_all()
     orca.add_table('gridcells', input_gcl)
     
 

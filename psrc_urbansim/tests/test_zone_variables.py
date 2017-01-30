@@ -3,13 +3,6 @@ import numpy as np
 import pytest
 import orca
 
-def setup_function(func):
-    orca.clear_all()
-
-def teardown_function(func):
-    orca.clear_all()
-
-
 @pytest.fixture
 def dummy():
     return 0
@@ -43,8 +36,9 @@ def input_job():
                "zone_id": np.array(10*[1] + [3])})
     return df.set_index("job_id")
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def inputs(input_zone, input_travel_data, input_job):
+    orca.clear_all()
     orca.add_table('zones', input_zone)
     orca.add_table('travel_data', input_travel_data)
     orca.add_table('jobs', input_job)
