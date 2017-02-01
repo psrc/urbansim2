@@ -1,0 +1,296 @@
+name: repmnr
+
+model_type: segmented_regression
+
+segmentation_col: land_use_type_id
+
+fit_filters:
+- land_use_type_id in [2, 3, 7, 9, 10, 18, 19, 20, 25, 26, 28, 30]
+- parcel_sqft > 100
+- total_land_value_per_sqft > 1
+- total_land_value_per_sqft < 1096.63
+
+predict_filters: null
+
+min_segment_size: 10
+
+default_config:
+    model_expression: np.log1p(land_value) ~ np.log1p(parcel_sqft) + np.log1p(building_sqft_pcl)
+        + np.log1p(invfar+1)
+    ytransform: np.exp
+
+models:
+    2:
+        fit_parameters:
+            Coefficient:
+                Intercept: 5.707897637070258
+                np.log1p(income_per_person_wwd): 0.08795060069315369
+                np.log1p(median_parcel_sqft): -0.09136274108865508
+                np.log1p(nonres_building_sqft): 0.04821129244951728
+                np.log1p(parcel_sqft): 0.616644374504846
+                subtract_mean(np.log1p(employment_density_wwd)): 0.2614525664612424
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -0.8625923747798252
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 0.10284174705031558
+                subtract_mean(np.log1p(retail_density_wwd)): 0.29963621590261097
+            Std. Error:
+                Intercept: 0.3546370076514532
+                np.log1p(income_per_person_wwd): 0.030257847279487656
+                np.log1p(median_parcel_sqft): 0.017250439299595636
+                np.log1p(nonres_building_sqft): 0.004344571541452965
+                np.log1p(parcel_sqft): 0.012473094294817176
+                subtract_mean(np.log1p(employment_density_wwd)): 0.025412723229220554
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): 0.03820061879419095
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 0.041795798709333386
+                subtract_mean(np.log1p(retail_density_wwd)): 0.03805141527692628
+            T-Score:
+                Intercept: 16.095042293725122
+                np.log1p(income_per_person_wwd): 2.9067038339101208
+                np.log1p(median_parcel_sqft): -5.296255909888433
+                np.log1p(nonres_building_sqft): 11.096903800413394
+                np.log1p(parcel_sqft): 49.437963021018305
+                subtract_mean(np.log1p(employment_density_wwd)): 10.288254592117616
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -22.58058644094522
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 2.460576187705442
+                subtract_mean(np.log1p(retail_density_wwd)): 7.874509100961225
+        fit_rsquared: 0.6827889762139203
+        fit_rsquared_adj: 0.6820188128784761
+        fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(employment_density_wwd))
+            + subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd))
+            + subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone))
+            + np.log1p(parcel_sqft) + np.log1p(income_per_person_wwd) + np.log1p(nonres_building_sqft)
+            + np.log1p(median_parcel_sqft) + subtract_mean(np.log1p(retail_density_wwd))
+        name: 2
+    3:
+        fit_parameters:
+            Coefficient:
+                Intercept: 5.764702520269273
+                np.log1p(building_sqft_pcl): 0.103479013701057
+                np.log1p(invfar + 1): -0.25976434589483566
+                np.log1p(parcel_sqft): 0.6800274901984631
+            Std. Error:
+                Intercept: 0.053870140367600704
+                np.log1p(building_sqft_pcl): 0.0023768266413221797
+                np.log1p(invfar + 1): 0.007513661075503712
+                np.log1p(parcel_sqft): 0.006053339631532111
+            T-Score:
+                Intercept: 107.01109150508834
+                np.log1p(building_sqft_pcl): 43.5366264842495
+                np.log1p(invfar + 1): -34.57227352744563
+                np.log1p(parcel_sqft): 112.33922621096133
+        fit_rsquared: 0.5053264193891496
+        fit_rsquared_adj: 0.505247699850542
+        fitted: true
+        name: 3
+    7:
+        fit_parameters:
+            Coefficient:
+                Intercept: 6.842779805636958
+                np.log1p(building_sqft_pcl): 0.06091036588884936
+                np.log1p(invfar + 1): -0.20951174159248231
+                np.log1p(parcel_sqft): 0.520226869486994
+            Std. Error:
+                Intercept: 0.2547121167557881
+                np.log1p(building_sqft_pcl): 0.011849622504443423
+                np.log1p(invfar + 1): 0.0464884485669843
+                np.log1p(parcel_sqft): 0.02878583952730959
+            T-Score:
+                Intercept: 26.864759685530203
+                np.log1p(building_sqft_pcl): 5.140279014458809
+                np.log1p(invfar + 1): -4.506748408491218
+                np.log1p(parcel_sqft): 18.07231882167086
+        fit_rsquared: 0.3151530849196925
+        fit_rsquared_adj: 0.31323115718794237
+        fitted: true
+        name: 7
+    9:
+        fit_parameters:
+            Coefficient:
+                Intercept: 7.415978763533197
+                np.log1p(building_sqft_pcl): 0.13945693874795928
+                np.log1p(invfar + 1): -1.0487284285575835
+                np.log1p(parcel_sqft): 0.5682557956185126
+            Std. Error:
+                Intercept: 0.7276810164224027
+                np.log1p(building_sqft_pcl): 0.020757242931548524
+                np.log1p(invfar + 1): 0.15445273057727454
+                np.log1p(parcel_sqft): 0.07508288695698881
+            T-Score:
+                Intercept: 10.191249457067581
+                np.log1p(building_sqft_pcl): 6.718471196191544
+                np.log1p(invfar + 1): -6.789963664856622
+                np.log1p(parcel_sqft): 7.568379675438394
+        fit_rsquared: 0.4994687197975879
+        fit_rsquared_adj: 0.4920350869232947
+        fitted: true
+        name: 9
+    10:
+        fit_parameters:
+            Coefficient:
+                Intercept: 6.022656760937884
+                np.log1p(building_sqft_pcl): 0.08862659487176963
+                np.log1p(invfar + 1): -0.22212993265624226
+                np.log1p(parcel_sqft): 0.6499239653854282
+            Std. Error:
+                Intercept: 0.13239913995401686
+                np.log1p(building_sqft_pcl): 0.005441680497898132
+                np.log1p(invfar + 1): 0.02009621790138388
+                np.log1p(parcel_sqft): 0.013567732937841137
+            T-Score:
+                Intercept: 45.488639601659
+                np.log1p(building_sqft_pcl): 16.28662228625917
+                np.log1p(invfar + 1): -11.053320268832564
+                np.log1p(parcel_sqft): 47.902178526285354
+        fit_rsquared: 0.5431101109194676
+        fit_rsquared_adj: 0.5426356665902043
+        fitted: true
+        name: 10
+    18:
+        fit_parameters:
+            Coefficient:
+                Intercept: 5.77379798752793
+                np.log1p(building_sqft_pcl): 0.12676437304164506
+                np.log1p(invfar + 1): -0.5257574304189284
+                np.log1p(parcel_sqft): 0.7211790798717519
+            Std. Error:
+                Intercept: 0.08578402744022182
+                np.log1p(building_sqft_pcl): 0.004270236421861688
+                np.log1p(invfar + 1): 0.016589554949599863
+                np.log1p(parcel_sqft): 0.010215724329796318
+            T-Score:
+                Intercept: 67.30621258778474
+                np.log1p(building_sqft_pcl): 29.68556316757277
+                np.log1p(invfar + 1): -31.69207564737049
+                np.log1p(parcel_sqft): 70.5950020370343
+        fit_rsquared: 0.5568711940606572
+        fit_rsquared_adj: 0.5567006505817839
+        fitted: true
+        name: 18
+    19:
+        fit_parameters:
+            Coefficient:
+                Intercept: 5.617059469634703
+                np.log1p(building_sqft_pcl): 0.10955097187037217
+                np.log1p(invfar + 1): -0.39674348278372024
+                np.log1p(parcel_sqft): 0.6124632771197069
+            Std. Error:
+                Intercept: 0.1883204503546749
+                np.log1p(building_sqft_pcl): 0.010564900735954619
+                np.log1p(invfar + 1): 0.026708259526982237
+                np.log1p(parcel_sqft): 0.019538160057708743
+            T-Score:
+                Intercept: 29.827134860052464
+                np.log1p(building_sqft_pcl): 10.369332813279236
+                np.log1p(invfar + 1): -14.85471123204067
+                np.log1p(parcel_sqft): 31.347029367694258
+        fit_rsquared: 0.4431509646150319
+        fit_rsquared_adj: 0.4420814722295293
+        fitted: true
+        name: 19
+    20:
+        fit_parameters:
+            Coefficient:
+                Intercept: 6.5968221519589365
+                np.log1p(building_sqft_pcl): 0.016077524581261896
+                np.log1p(invfar + 1): -0.18064983713160418
+                np.log1p(parcel_sqft): 0.6357364833496602
+            Std. Error:
+                Intercept: 0.1951401022107533
+                np.log1p(building_sqft_pcl): 0.00764151525697764
+                np.log1p(invfar + 1): 0.02778956731827609
+                np.log1p(parcel_sqft): 0.02104194394520785
+            T-Score:
+                Intercept: 33.80556880530021
+                np.log1p(building_sqft_pcl): 2.103970749332882
+                np.log1p(invfar + 1): -6.500635114703567
+                np.log1p(parcel_sqft): 30.212820878388687
+        fit_rsquared: 0.2055304152234243
+        fit_rsquared_adj: 0.20487473193475048
+        fitted: true
+        name: 20
+    25:
+        fit_parameters:
+            Coefficient:
+                Intercept: 2.4846624467161673
+                np.log1p(building_sqft_pcl): 0.05705544648330667
+                np.log1p(invfar + 1): -0.23935592473034484
+                np.log1p(parcel_sqft): 0.9312790353854472
+            Std. Error:
+                Intercept: 0.16553795778344246
+                np.log1p(building_sqft_pcl): 0.007863685797178773
+                np.log1p(invfar + 1): 0.018803649543170008
+                np.log1p(parcel_sqft): 0.017577691957279925
+            T-Score:
+                Intercept: 15.009623653607074
+                np.log1p(building_sqft_pcl): 7.255560300206329
+                np.log1p(invfar + 1): -12.729227067374554
+                np.log1p(parcel_sqft): 52.98073476590602
+        fit_rsquared: 0.6284547456203293
+        fit_rsquared_adj: 0.62790185089655
+        fitted: true
+        name: 25
+    26:
+        fit_parameters:
+            Coefficient:
+                Intercept: 6.290845230195931
+                np.log1p(building_sqft_pcl): 0.21809752706457913
+                np.log1p(invfar + 1): -0.4057435787930259
+                np.log1p(parcel_sqft): 0.5526886819375967
+            Std. Error:
+                Intercept: 0.02913426041428678
+                np.log1p(building_sqft_pcl): 0.0018236390918207836
+                np.log1p(invfar + 1): 0.014169881282173807
+                np.log1p(parcel_sqft): 0.0031037798387657314
+            T-Score:
+                Intercept: 215.9260314399827
+                np.log1p(building_sqft_pcl): 119.59467640432247
+                np.log1p(invfar + 1): -28.63422570120366
+                np.log1p(parcel_sqft): 178.0695508858587
+        fit_rsquared: 0.322238822875773
+        fit_rsquared_adj: 0.3222099643729788
+        fitted: true
+        name: 26
+    28:
+        fit_parameters:
+            Coefficient:
+                Intercept: 5.67866634933197
+                np.log1p(building_sqft_pcl): 0.09632217580601403
+                np.log1p(invfar + 1): -0.4520640462108002
+                np.log1p(parcel_sqft): 0.6955572593922279
+            Std. Error:
+                Intercept: 0.09266507372612733
+                np.log1p(building_sqft_pcl): 0.0051398051138142565
+                np.log1p(invfar + 1): 0.023394610532879893
+                np.log1p(parcel_sqft): 0.01027717944140761
+            T-Score:
+                Intercept: 61.28162554659302
+                np.log1p(building_sqft_pcl): 18.740433474243776
+                np.log1p(invfar + 1): -19.323426888233424
+                np.log1p(parcel_sqft): 67.67978153517198
+        fit_rsquared: 0.6086987450023873
+        fit_rsquared_adj: 0.608451711381808
+        fitted: true
+        name: 28
+    30:
+        fit_parameters:
+            Coefficient:
+                Intercept: 7.798954836491051
+                np.log1p(building_sqft_pcl): 0.016991542511187473
+                np.log1p(invfar + 1): -1.196571464660728
+                np.log1p(parcel_sqft): 0.7327842768571594
+            Std. Error:
+                Intercept: 0.21975847938936086
+                np.log1p(building_sqft_pcl): 0.007231183414857037
+                np.log1p(invfar + 1): 0.08455720279058837
+                np.log1p(parcel_sqft): 0.025101312528387206
+            T-Score:
+                Intercept: 35.488755010327125
+                np.log1p(building_sqft_pcl): 2.3497595810219676
+                np.log1p(invfar + 1): -14.151029423526676
+                np.log1p(parcel_sqft): 29.1930661406032
+        fit_rsquared: 0.46095198093016676
+        fit_rsquared_adj: 0.4596796409953048
+        fitted: true
+        name: 30
+
+fitted: true

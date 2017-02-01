@@ -67,7 +67,7 @@ def household_controls(store):
     return df
 
 @orca.table('household_relocation_rates', cache=True)
-def households_relocation_rates(store):
+def household_relocation_rates(store):
     df = store['annual_household_relocation_rates']
     df[df < 0] = np.nan 
     return df
@@ -77,8 +77,22 @@ def households(store):
     df = store['households']
     return df
 
+@orca.table('buildings_lag1', cache=True)
+def buildings_lag1(store):
+    dfname = 'buildings_lag1'
+    if dfname not in store.keys():
+        dfname = 'buildings'
+    return store[dfname]
+
+@orca.table('households_lag1', cache=True)
+def households_lag1(store):
+    dfname = 'households_lag1'
+    if dfname not in store.keys():
+        dfname = 'households'
+    return store[dfname]
+
 @orca.table('job_relocation_rates', cache=True)
-def jobs_relocation_rates(store):
+def job_relocation_rates(store):
     df = store['annual_job_relocation_rates']  
     df[df < 0] = np.nan 
     return df

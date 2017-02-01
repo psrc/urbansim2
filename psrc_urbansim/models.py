@@ -15,17 +15,17 @@ def repmres_estimate(parcels, zones, gridcells):
     return utils.hedonic_estimate("repmres.yaml", parcels, [zones, gridcells], out_cfg="repmrescoef.yaml")
 
 @orca.step('repmres_simulate')
-def repmres_simulate(parcels):
-    return utils.hedonic_simulate("repmrescoef.yaml", parcels, None, "land_value", cast=True)
+def repmres_simulate(parcels, zones, gridcells):
+    return utils.hedonic_simulate("repmrescoef.yaml", parcels, [zones, gridcells], "land_value", cast=True)
 
 # Non-Residential REPM
 @orca.step('repmnr_estimate')
-def repmnr_estimate(parcels):
-    return utils.hedonic_estimate("repmnr.yaml", parcels, None, out_cfg="repmnrcoef.yaml")
+def repmnr_estimate(parcels, zones, gridcells):
+    return utils.hedonic_estimate("repmnr.yaml", parcels, [zones, gridcells], out_cfg="repmnrcoef.yaml")
 
 @orca.step('repmnr_simulate')
-def repmnr_simulate(parcels):
-    return utils.hedonic_simulate("repmnrcoef.yaml", parcels, None, "land_value", cast=True)
+def repmnr_simulate(parcels, zones, gridcells):
+    return utils.hedonic_simulate("repmnrcoef.yaml", parcels, [zones, gridcells], "land_value", cast=True)
 
 
 # HLCM
@@ -111,7 +111,23 @@ def governmental_jobs_scaling(jobs, buildings, year):
 
 
 
-@orca.step('add_lag_tables')
-def add_lag_tables(households):
-    orca.add_table("households_lag1", households, cache=True)
+#@orca.step('add_lag_tables')
+#def add_lag_tables(households, buildings, year):
+    #orca.add_table("households_lag1", households, cache=True)
+    #orca.add_table("buildings_lag1", buildings, cache=True)
+
+
+@orca.step('add_lag1_tables')
+def add_lag1_tables(year, simfile, settings):
+    add_lag_tables(1, year, settings['base_year'], simfile, ["households", "buildings"])
+    
+def add_lag_tables(lag, year, base_year, filename, table_names):
+    store = pd.HDFStore(filename, mode="r")
+    prefix = max(year-lag, base_year)
+    if prefix == base_year:
+        prefix = "base"
+    key_template = '{}/{{}}'.format(prefix)
+    for table in table_names:
+        orca.add_table("{}_lag1".format(table), store[key_template.format(table)], cache=True)
+    store.close()
 

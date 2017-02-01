@@ -40,7 +40,28 @@ def abstract_logsum_interaction_variable(travel_data_attribute_dict, agent_categ
         if travel_data_attribute_dict.has_key(i):
             tmlist[i] = travel_data_attribute_dict[i][idx].reset_index(drop=True)
     return agent_categories.values.choose(tmlist)
-          
+
+def abstract_weighted_access(travel_data_attribute, zone_attribute, 
+                             aggregate_by_origin = True, function="sum"):
+    """
+    Summarizes zone attribute weighted by a travel_data attribute, e.g. 
+    generalized_cost_weighted_access_to_employment_hbw_am_drive_alone = 
+    sum of number of jobs in zone j divided by generalized cost from zone i to j.
+    The weight is the home-based-work am generalized cost by auto drive-alone.
+    """    
+    if aggregate_by_origin:
+        attribute_zone_id_name = 'from_zone_id'
+        summary_zone_id_name = 'to_zone_id'
+    else:
+        attribute_zone_id_name = 'to_zone_id'
+        summary_zone_id_name = 'from_zone_id'
+    attribute = zone_attribute[travel_data_attribute.index.get_level_values(attribute_zone_id_name)]
+    weighted_attribute = attribute.values * np.power(travel_data_attribute, -2).values
+    f = getattr(ndi, function)
+    results = np.array(f(weighted_attribute, labels = travel_data_attribute.index.get_level_values(summary_zone_id_name), 
+                                 index=zone_attribute.index))
+    return results
+
 def abstract_travel_time_variable_to_destination(travel_data_attribute, destination):
     return travel_data_attribute.xs(destination, level='to_zone_id')
 

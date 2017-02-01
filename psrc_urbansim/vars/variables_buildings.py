@@ -8,11 +8,14 @@ import urbansim_defaults.utils
 # BUILDINGS VARIABLES (in alphabetic order)
 #####################
 
-#@orca.column('buildings', 'age', cache=True, cache_scope='iteration')
+@orca.column('buildings', 'age', cache=True, cache_scope='iteration')
+# TODO: figure out how to make it work with the year argument
 #def age(buildings, year):
-#    year_built = buildings.year_built
-#    year_built[buildings.has_valid_age_built==0] = np.nan
-#    return np.maximum(0, year - year_built)
+def age(buildings):
+    year_built = buildings.year_built
+    year_built[buildings.has_valid_age_built==0] = np.nan
+    #return np.maximum(0, year - year_built)
+    return np.maximum(0, 2014 - year_built)
 
 @orca.column('buildings', 'avg_price_per_unit_in_zone', cache=True, cache_scope='iteration')
 def avg_price_per_unit_in_zone(buildings, zones):
@@ -65,9 +68,17 @@ def is_industrial(buildings):
 def is_mixed_use(buildings):
     return (buildings.building_type_name == 'mixed_use').astype("int16")
 
+@orca.column('buildings', 'is_multifamily', cache=True, cache_scope='iteration')
+def is_multifamily(buildings):
+    return (buildings.building_type_name == 'multi_family_residential').astype("int16")
+
 @orca.column('buildings', 'is_office', cache=True, cache_scope='iteration')
 def is_office(buildings):
     return (buildings.building_type_name == 'office').astype("int16")
+
+@orca.column('buildings', 'is_residential', cache=True, cache_scope='iteration')
+def is_residential(buildings, building_types):
+    return (misc.reindex(building_types.is_residential, buildings.building_type_id) == 1).astype("bool8")
 
 @orca.column('buildings', 'is_tcu', cache=True, cache_scope='iteration')
 def is_tcu(buildings):
@@ -106,8 +117,8 @@ def mortgage_cost(buildings, parcels):
         buildings.sqft_per_unit.divide(pbsqft).fillna(0) * 
         misc.reindex(parcels.land_value, buildings.parcel_id))
 
-@orca.column('buildings', 'multifamily_type', cache=True, cache_scope='iteration')
-def multifamily_type(buildings):
+@orca.column('buildings', 'multifamily_generic_type', cache=True, cache_scope='iteration')
+def multifamily_generic_type(buildings):
     return ((buildings.building_type_id == 4) | (buildings.building_type_id == 12)).astype("int16")
 
 @orca.column('buildings', 'number_of_governmental_jobs', cache=True, cache_scope='step')

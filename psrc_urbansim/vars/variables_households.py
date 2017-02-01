@@ -9,9 +9,12 @@ import urbansim_defaults.utils
 #####################
 
 @orca.column('households', 'building_type_id', cache=True)
-# needed for relocation model
 def building_type_id(households, buildings):
     return misc.reindex(buildings.building_type_id, households.building_id)
+
+#@orca.column('households_lag1', 'building_type_id', cache=True)
+#def building_type_id(households_lag1, buildings_lag1):
+#    return misc.reindex(buildings_lag1.building_type_id, households_lag1.building_id)
 
 @orca.column('households', 'city_id', cache=True)
 def city_id(households, parcels):
@@ -40,9 +43,23 @@ def income_category(households, settings):
 def is_inmigrant(households, parcels):
     return (households.building_id < 0).reindex(households.index)
 
+@orca.column('households', 'is_residence_mf', cache=True)
+def is_residence_mf(households, buildings):
+    return misc.reindex(buildings.multifamily_generic_type, households.building_id).fillna(-1)
+
 @orca.column('households', 'parcel_id', cache=True)
 def parcel_id(households, buildings):
     return misc.reindex(buildings.parcel_id, households.building_id)
+
+@orca.column('households', 'residence_large_area', cache=True)
+def residence_large_area(households, buildings):
+    return misc.reindex(buildings.large_area_id, households.building_id).fillna(-1)
+
+
+#@orca.column('households', 'same_building_type', cache=True)
+#def same_building_type(households, households_lag1):
+#    merged = households.building_type_id.to_frame('bt').join(households_lag1.building_type_id.to_frame('btlag'))
+#    return merged.bt == merged.btlag
 
 @orca.column('households', 'tractcity_id', cache=True)
 def tractcity_id(households, parcels):

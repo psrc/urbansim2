@@ -3,7 +3,7 @@ import numpy as np
 import orca
 from urbansim.utils import misc
 import urbansim_defaults.utils
-from abstract_variables import abstract_trip_weighted_average_from_home
+from abstract_variables import abstract_trip_weighted_average_from_home, abstract_weighted_access
 from abstract_variables import abstract_access_within_threshold_variable_from_origin
 from abstract_variables import abstract_travel_time_variable_to_destination
 
@@ -19,11 +19,6 @@ def acres(zones):
 def area(zones, parcels):
     # sum of parcel sqft
     return parcels.parcel_sqft.groupby(parcels.zone_id).sum().reindex(zones.index).fillna(0)
-
-@orca.column('zones', 'avg_income')
-def avg_income(zones, households):
-    s = households.income.groupby(households.zone_id).quantile().apply(np.log1p)
-    return s.reindex(zones.index).fillna(s.quantile())
 
 @orca.column('zones', 'avg_school_score', cache=True, cache_scope='iteration')
 def avg_school_score(zones, fazes):
@@ -59,6 +54,23 @@ def generalized_cost_hbw_am_drive_alone_to_seattle_cbd(zones, travel_data):
     min_values.iloc[is_in_cbd] = min_values.iloc[is_in_cbd].min()
     return min_values
 
+@orca.column('zones', 'generalized_cost_weighted_access_to_employment_hbw_am_drive_alone')
+def generalized_cost_weighted_access_to_employment_hbw_am_drive_alone(zones, travel_data):
+    """Total employment in zone j divided by generalized cost from zone i to j,
+    The travel time used is for the home-based-work am trips by auto with 
+    drive-alone.
+    """
+    return abstract_weighted_access(travel_data.single_vehicle_to_work_travel_cost, zones.number_of_jobs)
+
+@orca.column('zones', 'generalized_cost_weighted_access_to_population_hbw_am_drive_alone')
+def generalized_cost_weighted_access_to_population_hbw_am_drive_alone(zones, travel_data):
+    """Sum of population in zone j divided by generalized cost from zone i to j,
+    The travel time used is for the home-based-work am trips by auto with 
+    drive-alone.
+    """
+    return abstract_weighted_access(travel_data.single_vehicle_to_work_travel_cost, zones.population)
+
+
 @orca.column('zones', 'jobs_within_10_min_tt_hbw_am_walk')
 def jobs_within_10_min_tt_hbw_am_walk(zones, travel_data):    
     return abstract_access_within_threshold_variable_from_origin(travel_data.am_walk_time_in_minutes, zones.number_of_jobs, 10)
@@ -78,6 +90,16 @@ def jobs_within_20_min_tt_hbw_am_transit_walk(zones, travel_data):
 @orca.column('zones', 'jobs_within_30_min_tt_hbw_am_drive_alone')
 def jobs_within_30_min_tt_hbw_am_drive_alone(zones, travel_data):
     return abstract_access_within_threshold_variable_from_origin(travel_data.am_single_vehicle_to_work_travel_time, zones.number_of_jobs, 30)
+
+@orca.column('zones', 'median_income')
+def median_income(zones, households):
+    s = households.income.groupby(households.zone_id).quantile()
+    return s.reindex(zones.index).fillna(s.quantile())
+
+@orca.column('zones', 'median_parcel_sqft')
+def median_parcel_sqft(zones, parcels):
+    s = parcels.parcel_sqft.groupby(parcels.zone_id).quantile()
+    return s.reindex(zones.index).fillna(s.quantile())
 
 @orca.column('zones', 'number_of_households', cache=True, cache_scope='iteration')
 def number_of_households(zones, households):

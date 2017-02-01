@@ -79,6 +79,11 @@ def is_park(parcels):
 def lnemp20da(parcels, zones):
     return np.log1p(misc.reindex(zones.jobs_within_20_min_tt_hbw_am_drive_alone, parcels.zone_id))
 
+@orca.column('parcels', 'nonres_building_sqft', cache=True, cache_scope='iteration')
+def nonres_building_sqft(parcels, buildings):
+    return (buildings.building_sqft * (~buildings.is_residential)).groupby(buildings.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
 @orca.column('parcels', 'number_of_good_public_schools', cache=True, cache_scope='iteration')
 def number_of_good_public_schools(parcels, schools):
     return ((schools.total_score >= 8)*(schools.public == 1)).groupby(schools.parcel_id).sum().\

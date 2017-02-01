@@ -18,24 +18,31 @@ interaction_predict_filters: null
 
 choice_column: null
 
-sample_size: 100
+sample_size: 30
 
 estimation_sample_size: 3000
 
 prediction_sample_size: null
 
 default_config:
-    model_expression: multifamily_type + I((persons < 2)*1):I(np.logical_not(building_type_name
-        == "single_family_residential")*1) + I((persons > 3)*1):I(np.logical_not(large_area_id
-        == 6)*1) + I((tenure == 1)*1):I(np.logical_not(building_type_name == "multi_family_residential")*1)
-        + I((persons-2)*(persons > 2)):I((building_type_name == "condo_residential")*1)
-        + I(np.log1p(income)/(persons*persons*1.0)):I(np.log1p(sqft_per_unit)) + I(1*np.logical_or(mortgage_cost/income
-        < 0.1, mortgage_cost/income > 0.3)) + ln_price_residual + I((employment_density_wwd
-        > 25) * np.log1p(employment_density_wwd)) + I(1*(np.logical_and(persons ==
-        1, age_of_head < 50))):I(1*(np.log1p(employment_retail_wwd)>4)) + avg_network_distance_from_home_to_work(worker1_zone_id,
-        worker2_zone_id, building_zone_id) + max_logsum_hbw_am_from_home_to_work_wzone_logsum(worker1_zone_id,
-        worker2_zone_id, building_zone_id, income_category, twa_logsum_hbw_1, twa_logsum_hbw_2,
-        twa_logsum_hbw_3, twa_logsum_hbw_4)
+    model_expression: multifamily_generic_type + 
+                    I((persons < 2)*1):I(np.logical_not(building_type_name == "single_family_residential")*1) + 
+                    I((persons > 3)*1):I(np.logical_not(large_area_id == 6)*1) + 
+                    I((tenure == 1)*1):I(~is_multifamily) +
+                    I((persons-2)*(persons > 2)):I((building_type_name == "condo_residential")*1) + 
+                    I(np.log1p(income)/(persons*persons*1.0)):I(np.log1p(sqft_per_unit)) + 
+                    I(1*np.logical_or(mortgage_cost/income < 0.1, mortgage_cost/income > 0.3)) + 
+                    ln_price_residual + 
+                    I((employment_density_wwd > 25) * np.log1p(employment_density_wwd)) + 
+                    I(1*(np.logical_and(persons == 1, age_of_head < 50))):I(1*(np.log1p(employment_retail_wwd)>4)) + 
+                    avg_network_distance_from_home_to_work(worker1_zone_id, worker2_zone_id, building_zone_id) + 
+                    max_logsum_hbw_am_from_home_to_work_wzone_logsum(worker1_zone_id, worker2_zone_id, building_zone_id, 
+                                                                    income_category, twa_logsum_hbw_1, twa_logsum_hbw_2,
+                                                                    twa_logsum_hbw_3, twa_logsum_hbw_4) +
+                    # The two variables below need to be modified when households for estimation are ready.
+                    # They take values from current locations instead of previous locations
+                    equals(is_residence_mf, multifamily_generic_type) +
+                    equals(residence_large_area, large_area_id)
 
 models:
     false:
@@ -55,7 +62,7 @@ models:
                     worker2_zone_id, building_zone_id, income_category, twa_logsum_hbw_1,
                     twa_logsum_hbw_2, twa_logsum_hbw_3, twa_logsum_hbw_4)
                 : 0.16457522570260502
-                multifamily_type: 1.8593672976818887
+                multifamily_generic_type: 1.8593672976818887
             Std. Error:
                 I((employment_density_wwd > 25) * np.log1p(employment_density_wwd)): 0.01981331226743697
                 I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): 70.97963997811324
@@ -71,7 +78,7 @@ models:
                     worker2_zone_id, building_zone_id, income_category, twa_logsum_hbw_1,
                     twa_logsum_hbw_2, twa_logsum_hbw_3, twa_logsum_hbw_4)
                 : 0.03865206958905625
-                multifamily_type: 0.05452304176865223
+                multifamily_generic_type: 0.05452304176865223
             T-Score:
                 I((employment_density_wwd > 25) * np.log1p(employment_density_wwd)): 16.137619327364305
                 I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): -0.04226564125888858
@@ -87,7 +94,7 @@ models:
                     worker2_zone_id, building_zone_id, income_category, twa_logsum_hbw_1,
                     twa_logsum_hbw_2, twa_logsum_hbw_3, twa_logsum_hbw_4)
                 : 4.257863225756015
-                multifamily_type: 34.1024131700393
+                multifamily_generic_type: 34.1024131700393
         fitted: true
         log_likelihoods:
             convergence: -12599.169865770895

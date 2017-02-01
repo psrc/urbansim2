@@ -112,7 +112,7 @@ models:
         fit_rsquared: 0.19687389129776778
         fit_rsquared_adj: 0.1968693669800905
         fitted: true
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd)) + np.log1p(park_area_wwd) + np.log1p(avg_income) + 
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd)) + np.log1p(park_area_wwd) + np.log1p(median_income) + 
             subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)) + subtract_mean(np.log1p(jobs_within_20_min_tt_hbw_am_transit_walk)) + 
             subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + 
             I(distance_to_arterial < 600) + I(distance_to_highway < 200) + 
@@ -122,7 +122,9 @@ models:
             I(number_of_good_public_schools_within_3000_radius == 0) +
             is_waterfront + subtract_mean(np.log1p(building_density_wwd)) + 
             np.log1p(total_improvement_value) + I(total_improvement_value <= 0) +
-            np.log1p(income_per_person_wwd) + avg_school_score
+            np.log1p(income_per_person_wwd) + avg_school_score + 
+            subtract_mean(np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone)) + 
+            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone))
         name: 24
 
 fitted: true
