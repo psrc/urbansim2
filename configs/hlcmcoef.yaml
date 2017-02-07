@@ -22,7 +22,7 @@ sample_size: 100
 
 estimation_sample_size: 3000
 
-prediction_sample_size: null
+prediction_sample_size: 100
 
 default_config:
     model_expression: multifamily_generic_type + I((persons < 2)*1):I(np.logical_not(building_type_name

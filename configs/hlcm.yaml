@@ -18,11 +18,11 @@ interaction_predict_filters: null
 
 choice_column: null
 
-sample_size: 30
+sample_size: 100 # #alternatives in estimation
 
-estimation_sample_size: 3000
+estimation_sample_size: 3000 # #choosers in estimation
 
-prediction_sample_size: null
+prediction_sample_size: 100 # #alternatives in prediction 
 
 default_config:
     model_expression: multifamily_generic_type + 

@@ -19,16 +19,16 @@ if os.path.exists(outfile):
 
 orca.run([
 #    "add_lag1_tables",
-#    "repmres_simulate",           # residential REPM
+    "repmres_simulate",           # residential REPM
 #    "repmnr_simulate",            # non-residential REPM
 
     "households_transition",     # households transition
     "households_relocation",     # households relocation model
-#    "hlcm_simulate",            # households location choice
+    "hlcm_simulate",            # households location choice
 
     "jobs_transition",           # jobs transition
     "jobs_relocation",           # jobs relocation model
-#    "elcm_simulate",             # employment location choice
+    "elcm_simulate",             # employment location choice
     "governmental_jobs_scaling"
 
 ], iter_vars=[2015], data_out=outfile)
