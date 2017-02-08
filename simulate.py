@@ -28,7 +28,7 @@ orca.run([
 
     "jobs_transition",           # jobs transition
     "jobs_relocation",           # jobs relocation model
-    "elcm_simulate",             # employment location choice
+#    "elcm_simulate",             # employment location choice
     "governmental_jobs_scaling"
 
 ], iter_vars=[2015], data_out=outfile)
