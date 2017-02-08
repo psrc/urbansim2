@@ -51,7 +51,8 @@ models:
             I(avg_building_age > 60) + I(blds_with_valid_age == 0) + np.log1p(avg_building_age) + np.log1p(building_sqft_pcl) +
             subtract_mean(np.log1p(building_density_wwd)) + np.log1p(parcel_sqft) + number_of_good_public_schools_within_3000_radius +
             I(distance_to_arterial < 600) + np.log1p(residential_units) + np.log1p(number_of_jobs_per_acre) + np.log1p(income_per_person_wwd) +
-            I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0)
+            I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0) 
+        #+ max_developable_capacity
         #is_waterfront + 
         name: 14
     15: # Condo

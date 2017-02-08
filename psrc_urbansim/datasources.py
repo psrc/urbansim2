@@ -8,6 +8,18 @@ from urbansim_defaults import datasources
 import warnings
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 
+orca.add_injectable('base_year', 2014)
+@orca.injectable()
+def year(base_year):
+    if 'iter_var' in orca.list_injectables():
+        year = orca.get_injectable('iter_var')
+        if year is not None:
+            return year
+    
+    # outside of a run, return the base/default
+    return base_year
+
+
 # datasets in alphabetical order
 
 @orca.table('building_sqft_per_job', cache=True)
@@ -24,6 +36,11 @@ def building_types(store):
 def buildings(store):
     df = store['buildings']
     #df = utils.fill_nas_from_config('buildings', df)
+    return df
+
+@orca.table('development_constraints', cache=True)
+def development_constraints(store):
+    constr = store['development_constraints']
     return df
 
 @orca.table('employment_controls', cache=True)
@@ -108,6 +125,16 @@ def land_use_types(store):
     df = store['land_use_types']
     return df
 
+#@orca.table('parcel_zoning', cache=True)
+#def parcel_zoning(store):
+    #constr = store['development_constraints']
+    ## connect to parcels
+    #pcl = store['parcels']
+    #pcl['parcel_id'] = pcl.index
+    #constr['constraint_id'] = constr.index
+    #zoning = pd.merge(pcl[['parcel_id', 'plan_type_id']], constr, how='outer', on=['plan_type_id'])
+    #return zoning.set_index(['parcel_id','generic_land_use_type_id', 'constraint_type'])
+
 @orca.table('parcels', cache=True)
 def parcels(store):
     df = store['parcels']
@@ -149,5 +176,4 @@ orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
 orca.broadcast('parcels', 'schools', cast_index=True, onto_on='parcel_id')
 orca.broadcast('tractcity', 'parcels', cast_index=True, onto_on='tractcity_id')
 orca.broadcast('zones', 'parcels', cast_index=True, onto_on='zone_id')
-
 

@@ -79,6 +79,11 @@ def is_park(parcels):
 def lnemp20da(parcels, zones):
     return np.log1p(misc.reindex(zones.jobs_within_20_min_tt_hbw_am_drive_alone, parcels.zone_id))
 
+#@orca.column('parcels', 'max_developable_capacity', cache=True, cache_scope='forever')
+#def max_developable_capacity(parcels, parcel_zoning):
+    #tmp = parcel_zoning.maximum
+    #return tmp
+
 @orca.column('parcels', 'nonres_building_sqft', cache=True, cache_scope='iteration')
 def nonres_building_sqft(parcels, buildings):
     return (buildings.building_sqft * (~buildings.is_residential)).groupby(buildings.parcel_id).sum().\
