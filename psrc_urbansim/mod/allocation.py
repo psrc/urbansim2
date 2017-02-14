@@ -298,7 +298,7 @@ class AllocationModel(object):
                         # randomly choose items to round up, weighted by their fractional part
                         fract_w = fract / fract_sum
                         idx_to_round_up = np.random.choice(
-                            to_round_idx, round_up_cnt, False, fract_w)
+                            to_round_idx, round_up_cnt.astype(np.int), False, fract_w)
                         a[idx_to_round_up] += 1
 
             # update the results with the current allocation
