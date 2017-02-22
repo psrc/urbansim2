@@ -11,6 +11,7 @@ RUN conda install \
     numpy \
     pandas \
     pytables \
+    pyyaml \
     scipy \
     statsmodels \
     toolz
@@ -22,7 +23,7 @@ RUN pip install prettytable zbox
 RUN apt-get -y update && apt-get install -y \
 	git \
 	make \
-	&& rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Grab UDST urbansim packages
 RUN git clone https://github.com/UDST/urbansim.git
