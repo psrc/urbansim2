@@ -1,0 +1,12 @@
+store: /Users/hana/udst/psrc_urbansim/simresult.h5
+
+base_year: 2014
+years: [2014, 2015]
+
+indicators:
+    number_of_households:
+        dataset: [zones, fazes]
+        
+    number_of_jobs:
+        dataset: [zones, fazes]
+        
