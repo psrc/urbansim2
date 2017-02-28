@@ -21,11 +21,10 @@ def settings(settings_file):
 
 @orca.step()
 def compute_indicators(settings):
-    # loop over indicators from settings and store
+    # loop over indicators and dataests from settings and store into file
     for ind, value in settings['indicators'].iteritems():
-        ds = value['dataset']
-        for d in ds:
-            print orca.get_table(d)[ind]
+        for ds in value['dataset']:
+            print orca.get_table(ds)[ind]
              
 
 # Compute indicators
