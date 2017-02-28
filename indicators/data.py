@@ -1,9 +1,11 @@
+import os
 import orca
 import pandas as pd
+from urbansim.utils import misc
 
 @orca.injectable('store', cache=True)
 def store(settings):
-    return pd.HDFStore(settings["store"], mode='r')
+    return pd.HDFStore(os.path.join(os.getenv('DATA_HOME'), settings["store"]), mode='r')
 
 @orca.injectable()
 def base_year(settings):

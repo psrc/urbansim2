@@ -1,4 +1,4 @@
-store: /Users/hana/udst/psrc_urbansim/simresult20170228.h5
+store: simresult20170228.h5
 
 base_year: 2014
 years: [2014, 2015]
