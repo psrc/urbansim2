@@ -9,13 +9,10 @@ import urbansim_defaults.utils
 #####################
 
 @orca.column('buildings', 'age', cache=True, cache_scope='iteration')
-# TODO: figure out how to make it work with the year argument
 def age(buildings, year):
-#def age(buildings):
     year_built = buildings.year_built
     year_built[buildings.has_valid_age_built==0] = np.nan
     return np.maximum(0, year - year_built)
-    #return np.maximum(0, 2014 - year_built)
 
 @orca.column('buildings', 'avg_price_per_unit_in_zone', cache=True, cache_scope='iteration')
 def avg_price_per_unit_in_zone(buildings, zones):

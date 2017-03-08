@@ -5,7 +5,7 @@ model_type: segmented_regression
 segmentation_col: land_use_type_id
 
 fit_filters:
-- land_use_type_id in [2, 3, 7, 9, 10, 19, 20, 25, 26, 28, 30]
+- land_use_type_id in [2, 3, 7, 9, 10, 18, 19, 20, 25, 26, 28, 30]
 - parcel_sqft > 100
 - total_land_value_per_sqft > 1
 - total_land_value_per_sqft < 1096.63
@@ -15,12 +15,13 @@ predict_filters: null
 min_segment_size: 10
 
 default_config:
-    model_expression: np.log1p(land_value) ~ np.log1p(parcel_sqft) + np.log1p(building_sqft)
+    model_expression: np.log1p(land_value) ~ np.log1p(parcel_sqft) + np.log1p(building_sqft_pcl)
         + np.log1p(invfar+1)
     ytransform: np.exp
 
 models:
     2:
+        name: 2 # Civic
         fit_parameters:
             Coefficient:
                 Intercept: 7.390522088347363
@@ -34,9 +35,13 @@ models:
         fit_rsquared: 0.22764318977368203
         fit_rsquared_adj: 0.22740928401649663
         fitted: true
-        model_expression: np.log1p(land_value) ~ np.log1p(parcel_sqft)
-        name: 2
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(employment_density_wwd)) + 
+            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + 
+            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) +             
+            np.log1p(parcel_sqft) + np.log1p(income_per_person_wwd) + np.log1p(nonres_building_sqft) +
+            np.log1p(median_parcel_sqft) + subtract_mean(np.log1p(retail_density_wwd))
     3:
+        name: 3 # Commercial
         fit_parameters:
             Coefficient:
                 Intercept: 5.766351718035194
@@ -56,8 +61,8 @@ models:
         fit_rsquared: 0.505597047354287
         fit_rsquared_adj: 0.5055183708818737
         fitted: true
-        name: 3
-    7:
+        
+    7: # Government
         fit_parameters:
             Coefficient:
                 Intercept: 6.849261640960875
@@ -77,8 +82,15 @@ models:
         fit_rsquared: 0.3150600280731578
         fit_rsquared_adj: 0.3131378391902948
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(employment_density_wwd)) + 
+            subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk)) + 
+            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + 
+            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) +
+            np.log1p(nonres_building_sqft) +
+            np.log1p(income_per_person_wwd) + 
+            number_of_good_public_schools_within_3000_radius + np.log1p(parcel_sqft)
         name: 7
-    9:
+    9: # Hospital
         fit_parameters:
             Coefficient:
                 Intercept: 7.40793804933765
@@ -98,6 +110,9 @@ models:
         fit_rsquared: 0.4760850331367493
         fit_rsquared_adj: 0.4683041177872951
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
+            subtract_mean(np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone)) + np.log1p(parcel_sqft) +
+            np.log1p(nonres_building_sqft) + np.log1p(total_improvement_value) + I(total_improvement_value <= 0)            
         name: 9
     10:
         fit_parameters:
@@ -120,7 +135,7 @@ models:
         fit_rsquared_adj: 0.5420223479262819
         fitted: true
         name: 10
-    19:
+    19: # park and open space
         fit_parameters:
             Coefficient:
                 Intercept: 5.63385544391747
@@ -140,6 +155,16 @@ models:
         fit_rsquared: 0.4438263037047615
         fit_rsquared_adj: 0.44275810838537244
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone)) + 
+            np.log1p(parcel_sqft) +
+            I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0) + 
+            subtract_mean(np.log1p(population_density_wwd)) + is_waterfront +
+            np.log1p(number_of_jobs_per_acre) + 
+            np.log1p(total_improvement_value) + I(total_improvement_value <= 0) + 
+            I(distance_to_arterial < 600) +
+            np.log1p(max_developable_capacity) + 
+            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
+            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone))
         name: 19
     20:
         fit_parameters:
