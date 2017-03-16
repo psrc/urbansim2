@@ -29,6 +29,6 @@ orca.run([
 #    "elcm_simulate",             # employment location choice
 #    "governmental_jobs_scaling"
 
-], iter_vars=[2015, 2016], data_out=outfile)
+], iter_vars=[2015, 2016], data_out=outfile, compress=True)
 
 logging.info('Simulation finished')
