@@ -73,7 +73,7 @@ DIRECTORIES = {
 
 NO_INDEX = ['annual_household_relocation_rates', 'annual_job_relocation_rates']
 
-def convert_dirs(base_dir, hdf_name, complib=None, complevel=0):
+def convert_dirs(base_dir, hdf_name, no_compress=False):
     """
     Convert nested set of directories to
 
@@ -85,8 +85,14 @@ def convert_dirs(base_dir, hdf_name, complib=None, complevel=0):
     if not dirs:
         raise RuntimeError('No directories found matching known data.')
 
+    # Only disable zlib-standard compression if user explicitly says so
+    if no_compress:
+        complib = None
+    else
+        complib = 'zlib'
+
     store = pd.HDFStore(
-        hdf_name, mode='w', complevel=complevel, complib=complib)
+        hdf_name, mode='w', complevel=1, complib=complib)
 
     for dirpath in dirs:
         dirname = os.path.basename(dirpath)
@@ -153,18 +159,14 @@ def parse_args(args=None):
             'array data to an HDF5 file made from Pandas DataFrames.'))
     parser.add_argument('base_dir', help='Base data directory for conversion.')
     parser.add_argument('hdf_name', help='Name of output HDF5 file.')
-    parser.add_argument('-c', '--complib',
-                        help=('Compression library to use, if any. '
-                              "Can be one of "
-                              "'zlib', 'bzip2', 'lzo', 'blosc'."))
-    parser.add_argument('-l', '--complevel', type=int, default=0,
-                        help='Compression level to use.')
+    parser.add_argument('--no-compress', help=('Disable output file compression'),
+                         default=False, dest='no_compress', action='store_true')
     return parser.parse_args(args)
 
 
 def main(args=None):
     args = parse_args(args)
-    convert_dirs(args.base_dir, args.hdf_name, args.complib, args.complevel)
+    convert_dirs(args.base_dir, args.hdf_name, args.no_compress)
 
 
 if __name__ == '__main__':
