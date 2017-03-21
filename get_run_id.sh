@@ -22,7 +22,7 @@ else
     PREFIX="run"
 fi
 
-# If network location not found, prepend hostname and store in ~/.run-numbers
+# If network location is not found, prepend hostname and use ~/.run-numbers
 if [ ! -d $RUN_NUMBER_DIR ]
 then
     mkdir -p ~/.run-numbers
@@ -33,7 +33,7 @@ fi
 cd $RUN_NUMBER_DIR
 run_number=$PREFIX-number.txt
 
-# Attempt to get run number five times
+# Attempt to get a run number five times
 for loop in 1 2 3 4 5
 do
     # use a lockfile to prevent script from running from multiple threads
@@ -50,7 +50,7 @@ do
         # calculate and save new run number
         NEW_RUN=$((OLD_RUN + 1))
         echo $NEW_RUN > "$run_number"
-        printf "%s-%04d" "$PREFIX" "$NEW_RUN"
+        printf "%s-%04d\n" "$PREFIX" "$NEW_RUN"
 
         # clean up after yourself, and release your lock trap
         rm -f lockfile-delete-me.txt

@@ -21,7 +21,6 @@ RUN_ID := $(shell bash get_run_id.sh)
 
 simresult.h5 :
 	@echo '--------'
-	RUN_LOCATION=$(bash get_run_id.sh)
 	python simulate_demo.py
 	mv $@ "/data/$(RUN_ID).h5"
 
