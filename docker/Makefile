@@ -17,10 +17,13 @@ THIS_FILE := $(lastword $(MAKEFILE_LIST))
 # Default make rule: simply run urbansim2 using container's copy of code & base data
 default : simresult.h5
 
+RUN_ID := $(shell bash get_run_id.sh)
+
 simresult.h5 :
 	@echo '--------'
+	RUN_LOCATION=$(bash get_run_id.sh)
 	python simulate_demo.py
-	cp $@ /data
+	mv $@ "/data/$(RUN_ID).h5"
 
 
 # latest: Pull all the latest code from github
