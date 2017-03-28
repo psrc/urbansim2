@@ -88,7 +88,7 @@ def convert_dirs(base_dir, hdf_name, no_compress=False):
     # Only disable zlib-standard compression if user explicitly says so
     if no_compress:
         complib = None
-    else
+    else:
         complib = 'zlib'
 
     store = pd.HDFStore(

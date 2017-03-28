@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "simresult_full.h5"
+     return "simresult20170327.h5"
 
 # remove results file if exists
 outfile = simfile()
