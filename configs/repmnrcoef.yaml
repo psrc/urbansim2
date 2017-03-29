@@ -64,23 +64,97 @@ models:
     3:
         fit_parameters:
             Coefficient:
-                Intercept: 5.764702520269273
-                np.log1p(building_sqft_pcl): 0.103479013701057
-                np.log1p(invfar + 1): -0.25976434589483566
-                np.log1p(parcel_sqft): 0.6800274901984631
+                I(avg_building_age > 60)[T.True]: 0.07987374759460912
+                I(blds_with_valid_age == 0)[T.True]: 0.002260858245461017
+                I(developable_capacity == 0)[T.True]: 0.7335080423259419
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 0.13478363741829308
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): -0.045756544509232944
+                I(np.log1p(parcel_sqft)): 0.3463996589804528
+                I(np.log1p(parcel_sqft)):bellevue_cbd > 0[T.True]: 0.18782947205408362
+                I(np.log1p(parcel_sqft)):seattle_cbd: 0.38697048598603545
+                Intercept: 5.647749769514284
+                bellevue_cbd > 0[T.True]: -1.9823551431176734
+                is_waterfront: 0.6001155971747019
+                np.log1p(avg_building_age): -0.06562920664151191
+                np.log1p(income_per_person_wwd): -0.012988227475249445
+                np.log1p(nonres_building_sqft): 0.05839383595730377
+                np.log1p(parcel_sqft): 0.34639965898055386
+                number_of_good_public_schools_within_3000_radius: 0.0496902537783239
+                seattle_cbd: -3.544987200829249
+                subtract_mean(np.log1p(building_density_wwd)): 0.5098941389056806
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.07741647088805304
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -0.6697106186773758
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): -0.10745454584766664
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 0.04716168249871006
+                subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk)): 0.04101873451046299
+                subtract_mean(np.log1p(population_density_wwd)): 0.09108576500370857
+                subtract_mean(np.log1p(retail_density_wwd)): 0.18820700674969726
             Std. Error:
-                Intercept: 0.053870140367600704
-                np.log1p(building_sqft_pcl): 0.0023768266413221797
-                np.log1p(invfar + 1): 0.007513661075503712
-                np.log1p(parcel_sqft): 0.006053339631532111
+                I(avg_building_age > 60)[T.True]: 0.012324859238478671
+                I(blds_with_valid_age == 0)[T.True]: 0.033527680434996564
+                I(developable_capacity == 0)[T.True]: 0.04153196327024732
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 0.13397778921986903
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): 0.012676908391853143
+                I(np.log1p(parcel_sqft)): 0.0026977490640237513
+                I(np.log1p(parcel_sqft)):bellevue_cbd > 0[T.True]: 0.04758119761809714
+                I(np.log1p(parcel_sqft)):seattle_cbd: 0.06425202767128145
+                Intercept: 0.0678265796507361
+                bellevue_cbd > 0[T.True]: 0.4727700369285682
+                is_waterfront: 0.03440405822369712
+                np.log1p(avg_building_age): 0.007304444869762353
+                np.log1p(income_per_person_wwd): 0.003332017433715941
+                np.log1p(nonres_building_sqft): 0.002404069935420305
+                np.log1p(parcel_sqft): 0.0026977490640228315
+                number_of_good_public_schools_within_3000_radius: 0.0018164207159493894
+                seattle_cbd: 0.574891968309341
+                subtract_mean(np.log1p(building_density_wwd)): 0.043264584670950304
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.003749664972241048
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): 0.01443861549779602
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 0.01934678212286859
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 0.004182506892255601
+                subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk)): 0.004854281030083943
+                subtract_mean(np.log1p(population_density_wwd)): 0.007214693962530264
+                subtract_mean(np.log1p(retail_density_wwd)): 0.00821994332874226
             T-Score:
-                Intercept: 107.01109150508834
-                np.log1p(building_sqft_pcl): 43.5366264842495
-                np.log1p(invfar + 1): -34.57227352744563
-                np.log1p(parcel_sqft): 112.33922621096133
-        fit_rsquared: 0.5053264193891496
-        fit_rsquared_adj: 0.505247699850542
+                I(avg_building_age > 60)[T.True]: 6.480702622975222
+                I(blds_with_valid_age == 0)[T.True]: 0.06743258752553333
+                I(developable_capacity == 0)[T.True]: 17.66128987336875
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 1.0060147894894846
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): -3.6094403378854216
+                I(np.log1p(parcel_sqft)): 128.40321718573415
+                I(np.log1p(parcel_sqft)):bellevue_cbd > 0[T.True]: 3.947556628600793
+                I(np.log1p(parcel_sqft)):seattle_cbd: 6.022696870607845
+                Intercept: 83.26750071427185
+                bellevue_cbd > 0[T.True]: -4.193064255925321
+                is_waterfront: 17.443163049914535
+                np.log1p(avg_building_age): -8.984831539107383
+                np.log1p(income_per_person_wwd): -3.898007058373846
+                np.log1p(nonres_building_sqft): 24.28957456559796
+                np.log1p(parcel_sqft): 128.4032171858154
+                number_of_good_public_schools_within_3000_radius: 27.356136902651585
+                seattle_cbd: -6.166353673811883
+                subtract_mean(np.log1p(building_density_wwd)): 11.785485583270729
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 20.646236786798536
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -46.38329892361242
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): -5.554130147599663
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 11.2759365886606
+                subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk)): 8.45001232031135
+                subtract_mean(np.log1p(population_density_wwd)): 12.625035168056373
+                subtract_mean(np.log1p(retail_density_wwd)): 22.896387386468145
+        fit_rsquared: 0.8280921170939284
+        fit_rsquared_adj: 0.8278821616294615
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(population_density_wwd))
+            + subtract_mean(np.log1p(retail_density_wwd)) + subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone))
+            + subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd))
+            + subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone))
+            + I(avg_building_age > 60) + I(blds_with_valid_age == 0) + np.log1p(avg_building_age)
+            + subtract_mean(np.log1p(developable_capacity) * (developable_capacity
+            > 0)) + I(developable_capacity == 0) + np.log1p(parcel_sqft) + I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary
+            == 0)) + I(is_inside_urban_growth_boundary == 0) + I(np.log1p(parcel_sqft))*(seattle_cbd
+            + bellevue_cbd > 0) + number_of_good_public_schools_within_3000_radius
+            + np.log1p(income_per_person_wwd) + np.log1p(nonres_building_sqft) + is_waterfront
+            + subtract_mean(np.log1p(building_density_wwd)) + subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk))
         name: 3
     7:
         fit_parameters:
@@ -161,44 +235,118 @@ models:
     10:
         fit_parameters:
             Coefficient:
-                Intercept: 6.022656760937884
-                np.log1p(building_sqft_pcl): 0.08862659487176963
-                np.log1p(invfar + 1): -0.22212993265624226
-                np.log1p(parcel_sqft): 0.6499239653854282
+                I(developable_capacity == 0)[T.True]: 0.9359520128462049
+                I(distance_to_arterial < 600)[T.True]: 0.09959486425921038
+                I(total_improvement_value <= 0)[T.True]: -0.02013151457000628
+                Intercept: 5.550184467264133
+                np.log1p(income_per_person_wwd): -0.025467432286753702
+                np.log1p(parcel_sqft): 0.7339752851790093
+                np.log1p(total_improvement_value): -0.005653261722800201
+                number_of_good_public_schools_within_3000_radius: 0.005612607858548384
+                subtract_mean(np.log1p(building_density_wwd)): 1.497577481702382
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.08269762246875119
+                subtract_mean(np.log1p(employment_density_wwd)): 0.08098001799843652
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -0.8164702289442146
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 0.08437712361283134
+                subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)): 0.03796458018858123
             Std. Error:
-                Intercept: 0.13239913995401686
-                np.log1p(building_sqft_pcl): 0.005441680497898132
-                np.log1p(invfar + 1): 0.02009621790138388
-                np.log1p(parcel_sqft): 0.013567732937841137
+                I(developable_capacity == 0)[T.True]: 0.0985233452573425
+                I(distance_to_arterial < 600)[T.True]: 0.02854907643816796
+                I(total_improvement_value <= 0)[T.True]: 0.10188905500198654
+                Intercept: 0.14611780478196398
+                np.log1p(income_per_person_wwd): 0.004141056834851224
+                np.log1p(parcel_sqft): 0.013111686418302633
+                np.log1p(total_improvement_value): 0.007649884707243543
+                number_of_good_public_schools_within_3000_radius: 0.005720667790352018
+                subtract_mean(np.log1p(building_density_wwd)): 0.1453793897198972
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.009368454063509769
+                subtract_mean(np.log1p(employment_density_wwd)): 0.027588029174200352
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): 0.03988843321537673
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 0.05324367886134627
+                subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)): 0.13391574307239162
             T-Score:
-                Intercept: 45.488639601659
-                np.log1p(building_sqft_pcl): 16.28662228625917
-                np.log1p(invfar + 1): -11.053320268832564
-                np.log1p(parcel_sqft): 47.902178526285354
-        fit_rsquared: 0.5431101109194676
-        fit_rsquared_adj: 0.5426356665902043
+                I(developable_capacity == 0)[T.True]: 9.499799366348176
+                I(distance_to_arterial < 600)[T.True]: 3.488549427331371
+                I(total_improvement_value <= 0)[T.True]: -0.19758269982594082
+                Intercept: 37.98431324331816
+                np.log1p(income_per_person_wwd): -6.149983760768324
+                np.log1p(parcel_sqft): 55.97870950867553
+                np.log1p(total_improvement_value): -0.7389995979216818
+                number_of_good_public_schools_within_3000_radius: 0.9811106088023712
+                subtract_mean(np.log1p(building_density_wwd)): 10.301167755537893
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 8.827243204496176
+                subtract_mean(np.log1p(employment_density_wwd)): 2.9353317515760438
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -20.46884680919156
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 1.5847350411785175
+                subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)): 0.2834960200912188
+        fit_rsquared: 0.7530866755017797
+        fit_rsquared_adj: 0.7519717490625727
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd))
+            + subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone))
+            + I(distance_to_arterial < 600) + subtract_mean(np.log1p(building_density_wwd))
+            + np.log1p(parcel_sqft) + number_of_good_public_schools_within_3000_radius
+            + subtract_mean(np.log1p(developable_capacity) * (developable_capacity
+            > 0)) + I(developable_capacity == 0) + np.log1p(total_improvement_value)
+            + I(total_improvement_value <= 0) + np.log1p(income_per_person_wwd) +
+            subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone))
+            + subtract_mean(np.log1p(employment_density_wwd))
         name: 10
     18:
         fit_parameters:
             Coefficient:
-                Intercept: 5.77379798752793
-                np.log1p(building_sqft_pcl): 0.12676437304164506
-                np.log1p(invfar + 1): -0.5257574304189284
-                np.log1p(parcel_sqft): 0.7211790798717519
+                I(developable_capacity == 0)[T.True]: 0.8414081084764711
+                Intercept: 5.429442218362495
+                np.log1p(income_per_person_wwd): 0.009802173545003762
+                np.log1p(nonres_building_sqft): 0.029191439479672055
+                np.log1p(parcel_sqft): 0.7193662433140037
+                number_of_good_public_schools_within_3000_radius: 0.04673747994919833
+                subtract_mean(np.log1p(building_density_wwd)): 0.9578456473338752
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.07633092813266629
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -0.7424714092103576
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): -0.1751666093035399
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)): 0.01846659781212729
+                subtract_mean(np.log1p(retail_density_wwd)): 0.1501167096828649
+                subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)): 0.05807253299080317
             Std. Error:
-                Intercept: 0.08578402744022182
-                np.log1p(building_sqft_pcl): 0.004270236421861688
-                np.log1p(invfar + 1): 0.016589554949599863
-                np.log1p(parcel_sqft): 0.010215724329796318
+                I(developable_capacity == 0)[T.True]: 0.057681942318503036
+                Intercept: 0.08361765705546999
+                np.log1p(income_per_person_wwd): 0.005197950752216114
+                np.log1p(nonres_building_sqft): 0.002394524305345751
+                np.log1p(parcel_sqft): 0.007139508239489532
+                number_of_good_public_schools_within_3000_radius: 0.002464829720344308
+                subtract_mean(np.log1p(building_density_wwd)): 0.03893334498931993
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.005079437147331754
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): 0.016990862226310015
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 0.022106072705179208
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)): 0.002293590902095503
+                subtract_mean(np.log1p(retail_density_wwd)): 0.010500812637935269
+                subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)): 0.06412249766265597
             T-Score:
-                Intercept: 67.30621258778474
-                np.log1p(building_sqft_pcl): 29.68556316757277
-                np.log1p(invfar + 1): -31.69207564737049
-                np.log1p(parcel_sqft): 70.5950020370343
-        fit_rsquared: 0.5568711940606572
-        fit_rsquared_adj: 0.5567006505817839
+                I(developable_capacity == 0)[T.True]: 14.58702801355853
+                Intercept: 64.93176692048105
+                np.log1p(income_per_person_wwd): 1.885776532381471
+                np.log1p(nonres_building_sqft): 12.190913833909502
+                np.log1p(parcel_sqft): 100.75851433787794
+                number_of_good_public_schools_within_3000_radius: 18.961747971243078
+                subtract_mean(np.log1p(building_density_wwd)): 24.602192480420786
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 15.02743826110009
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -43.698277304647625
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): -7.923913561656761
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)): 8.051391290075127
+                subtract_mean(np.log1p(retail_density_wwd)): 14.295723089140052
+                subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)): 0.905649890562884
+        fit_rsquared: 0.8629696866723711
+        fit_rsquared_adj: 0.8627584917378821
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd))
+            + subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)) + subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd))
+            + subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone))
+            + np.log1p(nonres_building_sqft) + np.log1p(parcel_sqft) + number_of_good_public_schools_within_3000_radius
+            + subtract_mean(np.log1p(developable_capacity) * (developable_capacity
+            > 0)) + I(developable_capacity == 0) + np.log1p(income_per_person_wwd)
+            + subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone))
+            + subtract_mean(np.log1p(building_density_wwd))
         name: 18
     19:
         fit_parameters:
@@ -261,107 +409,345 @@ models:
     20:
         fit_parameters:
             Coefficient:
-                Intercept: 6.5968221519589365
-                np.log1p(building_sqft_pcl): 0.016077524581261896
-                np.log1p(invfar + 1): -0.18064983713160418
-                np.log1p(parcel_sqft): 0.6357364833496602
+                I(developable_capacity == 0)[T.True]: 1.204290547213444
+                I(distance_to_arterial < 300)[T.True]: 0.10061318629867999
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 4.217474311602233
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): -0.4132303791951587
+                Intercept: 4.648389287172323
+                is_waterfront: 0.5861937654075531
+                np.log1p(income_per_person_wwd): -0.005880801052320875
+                np.log1p(number_of_jobs_per_acre): 0.00543015545176068
+                np.log1p(parcel_sqft): 0.8030519506542936
+                number_of_good_public_schools_within_3000_radius: 0.033128807366477095
+                subtract_mean(np.log1p(building_density_wwd)): 0.4496332630473666
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.122323690907779
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -0.8048082446237703
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone)): -0.13978636136037992
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): -0.005725519365777247
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)): 0.023435070763075216
+                subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk)): 0.08846002148988395
+                subtract_mean(np.log1p(retail_density_wwd)): 0.19739904052614143
             Std. Error:
-                Intercept: 0.1951401022107533
-                np.log1p(building_sqft_pcl): 0.00764151525697764
-                np.log1p(invfar + 1): 0.02778956731827609
-                np.log1p(parcel_sqft): 0.02104194394520785
+                I(developable_capacity == 0)[T.True]: 0.07849525839405376
+                I(distance_to_arterial < 300)[T.True]: 0.020209712392529656
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 0.28132199146628717
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): 0.028060807002691836
+                Intercept: 0.14150031966319987
+                is_waterfront: 0.051515586861685
+                np.log1p(income_per_person_wwd): 0.008247404295900946
+                np.log1p(number_of_jobs_per_acre): 0.01230395745072446
+                np.log1p(parcel_sqft): 0.011164037149472067
+                number_of_good_public_schools_within_3000_radius: 0.004006267989308983
+                subtract_mean(np.log1p(building_density_wwd)): 0.0651649716701672
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.008069922694167182
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): 0.02201271205162991
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone)): 0.03615587489615185
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 0.0076445469669504966
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)): 0.00476353301241962
+                subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk)): 0.01174098417754813
+                subtract_mean(np.log1p(retail_density_wwd)): 0.018801091388229368
             T-Score:
-                Intercept: 33.80556880530021
-                np.log1p(building_sqft_pcl): 2.103970749332882
-                np.log1p(invfar + 1): -6.500635114703567
-                np.log1p(parcel_sqft): 30.212820878388687
-        fit_rsquared: 0.2055304152234243
-        fit_rsquared_adj: 0.20487473193475048
+                I(developable_capacity == 0)[T.True]: 15.342207565809764
+                I(distance_to_arterial < 300)[T.True]: 4.978457107379261
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 14.991626817442189
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): -14.726247151606083
+                Intercept: 32.85073346997699
+                is_waterfront: 11.378959284331435
+                np.log1p(income_per_person_wwd): -0.7130487170664958
+                np.log1p(number_of_jobs_per_acre): 0.44133405642108675
+                np.log1p(parcel_sqft): 71.93203855401617
+                number_of_good_public_schools_within_3000_radius: 8.269243958438059
+                subtract_mean(np.log1p(building_density_wwd)): 6.89992263517258
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 15.157975552379543
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -36.56106720226593
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone)): -3.866214322343993
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): -0.7489677793243027
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)): 4.919682660322628
+                subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk)): 7.534293561100519
+                subtract_mean(np.log1p(retail_density_wwd)): 10.499339450566433
+        fit_rsquared: 0.8804355634861231
+        fit_rsquared_adj: 0.8798742281034289
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd))
+            + subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)) + subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk))
+            + subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)) +
+            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
+            subtract_mean(np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone))
+            + I(distance_to_arterial < 300) + subtract_mean(np.log1p(building_density_wwd))
+            + np.log1p(parcel_sqft) + number_of_good_public_schools_within_3000_radius
+            + subtract_mean(np.log1p(developable_capacity) * (developable_capacity
+            > 0)) + I(developable_capacity == 0) + np.log1p(income_per_person_wwd)
+            + is_waterfront + np.log1p(number_of_jobs_per_acre) + I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary
+            == 0)) + I(is_inside_urban_growth_boundary == 0)
         name: 20
     25:
         fit_parameters:
             Coefficient:
-                Intercept: 2.4846624467161673
-                np.log1p(building_sqft_pcl): 0.05705544648330667
-                np.log1p(invfar + 1): -0.23935592473034484
-                np.log1p(parcel_sqft): 0.9312790353854472
+                I(developable_capacity == 0)[T.True]: -0.2101242396072145
+                I(distance_to_arterial < 600)[T.True]: 0.10397064006350877
+                I(total_improvement_value <= 0)[T.True]: 0.30411627229037796
+                Intercept: 2.774117831984297
+                is_waterfront: 0.31770775936144835
+                np.log1p(parcel_sqft): 0.8430215253854894
+                np.log1p(total_improvement_value): 0.04549182588806208
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): -0.022235641522646364
+                subtract_mean(np.log1p(employment_density_wwd)): 0.4665499952456268
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -0.8713528861360336
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 0.030288681683324364
+                subtract_mean(np.log1p(population_density_wwd)): 0.03853195566181972
             Std. Error:
-                Intercept: 0.16553795778344246
-                np.log1p(building_sqft_pcl): 0.007863685797178773
-                np.log1p(invfar + 1): 0.018803649543170008
-                np.log1p(parcel_sqft): 0.017577691957279925
+                I(developable_capacity == 0)[T.True]: 0.16131817654284727
+                I(distance_to_arterial < 600)[T.True]: 0.04672557121105855
+                I(total_improvement_value <= 0)[T.True]: 0.14589764203492434
+                Intercept: 0.19135322928166423
+                is_waterfront: 0.11966795558544603
+                np.log1p(parcel_sqft): 0.01511939449391954
+                np.log1p(total_improvement_value): 0.012435637728666538
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.016339935382376942
+                subtract_mean(np.log1p(employment_density_wwd)): 0.028049950368573377
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): 0.056210046525643445
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 0.00931187934605841
+                subtract_mean(np.log1p(population_density_wwd)): 0.02997027799554449
             T-Score:
-                Intercept: 15.009623653607074
-                np.log1p(building_sqft_pcl): 7.255560300206329
-                np.log1p(invfar + 1): -12.729227067374554
-                np.log1p(parcel_sqft): 52.98073476590602
-        fit_rsquared: 0.6284547456203293
-        fit_rsquared_adj: 0.62790185089655
+                I(developable_capacity == 0)[T.True]: -1.3025453430624663
+                I(distance_to_arterial < 600)[T.True]: 2.225133633869884
+                I(total_improvement_value <= 0)[T.True]: 2.0844495363234175
+                Intercept: 14.497366166216654
+                is_waterfront: 2.654910897467424
+                np.log1p(parcel_sqft): 55.75762479936094
+                np.log1p(total_improvement_value): 3.6581819831559317
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): -1.3608157561398988
+                subtract_mean(np.log1p(employment_density_wwd)): 16.632827834459928
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -15.501728605375124
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 3.252692668977197
+                subtract_mean(np.log1p(population_density_wwd)): 1.2856722806357699
+        fit_rsquared: 0.7759069559251177
+        fit_rsquared_adj: 0.7746793545880541
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone))
+            + subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd))
+            + np.log1p(parcel_sqft) + subtract_mean(np.log1p(developable_capacity)
+            * (developable_capacity > 0)) + I(developable_capacity == 0) + I(distance_to_arterial
+            < 600) + subtract_mean(np.log1p(employment_density_wwd)) + np.log1p(total_improvement_value)
+            + I(total_improvement_value <= 0) + is_waterfront + subtract_mean(np.log1p(population_density_wwd))
         name: 25
     26:
         fit_parameters:
             Coefficient:
-                Intercept: 6.290845230195931
-                np.log1p(building_sqft_pcl): 0.21809752706457913
-                np.log1p(invfar + 1): -0.4057435787930259
-                np.log1p(parcel_sqft): 0.5526886819375967
+                I(developable_capacity == 0)[T.True]: 1.219025312234514
+                I(distance_to_arterial < 300)[T.True]: 0.07649847170493741
+                I(distance_to_arterial < 600)[T.True]: -0.037928560074883974
+                I(distance_to_highway < 200)[T.True]: -0.2748364431566695
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 0.38707062705069134
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): -0.05242641319466775
+                Intercept: 6.098989510816392
+                avg_school_score: 0.07011391602379827
+                is_waterfront: 0.5300304683576726
+                np.log1p(income_per_person_wwd): -0.030900558231617647
+                np.log1p(median_parcel_sqft): 0.006769553383907754
+                np.log1p(number_of_jobs_per_acre): 0.10846345925921147
+                np.log1p(parcel_sqft): 0.5237798828553129
+                subtract_mean(np.log1p(building_density_wwd)): 1.6970293302571202
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.11118627829362814
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -1.1352790175295033
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): -0.4671221290286408
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 0.04222070016548582
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)): -0.016548699451347307
+                subtract_mean(np.log1p(population_density_wwd)): -0.043166008669267494
             Std. Error:
-                Intercept: 0.02913426041428678
-                np.log1p(building_sqft_pcl): 0.0018236390918207836
-                np.log1p(invfar + 1): 0.014169881282173807
-                np.log1p(parcel_sqft): 0.0031037798387657314
+                I(developable_capacity == 0)[T.True]: 0.020887795372353374
+                I(distance_to_arterial < 300)[T.True]: 0.008548990723309639
+                I(distance_to_arterial < 600)[T.True]: 0.007866509927795876
+                I(distance_to_highway < 200)[T.True]: 0.02029670498182923
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 0.061306967432939036
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): 0.006028242401263842
+                Intercept: 0.05258949365060882
+                avg_school_score: 0.0021903090058683202
+                is_waterfront: 0.016701927408779953
+                np.log1p(income_per_person_wwd): 0.0032296210692861547
+                np.log1p(median_parcel_sqft): 0.0027479967305080177
+                np.log1p(number_of_jobs_per_acre): 0.005639537175170556
+                np.log1p(parcel_sqft): 0.003799528742099195
+                subtract_mean(np.log1p(building_density_wwd)): 0.04482460914364507
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.0027510124080639495
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): 0.01059638143582906
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 0.012425979879129037
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 0.002295435456593761
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)): 0.001515408485647299
+                subtract_mean(np.log1p(population_density_wwd)): 0.007369066604131745
             T-Score:
-                Intercept: 215.9260314399827
-                np.log1p(building_sqft_pcl): 119.59467640432247
-                np.log1p(invfar + 1): -28.63422570120366
-                np.log1p(parcel_sqft): 178.0695508858587
-        fit_rsquared: 0.322238822875773
-        fit_rsquared_adj: 0.3222099643729788
+                I(developable_capacity == 0)[T.True]: 58.360649867720795
+                I(distance_to_arterial < 300)[T.True]: 8.94824596035144
+                I(distance_to_arterial < 600)[T.True]: -4.821523194277747
+                I(distance_to_highway < 200)[T.True]: -13.54093895549641
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 6.3136482402932534
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): -8.69679911738061
+                Intercept: 115.97353553803966
+                avg_school_score: 32.01097006675663
+                is_waterfront: 31.734688780831583
+                np.log1p(income_per_person_wwd): -9.567858757636733
+                np.log1p(median_parcel_sqft): 2.463450304999554
+                np.log1p(number_of_jobs_per_acre): 19.232688054038977
+                np.log1p(parcel_sqft): 137.8539072627019
+                subtract_mean(np.log1p(building_density_wwd)): 37.8593224275267
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 40.416494657643696
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -107.13836835760142
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): -37.59237770964284
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 18.39332926752726
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)): -10.920289551024002
+                subtract_mean(np.log1p(population_density_wwd)): -5.857730834603238
+        fit_rsquared: 0.5574508509624068
+        fit_rsquared_adj: 0.5573314825004072
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(population_density_wwd))
+            + subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)) +
+            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
+            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone))
+            + I(distance_to_arterial < 300) + I(distance_to_arterial < 600) + I(distance_to_highway
+            < 200) + np.log1p(median_parcel_sqft) + np.log1p(parcel_sqft) + I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary
+            == 0)) + I(is_inside_urban_growth_boundary == 0) + subtract_mean(np.log1p(developable_capacity)
+            * (developable_capacity > 0)) + I(developable_capacity == 0) + np.log1p(income_per_person_wwd)
+            + is_waterfront + subtract_mean(np.log1p(building_density_wwd)) + avg_school_score
+            + subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)) + np.log1p(number_of_jobs_per_acre)
         name: 26
     28:
         fit_parameters:
             Coefficient:
-                Intercept: 5.67866634933197
-                np.log1p(building_sqft_pcl): 0.09632217580601403
-                np.log1p(invfar + 1): -0.4520640462108002
-                np.log1p(parcel_sqft): 0.6955572593922279
+                I(developable_capacity == 0)[T.True]: 0.8233489374573029
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 0.9655642985286841
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): -0.11377900687867115
+                Intercept: 5.444186374714425
+                is_waterfront: 0.1278597755852
+                np.log1p(median_parcel_sqft): 0.005562552693734797
+                np.log1p(nonres_building_sqft): 0.033652584708492916
+                np.log1p(number_of_jobs_per_acre): 0.0627561601126519
+                np.log1p(parcel_sqft): 0.6690145120969843
+                number_of_good_public_schools_within_3000_radius: 0.02024143178971357
+                subtract_mean(np.log1p(building_density_wwd)): 1.2792425034900008
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.07397440618176741
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -0.9160466220161769
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): -0.08514756839019033
             Std. Error:
-                Intercept: 0.09266507372612733
-                np.log1p(building_sqft_pcl): 0.0051398051138142565
-                np.log1p(invfar + 1): 0.023394610532879893
-                np.log1p(parcel_sqft): 0.01027717944140761
+                I(developable_capacity == 0)[T.True]: 0.06106592091738404
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 0.3456000092649571
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): 0.03222891342522196
+                Intercept: 0.0869821861843892
+                is_waterfront: 0.05893893324774573
+                np.log1p(median_parcel_sqft): 0.007489719794961797
+                np.log1p(nonres_building_sqft): 0.0032415997950990213
+                np.log1p(number_of_jobs_per_acre): 0.013548968536179392
+                np.log1p(parcel_sqft): 0.008011423976707987
+                number_of_good_public_schools_within_3000_radius: 0.003910583080057407
+                subtract_mean(np.log1p(building_density_wwd)): 0.0802904011289662
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.005768607682666862
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): 0.0267784253293713
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 0.032374888114488846
             T-Score:
-                Intercept: 61.28162554659302
-                np.log1p(building_sqft_pcl): 18.740433474243776
-                np.log1p(invfar + 1): -19.323426888233424
-                np.log1p(parcel_sqft): 67.67978153517198
-        fit_rsquared: 0.6086987450023873
-        fit_rsquared_adj: 0.608451711381808
+                I(developable_capacity == 0)[T.True]: 13.482952931655776
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 2.7938781037138987
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): -3.5303395239390563
+                Intercept: 62.5896705237273
+                is_waterfront: 2.1693601926548327
+                np.log1p(median_parcel_sqft): 0.7426916955527
+                np.log1p(nonres_building_sqft): 10.38147422126948
+                np.log1p(number_of_jobs_per_acre): 4.6318035166349425
+                np.log1p(parcel_sqft): 83.50756545179028
+                number_of_good_public_schools_within_3000_radius: 5.17606489245497
+                subtract_mean(np.log1p(building_density_wwd)): 15.932695384535714
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 12.823615376729624
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -34.208382709174174
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): -2.630049811726884
+        fit_rsquared: 0.8601432048681757
+        fit_rsquared_adj: 0.8597597931565111
         fitted: true
+        model_expression: np.log1p(land_value) ~ np.log1p(number_of_jobs_per_acre)
+            + subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd))
+            + subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone))
+            + np.log1p(nonres_building_sqft) + subtract_mean(np.log1p(building_density_wwd))
+            + np.log1p(parcel_sqft) + number_of_good_public_schools_within_3000_radius
+            + subtract_mean(np.log1p(developable_capacity) * (developable_capacity
+            > 0)) + I(developable_capacity == 0) + is_waterfront + I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary
+            == 0)) + I(is_inside_urban_growth_boundary == 0) + np.log1p(median_parcel_sqft)
         name: 28
     30:
         fit_parameters:
             Coefficient:
-                Intercept: 7.798954836491051
-                np.log1p(building_sqft_pcl): 0.016991542511187473
-                np.log1p(invfar + 1): -1.196571464660728
-                np.log1p(parcel_sqft): 0.7327842768571594
+                I(developable_capacity == 0)[T.True]: 0.1543949198806054
+                I(distance_to_arterial < 300)[T.True]: 0.16626084858635498
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 5.140552276794056
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): -0.5883418558353558
+                I(total_improvement_value <= 0)[T.True]: 0.4266872454977018
+                Intercept: 3.158840284464468
+                is_waterfront: 0.2326029315532785
+                np.log1p(building_sqft_pcl): 0.028776351182934715
+                np.log1p(income_per_person_wwd): 0.22766790509294865
+                np.log1p(parcel_sqft): 0.7873229168433165
+                np.log1p(park_area_wwd): -0.00267915440593728
+                np.log1p(total_improvement_value): 0.009940856000657167
+                number_of_good_public_schools_within_3000_radius: 0.02186470592448212
+                subtract_mean(np.log1p(building_density_wwd)): 0.7383463600400786
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.02302009184962836
+                subtract_mean(np.log1p(employment_density_wwd)): -0.2007876549305268
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -0.7404180984202071
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 0.21437333681517523
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): -0.02440799762649104
+                subtract_mean(np.log1p(retail_density_wwd)): 0.2746088531054267
             Std. Error:
-                Intercept: 0.21975847938936086
-                np.log1p(building_sqft_pcl): 0.007231183414857037
-                np.log1p(invfar + 1): 0.08455720279058837
-                np.log1p(parcel_sqft): 0.025101312528387206
+                I(developable_capacity == 0)[T.True]: 0.19457292139630494
+                I(distance_to_arterial < 300)[T.True]: 0.04451609166676634
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 1.4490963206834435
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): 0.13448441291259122
+                I(total_improvement_value <= 0)[T.True]: 0.18870271773679337
+                Intercept: 0.5333512071049873
+                is_waterfront: 0.11935975425466863
+                np.log1p(building_sqft_pcl): 0.011027236125896593
+                np.log1p(income_per_person_wwd): 0.0462678569344427
+                np.log1p(parcel_sqft): 0.02913335751928462
+                np.log1p(park_area_wwd): 0.00501379934412585
+                np.log1p(total_improvement_value): 0.013535051290670647
+                number_of_good_public_schools_within_3000_radius: 0.006367737944644853
+                subtract_mean(np.log1p(building_density_wwd)): 0.1579083081928824
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 0.02026531408427463
+                subtract_mean(np.log1p(employment_density_wwd)): 0.04543698541138899
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): 0.08553672415667113
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 0.13552644124341923
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): 0.02872782236709212
+                subtract_mean(np.log1p(retail_density_wwd)): 0.047598439685716636
             T-Score:
-                Intercept: 35.488755010327125
-                np.log1p(building_sqft_pcl): 2.3497595810219676
-                np.log1p(invfar + 1): -14.151029423526676
-                np.log1p(parcel_sqft): 29.1930661406032
-        fit_rsquared: 0.46095198093016676
-        fit_rsquared_adj: 0.4596796409953048
+                I(developable_capacity == 0)[T.True]: 0.7935067160046119
+                I(distance_to_arterial < 300)[T.True]: 3.734848284322266
+                I(is_inside_urban_growth_boundary == 0)[T.True]: 3.547419314659218
+                I(np.log1p(parcel_sqft) * (is_inside_urban_growth_boundary == 0)): -4.374795882239166
+                I(total_improvement_value <= 0)[T.True]: 2.2611611036405654
+                Intercept: 5.9226270464644655
+                is_waterfront: 1.9487551143662016
+                np.log1p(building_sqft_pcl): 2.6095705990511737
+                np.log1p(income_per_person_wwd): 4.92064945682557
+                np.log1p(parcel_sqft): 27.02479164381083
+                np.log1p(park_area_wwd): -0.5343561283672367
+                np.log1p(total_improvement_value): 0.7344527765113927
+                number_of_good_public_schools_within_3000_radius: 3.4336692424458084
+                subtract_mean(np.log1p(building_density_wwd)): 4.675791720459703
+                subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)): 1.1359356067168664
+                subtract_mean(np.log1p(employment_density_wwd)): -4.419035574490346
+                subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)): -8.656142793872249
+                subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)): 1.581782380237809
+                subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)): -0.849629231015106
+                subtract_mean(np.log1p(retail_density_wwd)): 5.769282668058371
+        fit_rsquared: 0.7194040124884088
+        fit_rsquared_adj: 0.7151559457452055
         fitted: true
+        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd))
+            + subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd))
+            + subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone))
+            + np.log1p(building_sqft_pcl) + np.log1p(parcel_sqft) + subtract_mean(np.log1p(building_density_wwd))
+            + number_of_good_public_schools_within_3000_radius + subtract_mean(np.log1p(developable_capacity)
+            * (developable_capacity > 0)) + I(developable_capacity == 0) + np.log1p(income_per_person_wwd)
+            + subtract_mean(np.log1p(employment_density_wwd)) + I(distance_to_arterial
+            < 300) + subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone))
+            + np.log1p(park_area_wwd) + is_waterfront + I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary
+            == 0)) + I(is_inside_urban_growth_boundary == 0) + np.log1p(total_improvement_value)
+            + I(total_improvement_value <= 0)
         name: 30
 
 fitted: true
