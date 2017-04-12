@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "simresult.h5"
+     return "simresult_demo.h5"
 
 # remove results file if exists
 outfile = simfile()
@@ -29,6 +29,6 @@ orca.run([
 #    "elcm_simulate",             # employment location choice
 #    "governmental_jobs_scaling"
 
-], iter_vars=[2015, 2016], data_out=outfile, compress=True)
+], iter_vars=[2015, 2016], data_out=outfile, compress=True, out_run_local=True)
 
 logging.info('Simulation finished')

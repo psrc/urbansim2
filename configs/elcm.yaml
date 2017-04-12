@@ -9,7 +9,8 @@ choosers_fit_filters:
 - sector_id < 18
 - for_estimation == 1
 
-choosers_predict_filters: null
+choosers_predict_filters: 
+- sector_id < 18
 
 alts_fit_filters:
 - not building_type_id in [4, 11, 12, 19]
@@ -863,8 +864,14 @@ models:
 
 fitted: true
 
-choice_mode: aggregate
+choice_mode: individual
 
-remove_alts: true
+remove_alts: false
 
-probability_mode: single_chooser
+probability_mode: full_product
+
+#choice_mode: aggregate
+
+#remove_alts: true
+
+#probability_mode: single_chooser

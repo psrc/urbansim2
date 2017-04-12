@@ -1,5 +1,6 @@
 import os
 import psrc_urbansim.models
+import psrc_urbansim.developer_models
 import orca
 import logging
 import pandas as pd
@@ -13,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "simresult20170327.h5"
+     return "simresult20170404.h5"
 
 # remove results file if exists
 outfile = simfile()
@@ -29,8 +30,9 @@ def tables_in_base_year():
 
 orca.run([
 #    "add_lag1_tables",
-    "repmres_simulate",           # residential REPM
-#    "repmnr_simulate",            # non-residential REPM
+#    "proforma_feasibility",
+    "repmres_simulate",          # residential REPM
+    "repmnr_simulate",            # non-residential REPM
 
     "households_transition",     # households transition
     "households_relocation",     # households relocation model
@@ -38,10 +40,10 @@ orca.run([
 
     "jobs_transition",           # jobs transition
     "jobs_relocation",           # jobs relocation model
-#    "elcm_simulate",             # employment location choice
+    "elcm_simulate",             # employment location choice
     "governmental_jobs_scaling"
 
 ], iter_vars=[2015, 2016], data_out=outfile, out_base_tables=tables_in_base_year(),
-   compress=True)
+   compress=True, out_run_local=True)
 
 logging.info('Simulation finished')

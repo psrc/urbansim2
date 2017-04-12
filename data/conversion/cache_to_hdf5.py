@@ -64,7 +64,8 @@ DIRECTORIES = {
     'annual_employment_control_totals', 'annual_household_control_totals',
     'annual_household_relocation_rates', 'annual_job_relocation_rates',
     'buildings', 'building_sqft_per_job', 'building_types', 'counties',
-    'development_constraints', 'development_event_history',  
+    'development_constraints', 'development_event_history', 
+    'development_templates', 'development_template_components',
     'employment_adhoc_sector_group_definitions', 'employment_adhoc_sector_groups', 'employment_sectors',
     'fazes', 'gridcells', 'households', 
     'jobs', 'land_use_types',
@@ -131,6 +132,10 @@ def convert_dirs(base_dir, hdf_name, no_compress=False):
             keys=['sector_id'] 
         elif dirname == 'employment_adhoc_sector_group_definitions':
             keys=['sector_id', 'group_id'] 
+        elif dirname == 'development_templates':
+            keys=['template_id'] 
+        elif dirname == 'development_template_components':
+            keys=['component_id']         
         else:
             keys = [dirname[:-1] + '_id']
 

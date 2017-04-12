@@ -47,8 +47,8 @@ def elcm_estimate(jobs, buildings, parcels, zones, gridcells):
 
 
 @orca.step('elcm_simulate')
-def elcm_simulate(jobs, buildings, parcels, zones):
-    return utils.lcm_simulate("elcmcoef.yaml", jobs, buildings, None,
+def elcm_simulate(jobs, buildings, parcels, zones, gridcells):
+    return utils.lcm_simulate("elcmcoef.yaml", jobs, buildings, [parcels, zones, gridcells],
                               "building_id", "job_spaces", "vacant_job_spaces", cast=True)
 
 
