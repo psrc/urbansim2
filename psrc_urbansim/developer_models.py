@@ -19,7 +19,7 @@ def proforma_settings(land_use_types, building_types, development_templates, dev
     # to make sure that all components of included templates are present (in case they were dropped)
     blduses = uses[uses.template_id.isin(blduses.template_id.values)]
     blduses = pd.merge(blduses, building_types.local[["building_type_name", "is_residential"]], left_on="building_type_id", right_index=True, how="left")
-    blduses = pd.merge(blduses, land_use_types.local[["land_use_name"]], left_on="land_use_type_id", right_index=True, how="left")
+    blduses = pd.merge(blduses, land_use_types.local[["land_use_name", "generic_land_use_type_id"]], left_on="land_use_type_id", right_index=True, how="left")
     # rename duplicated description
     tmp = blduses[['template_id', 'description']].drop_duplicates()
     is_dupl = tmp.duplicated('description')
@@ -39,12 +39,35 @@ def price_per_sqft_func(use, config):
     pcl = orca.get_table('parcels')
     return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)
 
+@orca.injectable("parcel_is_allowed_func", autocall=False)
+def parcel_is_allowed_func(form, bt_distr, config):
+    form_to_btype = orca.get_injectable("form_to_btype")
+    zoning = orca.get_table('parcel_zoning')
+    btused = config.residential_uses.index[bt_distr[1] > 0]
+    is_res_bt = config.residential_uses[btused]
+    units = ["far", "units_per_acre"]
+    result = pd.Series(0, index=orca.get_table('parcels').index)
+    for typ in is_res_bt.index:
+        unit = units[is_res_bt[typ]]
+        this_zoning = zoning.local.loc[np.logical_and(zoning.index.get_level_values("constraint_type") == unit, 
+                                                      zoning.index.get_level_values("generic_land_use_type_id") == bt_distr[0])]
+        pcls = this_zoning.index.get_level_values("parcel_id")
+        result[pcls] = result[pcls] + 1
+    allowed = result == is_res_bt.index.size
+    return allowed
+    # we have zoning by building type but want
+    # to know if specific forms are allowed
+    #allowed = [zoning
+    #           ['type%d' % typ] == 't' for typ in form_to_btype[form]]
+    #return pd.concat(allowed, axis=1).max(axis=1).\
+    #    reindex(orca.get_table('parcels').index).fillna(False)
 
 def update_sqftproforma(default_settings, proforma_uses):
     local_settings = default_settings
-    blduses = proforma_uses[["building_type_name", "is_residential"]].drop_duplicates()
+    blduses = proforma_uses[["building_type_id", "building_type_name", "is_residential"]].drop_duplicates()
     local_settings.uses = blduses.building_type_name.values
     local_settings.residential_uses = blduses.is_residential
+    local_settings.residential_uses.index = blduses.building_type_id
     coeffile = os.path.join(misc.data_dir(), "expected_sales_unit_price_component_model_coefficients.csv")
     coefs = pd.read_csv(coeffile)
     coefs = pd.merge(coefs, proforma_uses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
@@ -53,14 +76,20 @@ def update_sqftproforma(default_settings, proforma_uses):
     for formid in np.unique(proforma_uses.template_id):
         subuse = proforma_uses[proforma_uses.template_id==formid]
         submerge = pd.merge(blduses, subuse, on='building_type_name', how="left")
-        forms[subuse.description.values[0]] = submerge.percent_building_sqft.fillna(0).values/100.
+        forms[subuse.description.values[0]] = (subuse.generic_land_use_type_id.values[0], submerge.percent_building_sqft.fillna(0).values/100.)
     local_settings.forms = forms
+    local_settings.parking_rates = np.array(local_settings.uses*[1.])
+    # TODO: convert this to form that results from _convert_types()
+    local_settings.cost = {}
+    for use in local_settings.uses:
+        local_settings.cost[use] = [160.0, 175.0, 200.0, 230.0] # cost of building per height (should be different per use)
     return local_settings
     
 
 @orca.step('proforma_feasibility')
-def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func
-#                    parcel_use_allowed_callback, residential_to_yearly=True
+def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
+                    parcel_is_allowed_func 
+                    #residential_to_yearly=True
 ):
     """
     Execute development feasibility on all parcels
@@ -88,6 +117,11 @@ def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func
     
     pf.config = update_sqftproforma(pf.config, proforma_settings)
     
+    #pf = sqftproforma.SqFtProForma(config=pf.config)
+    # TODO: make sure all types are in the right format and eliminate _convert_types()
+    pf.config._convert_types()
+    pf._generate_lookup()
+    
     #df = parcels.to_frame()
     df = parcels.local
 
@@ -103,9 +137,9 @@ def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func
     print df[pf.config.uses].describe()
 
     d = {}
-    for form in pf.config.forms:
+    for form, btdistr in pf.config.forms.iteritems():
         print "Computing feasibility for form %s" % form
-        d[form] = pf.lookup(form, df[parcel_use_allowed_callback(form)])
+        d[form] = pf.lookup(form, df[parcel_is_allowed_func(form, btdistr, pf.config)])
 
     far_predictions = pd.concat(d.values(), keys=d.keys(), axis=1)
 
