@@ -30,7 +30,8 @@ def tables_in_base_year():
 
 orca.run([
 #    "add_lag1_tables",
-#    "proforma_feasibility",
+    #"proforma_feasibility",
+    #"residential_developer",
     "repmres_simulate",          # residential REPM
     "repmnr_simulate",            # non-residential REPM
 
