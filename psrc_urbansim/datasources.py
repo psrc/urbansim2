@@ -23,7 +23,7 @@ def year(base_year):
 # datasets in alphabetical order
 
 @orca.table('building_sqft_per_job', cache=True)
-def buildings(store):
+def building_sqft_per_job(store):
     df = store['building_sqft_per_job']
     return df
 
@@ -38,9 +38,26 @@ def buildings(store):
     #df = utils.fill_nas_from_config('buildings', df)
     return df
 
+@orca.table('buildings_lag1', cache=True)
+def buildings_lag1(store):
+    dfname = 'buildings_lag1'
+    if dfname not in store.keys():
+        dfname = 'buildings'
+    return store[dfname]
+
 @orca.table('development_constraints', cache=True)
 def development_constraints(store):
-    constr = store['development_constraints']
+    df = store['development_constraints']#.drop_duplicates()
+    return df
+
+@orca.table('development_templates', cache=True)
+def development_templates(store):
+    df = store['development_templates']
+    return df
+
+@orca.table('development_template_components', cache=True)
+def development_template_components(store):
+    df = store['development_template_components']
     return df
 
 @orca.table('employment_controls', cache=True)
@@ -94,13 +111,6 @@ def households(store):
     df = store['households']
     return df
 
-@orca.table('buildings_lag1', cache=True)
-def buildings_lag1(store):
-    dfname = 'buildings_lag1'
-    if dfname not in store.keys():
-        dfname = 'buildings'
-    return store[dfname]
-
 @orca.table('households_lag1', cache=True)
 def households_lag1(store):
     dfname = 'households_lag1'
@@ -125,15 +135,15 @@ def land_use_types(store):
     df = store['land_use_types']
     return df
 
-#@orca.table('parcel_zoning', cache=True)
-#def parcel_zoning(store):
-    #constr = store['development_constraints']
-    ## connect to parcels
-    #pcl = store['parcels']
-    #pcl['parcel_id'] = pcl.index
-    #constr['constraint_id'] = constr.index
-    #zoning = pd.merge(pcl[['parcel_id', 'plan_type_id']], constr, how='outer', on=['plan_type_id'])
-    #return zoning.set_index(['parcel_id','generic_land_use_type_id', 'constraint_type'])
+@orca.table('parcel_zoning', cache=True)
+def parcel_zoning(store):
+    constr = store['development_constraints'].drop_duplicates()
+    # connect to parcels
+    pcl = store['parcels']
+    pcl['parcel_id'] = pcl.index
+    constr['constraint_id'] = constr.index
+    zoning = pd.merge(pcl[['parcel_id', 'plan_type_id']], constr, how='left', on=['plan_type_id'])
+    return zoning.set_index(['parcel_id','generic_land_use_type_id', 'constraint_type'])
 
 @orca.table('parcels', cache=True)
 def parcels(store):
@@ -177,3 +187,20 @@ orca.broadcast('parcels', 'schools', cast_index=True, onto_on='parcel_id')
 orca.broadcast('tractcity', 'parcels', cast_index=True, onto_on='tractcity_id')
 orca.broadcast('zones', 'parcels', cast_index=True, onto_on='zone_id')
 
+
+# Assumptions
+
+# this maps building "forms" from the developer model
+# to building types so that when the developer builds a
+# "form" this can be converted for storing as a type
+# in the building table - in the long run, the developer
+# forms and the building types should be the same and the
+# developer model should account for the differences
+orca.add_injectable("form_to_btype", {
+    'residential': [1, 2, 3],
+    'industrial': [7, 8, 9],
+    'retail': [10, 11],
+    'office': [4],
+    'mixedresidential': [12],
+    'mixedoffice': [14],
+})
