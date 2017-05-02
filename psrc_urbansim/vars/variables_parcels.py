@@ -12,15 +12,16 @@ import urbansim_defaults.utils
 def acres_wwd(parcels):
     return parcels.parcel_sqft_wwd / 43560.0
 
+@orca.column('parcels', 'ave_unit_size', cache=True, cache_scope='iteration')
+def ave_unit_size(parcels, buildings):
+    reg_mean = buildings.building_sqft_per_unit.mean()
+    return buildings.building_sqft_per_unit.groupby(buildings.parcel_id).mean().\
+           reindex(parcels.index).fillna(reg_mean)
+
 @orca.column('parcels', 'average_income', cache=True, cache_scope='iteration')
 def average_income(parcels, households):
     return households.income.groupby(households.parcel_id).mean().\
            reindex(parcels.index).fillna(0)
-
-@orca.column('parcels', 'income_per_person_wwd', cache=True, cache_scope='iteration')
-def income_per_person_wwd(parcels, gridcells, settings):
-    from abstract_variables import abstract_within_walking_distance_parcels
-    return (abstract_within_walking_distance_parcels("total_income", parcels, gridcells, settings)/parcels.population_wwd).fillna(0)
     
 @orca.column('parcels', 'avg_building_age', cache=True, cache_scope='iteration')
 def avg_building_age(parcels, buildings):
@@ -46,6 +47,10 @@ def building_sqft_wwd(parcels, gridcells, settings):
     from abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("building_sqft_pcl", parcels, gridcells, settings)
 
+@orca.column('parcels', 'developable_capacity', cache=True, cache_scope='forever')
+def developable_capacity(parcels):
+    return np.maximum(parcels.max_developable_capacity - parcels.building_sqft_pcl, 0)
+                             
 @orca.column('parcels', 'employment_density_wwd', cache=True, cache_scope='step')
 def employment_density_wwd(parcels):
     return (parcels.number_of_jobs_wwd / parcels.acres_wwd).replace(np.inf, 0).fillna(0)
@@ -67,6 +72,11 @@ def existing_units(parcels):
 def faz_id(parcels, zones):
     return misc.reindex(zones.faz_id, parcels.zone_id)
 
+@orca.column('parcels', 'income_per_person_wwd', cache=True, cache_scope='iteration')
+def income_per_person_wwd(parcels, gridcells, settings):
+    from abstract_variables import abstract_within_walking_distance_parcels
+    return (abstract_within_walking_distance_parcels("total_income", parcels, gridcells, settings)/parcels.population_wwd).fillna(0)
+
 @orca.column('parcels', 'invfar', cache=True, cache_scope='iteration')
 def invfar(parcels):
     return (parcels.parcel_sqft.astype(float)/parcels.building_sqft_pcl.astype(float)).replace(np.inf, 0).fillna(0)
@@ -75,14 +85,37 @@ def invfar(parcels):
 def is_park(parcels):
     return (parcels.land_use_type_id == 19)
 
+@orca.column('parcels', 'land_cost', cache=True, cache_scope='iteration')
+def land_cost(parcels): # toal value of the parcel
+    return parcels.land_value + parcels.total_improvement_value
+
 @orca.column('parcels', 'lnemp20da', cache=True, cache_scope='iteration')
 def lnemp20da(parcels, zones):
     return np.log1p(misc.reindex(zones.jobs_within_20_min_tt_hbw_am_drive_alone, parcels.zone_id))
 
-#@orca.column('parcels', 'max_developable_capacity', cache=True, cache_scope='forever')
-#def max_developable_capacity(parcels, parcel_zoning):
-    #tmp = parcel_zoning.maximum
-    #return tmp
+@orca.column('parcels', 'max_developable_capacity', cache=True, cache_scope='forever')
+def max_developable_capacity(parcels, parcel_zoning):
+    #med_bld_sqft_per_du = int((parcels.building_sqft_pcl / parcels.residential_units).quantile())
+    med_bld_sqft_per_du = 1870 # median of building sqft per unit in 2014
+    values = parcel_zoning.maximum.copy()
+    subset = values.loc[values.index.get_level_values('constraint_type') == 'units_per_acre']
+    values.update((subset /43560.0 * med_bld_sqft_per_du).astype(values.dtype))
+    return values.groupby(level="parcel_id").max().reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'max_dua', cache=True, cache_scope='forever')
+def max_dua(parcels, parcel_zoning):
+    return parcel_zoning.local.xs("units_per_acre", level="constraint_type").maximum.groupby(level="parcel_id").max().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'max_far', cache=True, cache_scope='forever')
+def max_far(parcels, parcel_zoning):
+    return parcel_zoning.local.xs("far", level="constraint_type").maximum.groupby(level="parcel_id").max().\
+           reindex(parcels.index).fillna(0)
+  
+@orca.column('parcels', 'max_height', cache=True, cache_scope='forever')
+def max_height(parcels, parcel_zoning):
+    med_bld_sqft_per_du = 1870
+    return np.maximum(parcels.max_far * 14, parcels.max_dua/43560.0 * med_bld_sqft_per_du * 14)
 
 @orca.column('parcels', 'nonres_building_sqft', cache=True, cache_scope='iteration')
 def nonres_building_sqft(parcels, buildings):
@@ -124,6 +157,10 @@ def number_of_retail_jobs(parcels, jobs):
     return jobs.is_in_sector_group_retail.groupby(jobs.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
 
+@orca.column('parcels', 'parcel_size', cache=True, cache_scope='forever')
+def parcel_size(parcels):
+    return parcels.parcel_sqft
+
 @orca.column('parcels', 'parcel_sqft_wwd', cache=True, cache_scope='iteration')
 def parcel_sqft_wwd(parcels, gridcells, settings):
     from abstract_variables import abstract_within_walking_distance_parcels
@@ -137,6 +174,10 @@ def park_area(parcels):
 def park_area_wwd(parcels, gridcells, settings):
     from abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("park_area", parcels, gridcells, settings)
+
+@orca.column('parcels', 'population_density_wwd', cache=True, cache_scope='step')
+def population_density_wwd(parcels):
+    return (parcels.population_wwd / parcels.acres_wwd).replace(np.inf, 0).fillna(0)
 
 @orca.column('parcels', 'population_pcl', cache=True, cache_scope='iteration')
 def population_pcl(parcels, households):
@@ -169,7 +210,7 @@ def total_improvement_value(parcels, buildings):
 
 @orca.column('parcels', 'total_land_value_per_sqft', cache=True, cache_scope='iteration')
 def total_land_value_per_sqft(parcels):
-    return ((parcels.land_value + parcels.total_improvement_value)/parcels.parcel_sqft).replace(np.inf, 0).fillna(0)
+    return (parcels.land_cost/parcels.parcel_sqft).replace(np.inf, 0).fillna(0)
 
 @orca.column('parcels', 'unit_name', cache=True)
 def unit_name(parcels, land_use_types):
