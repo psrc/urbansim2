@@ -145,11 +145,18 @@ def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
     print df[pf.config.uses].describe()
 
     d = {}
+    residential_forms = []
+    non_residential_forms = []
     for form, btdistr in pf.config.forms.iteritems():
         print "Computing feasibility for form %s" % form
         d[form] = pf.lookup(form, df[parcel_is_allowed_func(form, btdistr, pf.config.form_glut[form], pf.config)])
+        if (btdistr[pf.config.residential_uses.values>0] > 0).any():
+            residential_forms.append(form)
+        else:
+            non_residential_forms.append(form)
 
     far_predictions = pd.concat(d.values(), keys=d.keys(), axis=1)
-
+    far_predictions.residential_forms = residential_forms
+    far_predictions.non_residential_forms = non_residential_forms
     orca.add_table("feasibility", far_predictions)
 

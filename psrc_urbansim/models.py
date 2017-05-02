@@ -113,7 +113,7 @@ def governmental_jobs_scaling(jobs, buildings, year):
 # TODO: customize for our purposes
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year):
-    utils.run_developer("residential",
+    utils.run_developer(feasibility.local.residential_forms,
                         households,
                         buildings,
                         "residential_units",
