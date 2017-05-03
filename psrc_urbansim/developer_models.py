@@ -82,15 +82,23 @@ def update_sqftproforma(default_settings, proforma_uses):
     local_settings.parking_rates = np.array(local_settings.uses.size*[1.])
     # Convertion similar to sqftproforma._convert_types()
     local_settings.res_ratios = {}
-    cost = {} # cost per buiilding type and height 
+    cost = {} # cost per buiilding type and height
+    new_btype_id = {}
     for use in local_settings.uses:
         cost[use] = [160.0, 175.0, 200.0, 230.0] # cost of building per height (should be different per form)
     for form in forms.keys():
         forms[form] /= forms[form].sum() # normalize
-        local_settings.res_ratios[form] = pd.Series(forms[form])[local_settings.residential_uses].sum()
+        local_settings.res_ratios[form] = pd.Series(forms[form][np.where(local_settings.residential_uses)]).sum()
+        # find future building type
+        bts = local_settings.uses[forms[form] > 0]
+        if bts.size == 1: # no mixed use
+            new_btype_id[form] = blduses.building_type_id.values[blduses.building_type_name.values == bts[0]][0]
+        else: # mixed use
+            new_btype_id[form] = 10 # TODO: refine mixed use building types
     local_settings.costs = np.transpose(np.array([cost[use] for use in local_settings.uses]))
     local_settings.forms = forms
     local_settings.form_glut = form_glut
+    local_settings.new_btype_id = new_btype_id
     return local_settings
     
 # TODO: put the step into models.py and leave this as a function
@@ -150,7 +158,8 @@ def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
     for form, btdistr in pf.config.forms.iteritems():
         print "Computing feasibility for form %s" % form
         d[form] = pf.lookup(form, df[parcel_is_allowed_func(form, btdistr, pf.config.form_glut[form], pf.config)])
-        if (btdistr[pf.config.residential_uses.values>0] > 0).any():
+        d[form]['building_type_id'] = pf.config.new_btype_id[form]
+        if (pf.config.residential_uses.values[btdistr > 0] == 1).all():
             residential_forms.append(form)
         else:
             non_residential_forms.append(form)

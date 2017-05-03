@@ -113,7 +113,8 @@ def governmental_jobs_scaling(jobs, buildings, year):
 # TODO: customize for our purposes
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year):
-    utils.run_developer(feasibility.local.residential_forms,
+    utils.run_developer(#feasibility.local.residential_forms,
+                        None,
                         households,
                         buildings,
                         "residential_units",
@@ -123,18 +124,19 @@ def residential_developer(feasibility, households, buildings, parcels, year):
                         feasibility,
                         year=year,
                         target_vacancy=.15,
-                        form_to_btype_callback=random_type,
+                        #form_to_btype_callback=random_type,
                         add_more_columns_callback=add_extra_columns,
                         bldg_sqft_per_job=400.0)
 
 def random_type(form):
     form_to_btype = orca.get_injectable("form_to_btype")
-    return random.choice(form_to_btype[form])
-
+    return random.choice(form_to_btype[form])    
 
 def add_extra_columns(df):
-    for col in ["residential_sales_price", "non_residential_rent"]:
-        df[col] = 0
+    bldgs = orca.get_table('buildings')
+    for col in bldgs.local_columns:
+        if col not in df.columns:
+            df[col] = 0
     return df
 
 
