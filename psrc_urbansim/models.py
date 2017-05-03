@@ -8,6 +8,8 @@ import variables
 import numpy as np
 import pandas as pd
 from psrc_urbansim.mod.allocation import AgentAllocationModel
+import urbansim.developer as dev
+import developer_models as psrcdev
 
 # Residential REPM
 @orca.step('repmres_estimate')
@@ -110,7 +112,19 @@ def governmental_jobs_scaling(jobs, buildings, year):
     orca.add_table(jobs.name, jobs.local)
 
 
-# TODO: customize for our purposes
+@orca.step('proforma_feasibility')
+def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
+                         parcel_is_allowed_func):
+
+    # default model settings
+    pf = dev.sqftproforma.SqFtProForma() 
+    # update with psrc-specific settings
+    pf.config = psrcdev.update_sqftproforma(pf.config, proforma_settings)    
+    pf._generate_lookup()
+    
+    df = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
+    return psrcdev.run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func)
+
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year):
     utils.run_developer(#feasibility.local.residential_forms,

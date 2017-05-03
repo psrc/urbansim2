@@ -7,8 +7,6 @@ from urbansim.utils import misc
 
 @orca.injectable("proforma_settings")
 def proforma_settings(land_use_types, building_types, development_templates, development_template_components):
-    #templ_lu = np.unique(development_templates.land_use_type_id)
-    #uses = land_use_types.local.loc[templ_lu]
     uses =  pd.merge(development_template_components.local[["building_type_id", "template_id", "description", "percent_building_sqft"]],
                          development_templates.local[["land_use_type_id"]], left_on="template_id", right_index=True, how="left")
     uses.description.iloc[np.core.defchararray.startswith(uses.description.values.astype("string"), "sfr")] = "sfr" # since there are 2 sfr uses (sfr_plat, sfr_parcel)
@@ -41,7 +39,6 @@ def price_per_sqft_func(use, config):
 
 @orca.injectable("parcel_is_allowed_func", autocall=False)
 def parcel_is_allowed_func(form, bt_distr, glu, config):
-    form_to_btype = orca.get_injectable("form_to_btype")
     zoning = orca.get_table('parcel_zoning')
     btused = config.residential_uses.index[bt_distr > 0]
     is_res_bt = config.residential_uses[btused]
@@ -55,12 +52,6 @@ def parcel_is_allowed_func(form, bt_distr, glu, config):
         result[pcls] = result[pcls] + 1
     allowed = result == is_res_bt.index.size
     return allowed
-    # we have zoning by building type but want
-    # to know if specific forms are allowed
-    #allowed = [zoning
-    #           ['type%d' % typ] == 't' for typ in form_to_btype[form]]
-    #return pd.concat(allowed, axis=1).max(axis=1).\
-    #    reindex(orca.get_table('parcels').index).fillna(False)
 
 def update_sqftproforma(default_settings, proforma_uses):
     local_settings = default_settings
@@ -85,7 +76,8 @@ def update_sqftproforma(default_settings, proforma_uses):
     cost = {} # cost per buiilding type and height
     new_btype_id = {}
     for use in local_settings.uses:
-        cost[use] = [160.0, 175.0, 200.0, 230.0] # cost of building per height (should be different per form)
+        # TODO: cost of building per height (should be different per form)
+        cost[use] = [160.0, 175.0, 200.0, 230.0] 
     for form in forms.keys():
         forms[form] /= forms[form].sum() # normalize
         local_settings.res_ratios[form] = pd.Series(forms[form][np.where(local_settings.residential_uses)]).sum()
@@ -101,10 +93,7 @@ def update_sqftproforma(default_settings, proforma_uses):
     local_settings.new_btype_id = new_btype_id
     return local_settings
     
-# TODO: put the step into models.py and leave this as a function
-@orca.step('proforma_feasibility')
-def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
-                    parcel_is_allowed_func 
+def run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func 
                     #residential_to_yearly=True
 ):
     """
@@ -112,8 +101,10 @@ def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
 
     Parameters
     ----------
-    parcels : DataFrame Wrapper
-        The data frame wrapper for the parcel data
+    df : DataFrame 
+        Data frame with the parcel data needed by the pro-forma model
+    pf: sqftproforma
+        sqftproforma object containing the model configuration
     price_per_sqft_func : function
         A callback which takes each use of the pro forma and returns a series
         with index as parcel_id and value as yearly_rent
@@ -129,17 +120,6 @@ def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
     -------
     Adds a table called feasibility to the sim object (returns nothing)
     """
-    pf = sqftproforma.SqFtProForma()
-    
-    pf.config = update_sqftproforma(pf.config, proforma_settings)
-    
-    #pf = sqftproforma.SqFtProForma(config=pf.config)
-    # TODO: make sure all types are in the right format and eliminate _convert_types()
-    #pf.config._convert_types()
-    pf._generate_lookup()
-    
-    df = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
-    #df = parcels.local
 
     # add prices for each use
     for use in pf.config.uses:
