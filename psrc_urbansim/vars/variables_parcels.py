@@ -14,9 +14,9 @@ def acres_wwd(parcels):
 
 @orca.column('parcels', 'ave_unit_size', cache=True, cache_scope='iteration')
 def ave_unit_size(parcels, buildings):
-    reg_mean = buildings.building_sqft_per_unit.mean()
-    return buildings.building_sqft_per_unit.groupby(buildings.parcel_id).mean().\
-           reindex(parcels.index).fillna(reg_mean)
+    reg_median = buildings.building_sqft_per_unit.median()
+    return buildings.building_sqft_per_unit.groupby(buildings.zone_id).median().\
+           reindex(parcels.index).fillna(reg_median)
 
 @orca.column('parcels', 'average_income', cache=True, cache_scope='iteration')
 def average_income(parcels, households):
@@ -115,7 +115,7 @@ def max_far(parcels, parcel_zoning):
 @orca.column('parcels', 'max_height', cache=True, cache_scope='forever')
 def max_height(parcels, parcel_zoning):
     med_bld_sqft_per_du = 1870
-    return np.maximum(parcels.max_far * 14, parcels.max_dua/43560.0 * med_bld_sqft_per_du * 14)
+    return np.maximum(np.ceil(parcels.max_far * 14), np.ceil(parcels.max_dua/43560.0 * med_bld_sqft_per_du) * 14)
 
 @orca.column('parcels', 'nonres_building_sqft', cache=True, cache_scope='iteration')
 def nonres_building_sqft(parcels, buildings):

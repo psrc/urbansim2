@@ -121,6 +121,7 @@ def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
     # update with psrc-specific settings
     pf.config = psrcdev.update_sqftproforma(pf.config, proforma_settings)    
     pf._generate_lookup()
+    pf = psrcdev.update_generate_lookup(pf)
     
     df = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
     return psrcdev.run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func)

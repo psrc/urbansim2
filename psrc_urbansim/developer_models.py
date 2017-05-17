@@ -70,14 +70,29 @@ def update_sqftproforma(default_settings, proforma_uses):
         submerge = pd.merge(blduses, subuse, on='building_type_name', how="left")
         forms[subuse.description.values[0]] = submerge.percent_building_sqft.fillna(0).values/100.
         form_glut[subuse.description.values[0]] = subuse.generic_land_use_type_id.values[0]
-    local_settings.parking_rates = np.array(local_settings.uses.size*[1.])
+    parking_rates = {
+        "single_family_residential": 1.,
+        "condo_residential": 1.,
+        "multi_family_residential": 1.,
+        "commercial": 2.,
+        "office": 1., 
+        "industrial": 0.6,
+        "warehousing": 0.6,
+        "tcu": 0.6
+    }
+    local_settings.parking_rates = np.array([parking_rates[use] for use in blduses.building_type_name])
     # Convertion similar to sqftproforma._convert_types()
     local_settings.res_ratios = {}
-    cost = {} # cost per buiilding type and height
+    cost = { # cost per buiilding type and height (15, 55, 120, inf)
+        "commercial": [160.0, 175.0, 200.0, 230.0],
+        "industrial": [140.0, 175.0, 200.0, 230.0],
+        "office": [160.0, 175.0, 200.0, 230.0],
+        "single_family_residential": [170.0, 190.0, 210.0, 240.0]    
+    }
+    cost["condo_residential"] = cost["multi_family_residential"] = cost["single_family_residential"]
+    cost["warehousing"] = cost["tcu"] = cost["industrial"]
+    
     new_btype_id = {}
-    for use in local_settings.uses:
-        # TODO: cost of building per height (should be different per form)
-        cost[use] = [160.0, 175.0, 200.0, 230.0] 
     for form in forms.keys():
         forms[form] /= forms[form].sum() # normalize
         local_settings.res_ratios[form] = pd.Series(forms[form][np.where(local_settings.residential_uses)]).sum()
@@ -91,7 +106,15 @@ def update_sqftproforma(default_settings, proforma_uses):
     local_settings.forms = forms
     local_settings.form_glut = form_glut
     local_settings.new_btype_id = new_btype_id
+    #local_settings.parcel_sizes = [5000, 10000, 100000]
     return local_settings
+
+def update_generate_lookup(pf):
+    for name, config in pf.dev_d.keys():
+        if name in ['tcu', 'warehouse']:
+            pf.dev_d[(name, config)]['ave_cost_sqft'][pf.config.fars > pf.config.max_industrial_height] = np.nan
+    return pf      
+    
     
 def run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func 
                     #residential_to_yearly=True
