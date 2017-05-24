@@ -124,7 +124,8 @@ def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
     pf = psrcdev.update_generate_lookup(pf)
     
     df = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
-    return psrcdev.run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func)
+    return psrcdev.run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func, 
+                                            redevelopment_filter="capacity_opportunity_non_gov")
 
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year):
@@ -141,6 +142,23 @@ def residential_developer(feasibility, households, buildings, parcels, year):
                         target_vacancy=.15,
                         #form_to_btype_callback=random_type,
                         add_more_columns_callback=add_extra_columns,
+                        bldg_sqft_per_job=400.0)
+    
+@orca.step('non_residential_developer')
+def non_residential_developer(feasibility, jobs, buildings, parcels, year):
+    utils.run_developer(None,
+                        jobs.local[jobs.home_based_status == 0], # count only non-home-based jobs
+                        buildings,
+                        "job_spaces",
+                        parcels.parcel_size,
+                        parcels.ave_unit_size,
+                        parcels.total_job_spaces,
+                        feasibility,
+                        year=year,
+                        target_vacancy=.15,
+                        #form_to_btype_callback=random_type,
+                        add_more_columns_callback=add_extra_columns,
+                        residential=False,
                         bldg_sqft_per_job=400.0)
 
 def random_type(form):

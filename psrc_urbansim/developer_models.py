@@ -38,19 +38,22 @@ def price_per_sqft_func(use, config):
     return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)
 
 @orca.injectable("parcel_is_allowed_func", autocall=False)
-def parcel_is_allowed_func(form, bt_distr, glu, config):
+def parcel_is_allowed_func(form, bt_distr, glu, config, redevelopment_filter=None):
     zoning = orca.get_table('parcel_zoning')
     btused = config.residential_uses.index[bt_distr > 0]
     is_res_bt = config.residential_uses[btused]
     units = ["far", "units_per_acre"]
-    result = pd.Series(0, index=orca.get_table('parcels').index)
+    parcels = orca.get_table('parcels')
+    result = pd.Series(0, index=parcels.index)
     for typ in is_res_bt.index:
         unit = units[is_res_bt[typ]]
         this_zoning = zoning.local.loc[np.logical_and(zoning.index.get_level_values("constraint_type") == unit, 
                                                       zoning.index.get_level_values("generic_land_use_type_id") == glu)]
         pcls = this_zoning.index.get_level_values("parcel_id")
         result[pcls] = result[pcls] + 1
-    allowed = result == is_res_bt.index.size
+    allowed = (result == is_res_bt.index.size)
+    if redevelopment_filter is not None:
+        allowed = allowed * parcels[redevelopment_filter]
     return allowed
 
 def update_sqftproforma(default_settings, proforma_uses):
@@ -116,7 +119,7 @@ def update_generate_lookup(pf):
     return pf      
     
     
-def run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func 
+def run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func, redevelopment_filter=None
                     #residential_to_yearly=True
 ):
     """
@@ -160,7 +163,7 @@ def run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func
     non_residential_forms = []
     for form, btdistr in pf.config.forms.iteritems():
         print "Computing feasibility for form %s" % form
-        d[form] = pf.lookup(form, df[parcel_is_allowed_func(form, btdistr, pf.config.form_glut[form], pf.config)])
+        d[form] = pf.lookup(form, df[parcel_is_allowed_func(form, btdistr, pf.config.form_glut[form], pf.config, redevelopment_filter)])
         d[form]['building_type_id'] = pf.config.new_btype_id[form]
         if (pf.config.residential_uses.values[btdistr > 0] == 1).all():
             residential_forms.append(form)

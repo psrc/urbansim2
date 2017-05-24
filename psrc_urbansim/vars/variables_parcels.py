@@ -25,8 +25,9 @@ def average_income(parcels, households):
     
 @orca.column('parcels', 'avg_building_age', cache=True, cache_scope='iteration')
 def avg_building_age(parcels, buildings):
+    reg_median = buildings.age.median()
     return buildings.age.groupby(buildings.parcel_id).mean().\
-           reindex(parcels.index).fillna(0)
+           reindex(parcels.index).fillna(reg_median)
 
 @orca.column('parcels', 'blds_with_valid_age', cache=True, cache_scope='iteration')
 def blds_with_valid_age(parcels, buildings):
@@ -46,6 +47,22 @@ def building_sqft_pcl(parcels, buildings):
 def building_sqft_wwd(parcels, gridcells, settings):
     from abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("building_sqft_pcl", parcels, gridcells, settings)
+
+@orca.column('parcels', 'capacity_opportunity_non_gov', cache=True, cache_scope='iteration')
+def capacity_opportunity_non_gov(parcels):
+    # use as a redevelopment filter
+    return np.logical_or(parcels.building_sqft_pcl == 0, # if no buildings on parcels return True
+        # OR the following chain of ANDs
+        (parcels.max_developable_capacity/parcels.building_sqft_pcl > 3)* # parcel is not utilized
+        (parcels.number_of_governmental_buildings == 0)* # no governmental buildings
+        (parcels.avg_building_age >= 20)* # buildings older than 20 years
+        np.logical_or( # if condo, the utilization should have a higher bar (it's more difficult to get all condo owners to agree)
+            parcels.max_developable_capacity / parcels.building_sqft_pcl > 6, 
+            parcels.land_use_type_id <> 15
+            )*
+        (parcels.job_capacity < 500)* # do not turn down buildings with lots of jobs
+        (parcels.improvement_value / parcels.parcel_sqft < 250) # do not turn down expensive mansions
+    )
 
 @orca.column('parcels', 'developable_capacity', cache=True, cache_scope='forever')
 def developable_capacity(parcels):
@@ -85,6 +102,11 @@ def invfar(parcels):
 def is_park(parcels):
     return (parcels.land_use_type_id == 19)
 
+@orca.column('parcels', 'job_capacity', cache=True, cache_scope='iteration')
+def job_capacity(parcels, buildings):
+    return buildings.job_capacity.groupby(buildings.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
 @orca.column('parcels', 'land_cost', cache=True, cache_scope='iteration')
 def land_cost(parcels): # toal value of the parcel
     return parcels.land_value + parcels.total_improvement_value
@@ -105,12 +127,12 @@ def max_developable_capacity(parcels, parcel_zoning):
 @orca.column('parcels', 'max_dua', cache=True, cache_scope='forever')
 def max_dua(parcels, parcel_zoning):
     return parcel_zoning.local.xs("units_per_acre", level="constraint_type").maximum.groupby(level="parcel_id").max().\
-           reindex(parcels.index).fillna(0)
+           reindex(parcels.index)
 
 @orca.column('parcels', 'max_far', cache=True, cache_scope='forever')
 def max_far(parcels, parcel_zoning):
     return parcel_zoning.local.xs("far", level="constraint_type").maximum.groupby(level="parcel_id").max().\
-           reindex(parcels.index).fillna(0)
+           reindex(parcels.index)
   
 @orca.column('parcels', 'max_height', cache=True, cache_scope='forever')
 def max_height(parcels, parcel_zoning):
@@ -131,6 +153,11 @@ def number_of_good_public_schools(parcels, schools):
 def number_of_good_public_schools_within_3000_radius(parcels, gridcells, settings):
     from abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("number_of_good_public_schools", parcels, gridcells, settings, walking_radius=3000)
+
+@orca.column('parcels', 'number_of_governmental_buildings', cache=True, cache_scope='iteration')
+def number_of_governmental_buildings(parcels, buildings):
+    return (buildings.is_governmental == 1).groupby(buildings.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'number_of_households', cache=True, cache_scope='iteration')
 def number_of_households(parcels, households):
@@ -207,6 +234,11 @@ def total_income(parcels, households):
 def total_improvement_value(parcels, buildings):
     return buildings.improvement_value.groupby(buildings.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'total_job_spaces', cache=True, cache_scope='iteration')
+def total_job_spaces(parcels, buildings):
+    return buildings.job_spaces.groupby(buildings.parcel_id).sum().\
+        reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'total_land_value_per_sqft', cache=True, cache_scope='iteration')
 def total_land_value_per_sqft(parcels):
