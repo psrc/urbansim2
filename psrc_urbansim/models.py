@@ -1,8 +1,6 @@
 import orca
 import random
-import urbansim_defaults.utils as utils
-import psrc_urbansim.utils as psrcutils
-#import urbansim_defaults.models
+import urbansim_parcels.utils as utils
 import datasources
 import variables
 import numpy as np

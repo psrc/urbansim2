@@ -30,7 +30,7 @@ def proforma_settings(land_use_types, building_types, development_templates, dev
 
 # Return price per sqft for given use (building type). Series indexed by parcel_id
 @orca.injectable("price_per_sqft_func", autocall=False)
-def price_per_sqft_func(use, config):
+def parcel_sales_price_sqft_func(use, config):
     # Temporarily use the expected sales price model coefficients
     coef_const = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "constant")].estimate
     coef = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate

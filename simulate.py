@@ -1,4 +1,5 @@
 import os
+import urbansim_parcels.models
 import psrc_urbansim.models
 import psrc_urbansim.developer_models
 import orca
@@ -30,7 +31,7 @@ def tables_in_base_year():
 
 orca.run([
 #    "add_lag1_tables",
-    "proforma_feasibility",
+    "feasibility",
     "residential_developer",      # residential proforma model
     "non_residential_developer",  # non-residential proforma model
     
