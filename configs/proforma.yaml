@@ -126,14 +126,6 @@ parcel_filter: null
 
 residential_to_yearly: true
 
-forms_to_test:
-- industrial
-- mixedoffice
-- mixedresidential
-- office
-- residential
-- retail
-
 pass_through: []
 
 simple_zoning: false

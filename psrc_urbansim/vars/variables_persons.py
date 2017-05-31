@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import orca
 from urbansim.utils import misc
-import urbansim_defaults.utils
+import urbansim_parcels.utils
 
 def is_worker_n(n, persons):
     return np.logical_and(persons.member_id == n, persons.job_id > 0)

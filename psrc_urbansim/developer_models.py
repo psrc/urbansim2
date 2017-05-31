@@ -2,8 +2,9 @@ import os
 import numpy as np
 import pandas as pd
 import orca
-from urbansim.developer import sqftproforma, developer
+from developer import sqftproforma, develop
 from urbansim.utils import misc
+from urbansim_parcels.utils import apply_parcel_callbacks, lookup_by_form
 
 @orca.injectable("proforma_settings")
 def proforma_settings(land_use_types, building_types, development_templates, development_template_components):
@@ -28,14 +29,20 @@ def proforma_settings(land_use_types, building_types, development_templates, dev
             blduses['description'][thisdescr.index] = blduses['description'][thisdescr.index]+ np.arange(2,thisdescr.index.size+2).astype("str")
     return blduses
 
+# Empty function. Series indexed by parcel_id
+@orca.injectable("parcel_price_placeholder", autocall=False)
+def parcel_price_placeholder(use):
+    return orca.get_table('parcels').land_value
+
 # Return price per sqft for given use (building type). Series indexed by parcel_id
-@orca.injectable("price_per_sqft_func", autocall=False)
-def parcel_sales_price_sqft_func(use, config):
+@orca.injectable("parcel_sales_price_sqft_func", autocall=False)
+def parcel_sales_price_sqft_func(pcl, config):
     # Temporarily use the expected sales price model coefficients
-    coef_const = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "constant")].estimate
-    coef = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate
-    pcl = orca.get_table('parcels')
-    return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)
+    for use in config.uses:
+        coef_const = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "constant")].estimate
+        coef = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate
+        pcl[use] = np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)
+    return pcl
 
 @orca.injectable("parcel_is_allowed_func", autocall=False)
 def parcel_is_allowed_func(form, bt_distr, glu, config, redevelopment_filter=None):
@@ -56,16 +63,16 @@ def parcel_is_allowed_func(form, bt_distr, glu, config, redevelopment_filter=Non
         allowed = allowed * parcels[redevelopment_filter]
     return allowed
 
-def update_sqftproforma(default_settings, proforma_uses):
-    local_settings = default_settings
+def update_sqftproforma(default_settings, proforma_uses, **kwargs):
+    local_settings = {}
     blduses = proforma_uses[["building_type_id", "building_type_name", "is_residential"]].drop_duplicates()
-    local_settings.uses = blduses.building_type_name.values
-    local_settings.residential_uses = blduses.is_residential
-    local_settings.residential_uses.index = blduses.building_type_id
+    local_settings["uses"] = blduses.building_type_name.values
+    local_settings["residential_uses"] = blduses.is_residential
+    local_settings["residential_uses"].index = blduses.building_type_id
     coeffile = os.path.join(misc.data_dir(), "expected_sales_unit_price_component_model_coefficients.csv")
     coefs = pd.read_csv(coeffile)
     coefs = pd.merge(coefs, proforma_uses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
-    local_settings.price_coefs = coefs    
+    local_settings["price_coefs"] = coefs    
     forms = {}
     form_glut = {}
     for formid in np.unique(proforma_uses.template_id):
@@ -83,9 +90,9 @@ def update_sqftproforma(default_settings, proforma_uses):
         "warehousing": 0.6,
         "tcu": 0.6
     }
-    local_settings.parking_rates = np.array([parking_rates[use] for use in blduses.building_type_name])
+    local_settings["parking_rates"] = np.array([parking_rates[use] for use in blduses.building_type_name])
     # Convertion similar to sqftproforma._convert_types()
-    local_settings.res_ratios = {}
+    local_settings["res_ratios"] = {}
     cost = { # cost per buiilding type and height (15, 55, 120, inf)
         "commercial": [160.0, 175.0, 200.0, 230.0],
         "industrial": [140.0, 175.0, 200.0, 230.0],
@@ -94,28 +101,34 @@ def update_sqftproforma(default_settings, proforma_uses):
     }
     cost["condo_residential"] = cost["multi_family_residential"] = cost["single_family_residential"]
     cost["warehousing"] = cost["tcu"] = cost["industrial"]
-    
+    local_settings["construction_months"] = np.repeat(default_settings.construction_months[:,0][np.newaxis], blduses.shape[0], axis=0).transpose()
     new_btype_id = {}
     for form in forms.keys():
         forms[form] /= forms[form].sum() # normalize
-        local_settings.res_ratios[form] = pd.Series(forms[form][np.where(local_settings.residential_uses)]).sum()
+        local_settings["res_ratios"][form] = pd.Series(forms[form][np.where(local_settings["residential_uses"])]).sum()
         # find future building type
-        bts = local_settings.uses[forms[form] > 0]
+        bts = local_settings["uses"][forms[form] > 0]
         if bts.size == 1: # no mixed use
             new_btype_id[form] = blduses.building_type_id.values[blduses.building_type_name.values == bts[0]][0]
         else: # mixed use
             new_btype_id[form] = 10 # TODO: refine mixed use building types
-    local_settings.costs = np.transpose(np.array([cost[use] for use in local_settings.uses]))
-    local_settings.forms = forms
-    local_settings.form_glut = form_glut
-    local_settings.new_btype_id = new_btype_id
+    local_settings["costs"] = np.transpose(np.array([cost[use] for use in local_settings["uses"]]))
+    local_settings["forms"] = forms
+    local_settings["form_glut"] = form_glut
+    local_settings["new_btype_id"] = new_btype_id
     #local_settings.parcel_sizes = [5000, 10000, 100000]
-    return local_settings
+    pf = default_settings
+    for attr in local_settings.keys():
+        setattr(pf, attr, local_settings[attr])
+    pf.reference_dict = sqftproforma.SqFtProFormaReference(**pf.__dict__).reference_dict
 
-def update_generate_lookup(pf):
-    for name, config in pf.dev_d.keys():
+    pf = update_sqftproforma_reference(pf)    
+    return pf
+
+def update_sqftproforma_reference(pf):
+    for name, config in pf.reference_dict.keys():
         if name in ['tcu', 'warehouse']:
-            pf.dev_d[(name, config)]['ave_cost_sqft'][pf.config.fars > pf.config.max_industrial_height] = np.nan
+            pf.reference_dict[(name, config)]['ave_cost_sqft'][pf.fars > pf.max_industrial_height] = np.nan
     return pf      
     
     
@@ -175,3 +188,40 @@ def run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func
     far_predictions.non_residential_forms = non_residential_forms
     orca.add_table("feasibility", far_predictions)
 
+
+def run_feasibility(parcels, parcel_price_callback,
+                    parcel_use_allowed_callback, pipeline=False,
+                    cfg=None, **kwargs):
+    """
+    Execute development feasibility on all development sites
+
+    Parameters
+    ----------
+    parcels : DataFrame Wrapper
+        The data frame wrapper for the parcel data
+    parcel_price_callback : function
+        A callback which takes each use of the pro forma and returns a series
+        with index as parcel_id and value as yearly_rent
+    parcel_use_allowed_callback : function
+        A callback which takes each form of the pro forma and returns a series
+        with index as parcel_id and value and boolean whether the form
+        is allowed on the parcel
+    pipeline : bool, optional
+        If True, removes parcels from consideration if already in dev_sites
+        table
+    cfg : str, optional
+        The name of the yaml file to read pro forma configurations from
+    """
+
+    cfg = misc.config(cfg)
+
+    pf = (sqftproforma.SqFtProForma.from_yaml(str_or_buffer=cfg)
+          if cfg else sqftproforma.SqFtProForma.from_defaults())
+    pf = update_sqftproforma(pf, **kwargs)
+    sites = (pl.remove_pipelined_sites(parcels) if pipeline
+             else parcels.to_frame())
+    df = apply_parcel_callbacks(sites, parcel_price_callback,
+                                pf, **kwargs)
+
+    feasibility = lookup_by_form(df, parcel_use_allowed_callback, pf, **kwargs)
+    orca.add_table('feasibility', feasibility)

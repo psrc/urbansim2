@@ -2,9 +2,9 @@ import os
 import orca
 import pandas as pd
 import numpy as np
-import urbansim_defaults.utils as utils
+import urbansim_parcels.utils as utils
 from urbansim.utils import misc
-from urbansim_defaults import datasources
+from urbansim_parcels import datasources
 import warnings
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 

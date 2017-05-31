@@ -8,6 +8,7 @@ import pandas as pd
 from psrc_urbansim.mod.allocation import AgentAllocationModel
 import urbansim.developer as dev
 import developer_models as psrcdev
+from urbansim.utils import misc, yamlio
 
 # Residential REPM
 @orca.step('repmres_estimate')
@@ -109,21 +110,21 @@ def governmental_jobs_scaling(jobs, buildings, year):
     print "Number of unplaced governmental jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()
     orca.add_table(jobs.name, jobs.local)
 
-
-@orca.step('proforma_feasibility')
-def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
-                         parcel_is_allowed_func):
-
-    # default model settings
-    pf = dev.sqftproforma.SqFtProForma() 
-    # update with psrc-specific settings
-    pf.config = psrcdev.update_sqftproforma(pf.config, proforma_settings)    
-    pf._generate_lookup()
-    pf = psrcdev.update_generate_lookup(pf)
+@orca.step('create_proforma_config')
+def create_proforma_config(proforma_settings):
+    yaml_file = misc.config("proforma_user.yaml")
+    user_cfg = yamlio.yaml_to_dict(str_or_buffer=yaml_file)
+    config = psrcdev.update_sqftproforma(user_cfg, proforma_settings)
+    yamlio.convert_to_yaml(config, "proforma.yaml")
     
-    df = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
-    return psrcdev.run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func, 
-                                            redevelopment_filter="capacity_opportunity_non_gov")
+@orca.step('proforma_feasibility')
+def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, parcel_sales_price_sqft_func, 
+                         parcel_is_allowed_func):
+    
+    df = orca.DataFrameWrapper("parcels", parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost']), copy_col=False)
+    return psrcdev.run_feasibility(df, parcel_price_placeholder, parcel_is_allowed_func, cfg="proforma.yaml",
+                                parcel_custom_callback = parcel_sales_price_sqft_func,
+                                redevelopment_filter="capacity_opportunity_non_gov", proforma_uses=proforma_settings)
 
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year):

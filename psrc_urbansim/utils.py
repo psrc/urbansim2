@@ -2,7 +2,7 @@ import pandas as pd
 import orca
 import numpy as np
 from urbansim.utils import misc
-from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_number_unplaced
+from urbansim_parcels.utils import yaml_to_class, to_frame, check_nas, _print_number_unplaced
 import os
 
 def change_store(store_name):

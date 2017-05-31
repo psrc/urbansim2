@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 import orca
 from urbansim.utils import misc
-import urbansim_defaults.utils
-#import urbansim_defaults.datasources
+import urbansim_parcels.utils
+
 #####################
 # BUILDINGS VARIABLES (in alphabetic order)
 #####################
