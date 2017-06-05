@@ -120,28 +120,29 @@ def create_proforma_config(proforma_settings):
 @orca.step('proforma_feasibility')
 def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, parcel_sales_price_sqft_func, 
                          parcel_is_allowed_func):
-    
-    df = orca.DataFrameWrapper("parcels", parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost']), copy_col=False)
+    redevelopment_filter = "capacity_opportunity_non_gov"
+    pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
+    if redevelopment_filter is not None:
+        pcl = pcl.loc[parcels[redevelopment_filter] == True]
+    df = orca.DataFrameWrapper("parcels", pcl, copy_col=False)
     return psrcdev.run_feasibility(df, parcel_price_placeholder, parcel_is_allowed_func, cfg="proforma.yaml",
                                 parcel_custom_callback = parcel_sales_price_sqft_func,
-                                redevelopment_filter="capacity_opportunity_non_gov", proforma_uses=proforma_settings)
+                                proforma_uses=proforma_settings)
 
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year):
-    utils.run_developer(#feasibility.local.residential_forms,
-                        None,
+    utils.run_developer(None,
                         households,
                         buildings,
                         "residential_units",
+                        feasibility,
                         parcels.parcel_size,
                         parcels.ave_unit_size,
                         parcels.residential_units,
-                        feasibility,
+                        'res_developer.yaml',
                         year=year,
                         target_vacancy=.15,
-                        #form_to_btype_callback=random_type,
-                        add_more_columns_callback=add_extra_columns,
-                        bldg_sqft_per_job=400.0)
+                        add_more_columns_callback=add_extra_columns)
     
 @orca.step('non_residential_developer')
 def non_residential_developer(feasibility, jobs, buildings, parcels, year):

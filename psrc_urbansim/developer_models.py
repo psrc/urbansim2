@@ -45,7 +45,10 @@ def parcel_sales_price_sqft_func(pcl, config):
     return pcl
 
 @orca.injectable("parcel_is_allowed_func", autocall=False)
-def parcel_is_allowed_func(form, bt_distr, glu, config, redevelopment_filter=None):
+def parcel_is_allowed_func(form):
+    config = orca.get_injectable("pf_config")
+    bt_distr = config.forms[form]
+    glu = config.form_glut[form]
     zoning = orca.get_table('parcel_zoning')
     btused = config.residential_uses.index[bt_distr > 0]
     is_res_bt = config.residential_uses[btused]
@@ -58,10 +61,7 @@ def parcel_is_allowed_func(form, bt_distr, glu, config, redevelopment_filter=Non
                                                       zoning.index.get_level_values("generic_land_use_type_id") == glu)]
         pcls = this_zoning.index.get_level_values("parcel_id")
         result[pcls] = result[pcls] + 1
-    allowed = (result == is_res_bt.index.size)
-    if redevelopment_filter is not None:
-        allowed = allowed * parcels[redevelopment_filter]
-    return allowed
+    return (result == is_res_bt.index.size)
 
 def update_sqftproforma(default_settings, proforma_uses, **kwargs):
     local_settings = {}
@@ -116,6 +116,7 @@ def update_sqftproforma(default_settings, proforma_uses, **kwargs):
     local_settings["forms"] = forms
     local_settings["form_glut"] = form_glut
     local_settings["new_btype_id"] = new_btype_id
+    local_settings["forms_to_test"] = None
     #local_settings.parcel_sizes = [5000, 10000, 100000]
     pf = default_settings
     for attr in local_settings.keys():
@@ -219,9 +220,9 @@ def run_feasibility(parcels, parcel_price_callback,
           if cfg else sqftproforma.SqFtProForma.from_defaults())
     pf = update_sqftproforma(pf, **kwargs)
     sites = (pl.remove_pipelined_sites(parcels) if pipeline
-             else parcels.to_frame())
+             else parcels.to_frame())  
     df = apply_parcel_callbacks(sites, parcel_price_callback,
                                 pf, **kwargs)
-
+    orca.add_injectable("pf_config", pf)
     feasibility = lookup_by_form(df, parcel_use_allowed_callback, pf, **kwargs)
     orca.add_table('feasibility', feasibility)
