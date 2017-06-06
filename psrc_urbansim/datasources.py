@@ -168,6 +168,7 @@ def target_vacancies(store):
 @orca.table('target_vacancy', cache=True)
 def target_vacancy(target_vacancies, year):
     df = target_vacancies.local[target_vacancies.index.get_level_values('year') == year]
+    df.reset_index("year", drop=True, inplace=True) # remove year as index
     return df
 
 @orca.table('tractcity', cache=True)
