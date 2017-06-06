@@ -131,7 +131,7 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
 
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year, target_vacancy):
-    units_to_build = psrcdev.compute_units_to_build(target_vacancy)
+    target_units = psrcdev.compute_target_units(target_vacancy)
     new_buildings = utils.run_developer(None,
                         households,
                         buildings,

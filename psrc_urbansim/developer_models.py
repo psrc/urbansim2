@@ -228,9 +228,21 @@ def run_feasibility(parcels, parcel_price_callback,
     orca.add_table('feasibility', feasibility)
     
     
-def compute_units_to_build(vacancy_rate):
+def compute_target_units(vacancy_rate):
     pf = orca.get_injectable("pf_config")
-    pfbt = pd.DataFrame(pf.uses, index=pf.residential_uses.index)
-    vac = pd.concat((pfbt, vacancy_rate.local))
-    pass
+    pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
+    vac = pd.concat((pfbt, vacancy_rate.local, pf.residential_uses), axis=1)
+    bld = orca.get_table("buildings")
+    agents_attr = {0: "number_of_jobs", 1: "number_of_households"}
+    units_attr = {0: "job_spaces", 1: "residential_units"}
+    target_units = {}
+    for bt in vac.index:
+        agentattr = agents_attr[vac.loc[bt].is_residential]
+        unitattr = units_attr[vac.loc[bt].is_residential]
+        is_builting_type = bld["building_type_id"] == bt
+        number_of_agents = (bld[agentattr] * is_builting_type).sum()
+        existing_units =  (bld[unitattr] * is_builting_type).sum()
+        target_units[vac.loc[bt].use] = int(max(
+            (number_of_agents / (1 - vac.loc[bt].target_vacancy_rate) - existing_units), 0))
+    return target_units
     
