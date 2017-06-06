@@ -160,6 +160,11 @@ def schools(store):
     df = store['schools']
     return df
 
+@orca.table('target_vacancies', cache=True)
+def tractcity(store):
+    df = store['target_vacancies']
+    return df
+
 @orca.table('tractcity', cache=True)
 def tractcity(store):
     df = store['tractcity']
