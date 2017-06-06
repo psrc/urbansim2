@@ -226,3 +226,11 @@ def run_feasibility(parcels, parcel_price_callback,
     orca.add_injectable("pf_config", pf)
     feasibility = lookup_by_form(df, parcel_use_allowed_callback, pf, **kwargs)
     orca.add_table('feasibility', feasibility)
+    
+    
+def compute_units_to_build(vacancy_rate):
+    pf = orca.get_injectable("pf_config")
+    pfbt = pd.DataFrame(pf.uses, index=pf.residential_uses.index)
+    vac = pd.concat((pfbt, vacancy_rate.local))
+    pass
+    
