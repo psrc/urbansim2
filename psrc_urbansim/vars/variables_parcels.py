@@ -126,18 +126,17 @@ def max_developable_capacity(parcels, parcel_zoning):
 
 @orca.column('parcels', 'max_dua', cache=True, cache_scope='forever')
 def max_dua(parcels, parcel_zoning):
-    return parcel_zoning.local.xs("units_per_acre", level="constraint_type").maximum.groupby(level="parcel_id").max().\
+    return parcel_zoning.local.xs("units_per_acre", level="constraint_type").maximum.groupby(level="parcel_id").min().\
            reindex(parcels.index)
 
 @orca.column('parcels', 'max_far', cache=True, cache_scope='forever')
 def max_far(parcels, parcel_zoning):
-    return parcel_zoning.local.xs("far", level="constraint_type").maximum.groupby(level="parcel_id").max().\
+    return parcel_zoning.local.xs("far", level="constraint_type").maximum.groupby(level="parcel_id").min().\
            reindex(parcels.index)
   
 @orca.column('parcels', 'max_height', cache=True, cache_scope='forever')
 def max_height(parcels, parcel_zoning):
-    med_bld_sqft_per_du = 1870
-    return np.maximum(np.ceil(parcels.max_far * 14), np.ceil(parcels.max_dua/43560.0 * med_bld_sqft_per_du) * 14)
+    return parcel_zoning.local.max_height.groupby(level="parcel_id").min().reindex(parcels.index)
 
 @orca.column('parcels', 'nonres_building_sqft', cache=True, cache_scope='iteration')
 def nonres_building_sqft(parcels, buildings):
