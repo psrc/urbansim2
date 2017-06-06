@@ -142,7 +142,8 @@ def residential_developer(feasibility, households, buildings, parcels, year, tar
                         parcels.residential_units,
                         'res_developer.yaml',
                         year=year,
-                        target_vacancy=target_vacancy,
+                        num_units_to_build = target_units,
+                        #target_vacancy=target_vacancy,
                         #target_vacancy=.15,
                         add_more_columns_callback=add_extra_columns)
     
