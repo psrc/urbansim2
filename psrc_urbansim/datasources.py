@@ -136,13 +136,14 @@ def land_use_types(store):
     return df
 
 @orca.table('parcel_zoning', cache=True)
-def parcel_zoning(store):
-    constr = store['development_constraints'].drop_duplicates()
+def parcel_zoning(store, development_constraints, parcels, zoning_heights):
+    constr = development_constraints.local.drop_duplicates()
     # connect to parcels
-    pcl = store['parcels']
+    pcl = pd.DataFrame(parcels['plan_type_id'])
     pcl['parcel_id'] = pcl.index
     constr['constraint_id'] = constr.index
-    zoning = pd.merge(pcl[['parcel_id', 'plan_type_id']], constr, how='left', on=['plan_type_id'])
+    zoning = pd.merge(pcl, constr, how='left', on=['plan_type_id'])
+    zoning = pd.merge(zoning, zoning_heights.local, how='left', left_on=['plan_type_id'], right_index=True)
     return zoning.set_index(['parcel_id','generic_land_use_type_id', 'constraint_type'])
 
 @orca.table('parcels', cache=True)
@@ -186,6 +187,10 @@ def zones(store):
     df = store['zones']
     return df
 
+@orca.table('zoning_heights', cache=True)
+def zoning_heights(store):
+    df = store['zoning_heights']
+    return df
 
 orca.broadcast('buildings', 'households', cast_index=True, onto_on='building_id')
 orca.broadcast('buildings', 'jobs', cast_index=True, onto_on='building_id')
