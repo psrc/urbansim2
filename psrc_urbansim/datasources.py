@@ -161,8 +161,13 @@ def schools(store):
     return df
 
 @orca.table('target_vacancies', cache=True)
-def tractcity(store):
+def target_vacancies(store):
     df = store['target_vacancies']
+    return df
+
+@orca.table('target_vacancy', cache=True)
+def target_vacancy(target_vacancies, year):
+    df = target_vacancies.local[target_vacancies.index.get_level_values('year') == year]
     return df
 
 @orca.table('tractcity', cache=True)
