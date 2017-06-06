@@ -131,7 +131,7 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
 
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year):
-    utils.run_developer(None,
+    new_buildings = utils.run_developer(None,
                         households,
                         buildings,
                         "residential_units",
@@ -146,20 +146,19 @@ def residential_developer(feasibility, households, buildings, parcels, year):
     
 @orca.step('non_residential_developer')
 def non_residential_developer(feasibility, jobs, buildings, parcels, year):
-    utils.run_developer(None,
+    new_buildings = utils.run_developer(None,
                         jobs.local[jobs.home_based_status == 0], # count only non-home-based jobs
                         buildings,
                         "job_spaces",
+                        feasibility,
                         parcels.parcel_size,
                         parcels.ave_unit_size,
                         parcels.total_job_spaces,
-                        feasibility,
+                        'nonres_developer.yaml',
                         year=year,
                         target_vacancy=.15,
-                        #form_to_btype_callback=random_type,
-                        add_more_columns_callback=add_extra_columns,
-                        residential=False,
-                        bldg_sqft_per_job=400.0)
+                        add_more_columns_callback=add_extra_columns)
+
 
 def random_type(form):
     form_to_btype = orca.get_injectable("form_to_btype")
