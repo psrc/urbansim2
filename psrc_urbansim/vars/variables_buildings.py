@@ -126,6 +126,10 @@ def multifamily_generic_type(buildings):
 def number_of_governmental_jobs(buildings, jobs):
     return jobs.sector_id.groupby(jobs.building_id[np.in1d(jobs.sector_id, [18, 19])]).size().reindex(buildings.index).fillna(0).astype("int32")
 
+@orca.column('buildings', 'number_of_households', cache=True, cache_scope='step')
+def number_of_households(buildings, households):
+    return households.building_id.groupby(households.building_id).size().reindex(buildings.index).fillna(0).astype("int32")
+
 @orca.column('buildings', 'number_of_jobs', cache=True, cache_scope='step')
 def number_of_jobs(buildings, jobs):
     return jobs.sector_id.groupby(jobs.building_id).size().reindex(buildings.index).fillna(0).astype("int32")
