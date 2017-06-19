@@ -107,6 +107,11 @@ def job_capacity(parcels, buildings):
     return buildings.job_capacity.groupby(buildings.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
 
+@orca.column('parcels', 'land_area', cache=True, cache_scope='iteration')
+def land_area(parcels, buildings):
+    return buildings.land_area.groupby(buildings.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
 @orca.column('parcels', 'land_cost', cache=True, cache_scope='iteration')
 def land_cost(parcels): # toal value of the parcel
     return parcels.land_value + parcels.total_improvement_value
@@ -141,6 +146,11 @@ def max_height(parcels, parcel_zoning):
 @orca.column('parcels', 'nonres_building_sqft', cache=True, cache_scope='iteration')
 def nonres_building_sqft(parcels, buildings):
     return (buildings.building_sqft * (~buildings.is_residential)).groupby(buildings.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'number_of_buildings', cache=True, cache_scope='iteration')
+def number_of_buildings(parcels, buildings):
+    return buildings.parcel_id.groupby(buildings.parcel_id).size().\
            reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'number_of_good_public_schools', cache=True, cache_scope='iteration')
