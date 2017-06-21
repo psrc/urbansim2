@@ -66,7 +66,8 @@ def parcel_is_allowed_func(form):
 def update_sqftproforma(default_settings, proforma_uses, **kwargs):
     local_settings = {}
     blduses = proforma_uses[["building_type_id", "building_type_name", "is_residential"]].drop_duplicates()
-    local_settings["uses"] = blduses.building_type_name.values
+    blduses = pd.merge(pd.DataFrame({"uses":default_settings.uses}), blduses, left_on="uses", right_on="building_type_name")
+    local_settings["uses"] = blduses.uses.values
     local_settings["residential_uses"] = blduses.is_residential
     local_settings["residential_uses"].index = blduses.building_type_id
     coeffile = os.path.join(misc.data_dir(), "expected_sales_unit_price_component_model_coefficients.csv")
@@ -80,28 +81,9 @@ def update_sqftproforma(default_settings, proforma_uses, **kwargs):
         submerge = pd.merge(blduses, subuse, on='building_type_name', how="left")
         forms[subuse.description.values[0]] = submerge.percent_building_sqft.fillna(0).values/100.
         form_glut[subuse.description.values[0]] = subuse.generic_land_use_type_id.values[0]
-    parking_rates = {
-        "single_family_residential": 1.,
-        "condo_residential": 1.,
-        "multi_family_residential": 1.,
-        "commercial": 2.,
-        "office": 1., 
-        "industrial": 0.6,
-        "warehousing": 0.6,
-        "tcu": 0.6
-    }
-    local_settings["parking_rates"] = np.array([parking_rates[use] for use in blduses.building_type_name])
+
     # Convertion similar to sqftproforma._convert_types()
     local_settings["res_ratios"] = {}
-    cost = { # cost per buiilding type and height (15, 55, 120, inf)
-        "commercial": [160.0, 175.0, 200.0, 230.0],
-        "industrial": [140.0, 175.0, 200.0, 230.0],
-        "office": [160.0, 175.0, 200.0, 230.0],
-        "single_family_residential": [170.0, 190.0, 210.0, 240.0]    
-    }
-    cost["condo_residential"] = cost["multi_family_residential"] = cost["single_family_residential"]
-    cost["warehousing"] = cost["tcu"] = cost["industrial"]
-    local_settings["construction_months"] = np.repeat(default_settings.construction_months[:,0][np.newaxis], blduses.shape[0], axis=0).transpose()
     new_btype_id = {}
     for form in forms.keys():
         forms[form] /= forms[form].sum() # normalize
@@ -112,12 +94,10 @@ def update_sqftproforma(default_settings, proforma_uses, **kwargs):
             new_btype_id[form] = blduses.building_type_id.values[blduses.building_type_name.values == bts[0]][0]
         else: # mixed use
             new_btype_id[form] = 10 # TODO: refine mixed use building types
-    local_settings["costs"] = np.transpose(np.array([cost[use] for use in local_settings["uses"]]))
     local_settings["forms"] = forms
     local_settings["form_glut"] = form_glut
     local_settings["new_btype_id"] = new_btype_id
     local_settings["forms_to_test"] = None
-    #local_settings.parcel_sizes = [5000, 10000, 100000]
     pf = default_settings
     for attr in local_settings.keys():
         setattr(pf, attr, local_settings[attr])

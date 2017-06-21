@@ -28,32 +28,40 @@ fars:
 - 11.0
 
 uses:
-- retail
-- industrial
+- single_family_residential
+- condo_residential
+- multi_family_residential
+- commercial
 - office
-- residential
+- industrial
+- warehousing
+- tcu
 
 residential_uses:
-- false
-- false
-- false
 - true
+- true
+- true
+- false
+- false
+- false
+- false
+- false
 
-forms:
+forms: # gets overwritten
     industrial:
         industrial: 1.0
     mixedoffice:
         office: 0.7
-        residential: 0.3
+        multi_family_residential: 0.3
     mixedresidential:
-        residential: 0.9
-        retail: 0.1
+        multi_family_residential: 0.9
+        commercial: 0.1
     office:
         office: 1.0
     residential:
-        residential: 1.0
+        single_family_residential: 1.0
     retail:
-        retail: 1.0
+        commercial: 1.0
 
 profit_factor: 1.1
 
@@ -61,13 +69,17 @@ building_efficiency: 0.7
 
 parcel_coverage: 0.8
 
-cap_rate: 0.05
+cap_rate: 0.04
 
 parking_rates:
-    industrial: 0.6
-    office: 1.0
-    residential: 1.0
-    retail: 2.0
+    single_family_residential: 1.
+    condo_residential: 0.75
+    multi_family_residential: 1.
+    commercial: 2.
+    office: 0.75
+    industrial: 0.5
+    warehousing: 0.5
+    tcu: 0.5
 
 sqft_per_rate: 1000.0
 
@@ -77,26 +89,46 @@ parking_configs:
 - underground
 
 costs:
-    industrial:
-    - 140.0
-    - 175.0
-    - 200.0
-    - 230.0
+    single_family_residential: 
+    - 107.68
+    - 118.46
+    - 130.31
+    - 143.34
+    condo_residential:
+    - 96.92
+    - 106.61
+    - 117.28
+    - 129
+    multi_family_residential:
+    - 94.63
+    - 119.69
+    - 129.92
+    - 142.91
+    commercial:
+    - 126.6
+    - 139.26
+    - 153.18
+    - 168.5
     office:
-    - 160.0
-    - 175.0
-    - 200.0
-    - 230.0
-    residential:
-    - 170.0
-    - 190.0
-    - 210.0
-    - 240.0
-    retail:
-    - 160.0
-    - 175.0
-    - 200.0
-    - 230.0
+    - 135.04
+    - 132.99
+    - 169.82
+    - 186.8
+    industrial:
+    - 74.34
+    - 81.77
+    - 89.98
+    - 98.94
+    warehousing:
+    - 74.34
+    - 81.77
+    - 89.98
+    - 98.94
+    tcu:
+    - 74.34
+    - 81.77
+    - 89.98
+    - 98.94
 
 heights_for_costs:
 - 15
@@ -105,14 +137,14 @@ heights_for_costs:
 - .inf
 
 parking_sqft_d:
-    deck: 250.0
-    surface: 300.0
-    underground: 250.0
+    deck: 128
+    surface: 163
+    underground: 114
 
 parking_cost_d:
     deck: 90
-    surface: 30
-    underground: 110
+    surface: 70
+    underground: 100
 
 height_per_story: 12.0
 
@@ -131,7 +163,22 @@ pass_through: []
 simple_zoning: false
 
 construction_months:
-    industrial:
+    single_family_residential:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    multi_family_residential:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    condo_residential:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    commercial:
     - 12.0
     - 14.0
     - 18.0
@@ -141,12 +188,17 @@ construction_months:
     - 14.0
     - 18.0
     - 24.0
-    residential:
+    industrial:
     - 12.0
     - 14.0
     - 18.0
     - 24.0
-    retail:
+    warehousing:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    tcu:
     - 12.0
     - 14.0
     - 18.0

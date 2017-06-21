@@ -125,9 +125,15 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
     if redevelopment_filter is not None:
         pcl = pcl.loc[parcels[redevelopment_filter] == True]
     df = orca.DataFrameWrapper("parcels", pcl, copy_col=False)
-    return psrcdev.run_feasibility(df, parcel_price_placeholder, parcel_is_allowed_func, cfg="proforma.yaml",
+    psrcdev.run_feasibility(df, parcel_price_placeholder, parcel_is_allowed_func, cfg="proforma.yaml",
                                 parcel_custom_callback = parcel_sales_price_sqft_func,
                                 proforma_uses=proforma_settings)
+    projects = orca.get_table("feasibility")
+    p = projects.local.stack(level=0)
+    pp = p.reset_index()
+    pp.rename(columns = {'level_1':'form'}, inplace=True)
+    pp.to_csv("proforma_projects.csv")
+    return
 
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year, target_vacancy):

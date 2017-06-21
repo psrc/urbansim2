@@ -55,7 +55,7 @@ def capacity_opportunity_non_gov(parcels):
         # OR the following chain of ANDs
         (parcels.max_developable_capacity/parcels.building_sqft_pcl > 3)* # parcel is not utilized
         (parcels.number_of_governmental_buildings == 0)* # no governmental buildings
-        (parcels.avg_building_age >= 20)* # buildings older than 20 years
+        (parcels.avg_building_age >= 10)* # buildings older than 20 years
         np.logical_or( # if condo, the utilization should have a higher bar (it's more difficult to get all condo owners to agree)
             parcels.max_developable_capacity / parcels.building_sqft_pcl > 6, 
             parcels.land_use_type_id <> 15
