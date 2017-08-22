@@ -3,6 +3,7 @@ import pandas as pd
 import orca
 from urbansim.utils import yamlio
 import data
+import psrc_urbansim.variables
 
 # Indicators script
 # ==================
@@ -24,6 +25,7 @@ def compute_indicators(settings):
     # loop over indicators and dataests from settings and store into file
     for ind, value in settings['indicators'].iteritems():
         for ds in value['dataset']:
+            print ds
             print orca.get_table(ds)[ind]
              
 
