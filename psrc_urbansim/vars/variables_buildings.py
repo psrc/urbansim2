@@ -57,6 +57,10 @@ def has_valid_age_built(buildings, settings):
 def is_commercial(buildings):
     return (buildings.building_type_name == 'commercial').astype("int16")
 
+@orca.column('buildings', 'is_governmental', cache=True, cache_scope='iteration')
+def is_governmental(buildings, building_types):
+    return (misc.reindex(building_types.generic_building_type_description, buildings.building_type_id) == 'government').astype("int16")
+
 @orca.column('buildings', 'is_industrial', cache=True, cache_scope='iteration')
 def is_industrial(buildings):
     return (buildings.building_type_name == 'industrial').astype("int16")
@@ -122,9 +126,17 @@ def multifamily_generic_type(buildings):
 def number_of_governmental_jobs(buildings, jobs):
     return jobs.sector_id.groupby(jobs.building_id[np.in1d(jobs.sector_id, [18, 19])]).size().reindex(buildings.index).fillna(0).astype("int32")
 
+@orca.column('buildings', 'number_of_households', cache=True, cache_scope='step')
+def number_of_households(buildings, households):
+    return households.building_id.groupby(households.building_id).size().reindex(buildings.index).fillna(0).astype("int32")
+
 @orca.column('buildings', 'number_of_jobs', cache=True, cache_scope='step')
 def number_of_jobs(buildings, jobs):
     return jobs.sector_id.groupby(jobs.building_id).size().reindex(buildings.index).fillna(0).astype("int32")
+
+@orca.column('buildings', 'number_of_jobs', cache=True, cache_scope='step')
+def number_of_non_home_based_jobs(buildings, jobs):
+    return (jobs['home_based_status']==0).groupby(jobs.building_id).sum().reindex(buildings.index).fillna(0).astype("int32")
 
 @orca.column('buildings', 'number_of_retail_jobs', cache=True, cache_scope='step')
 def number_of_retail_jobs(buildings, jobs):
