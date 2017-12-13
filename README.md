@@ -3,7 +3,7 @@
 [![Travis-CI Build Status](https://travis-ci.org/psrc/urbansim2.svg?branch=master)](https://travis-ci.org/psrc/urbansim2)
 [![Coverage Status](https://coveralls.io/repos/github/psrc/urbansim2/badge.svg?branch=master)](https://coveralls.io/github/psrc/urbansim2?branch=master)
 
-This is an urbansim-2 implementation of the PSRC land use model. It is a python package that contains PSRC-specfic modifications to the urbansim package developed by UrbanSim Inc. (former Synthicity).
+This is an urbansim-2 implementation of the PSRC land use model. It is a python package that contains PSRC-specfic modifications to the urbansim package developed by UrbanSim Inc. (former Synthicity). 
 
 
 ## Installation
@@ -13,7 +13,20 @@ This is an urbansim-2 implementation of the PSRC land use model. It is a python 
 In the examples below it will be assumed that the base directory for the installation is ``d:/udst``.
 
 
-1. Install [Anaconda Python](http://continuum.io/downloads), the latest of the 2.* series (not 3.*). By default it will be installed in a different directory than existing Python, so there is no danger in messing up the current Python installation. In addition to Anaconda Python, two other packages (zbox and prettytable) are needed. Install using the following pip commands:
+1. Install [Anaconda Python](http://continuum.io/downloads), the latest of the 2.* series (not 3.*). By default it will be installed in a different directory than existing Python, so there is no danger in messing up the current Python installation. Alternatively, use a virtual enviornment specific for Urbansim2. In a command prompt, start a new virtual environment called "urbansim2" as follows:
+
+```
+conda create -n urbansim2 python=2.7 anaconda
+```
+Activate this environment every time you restart the prompt and want to work with urbansim2 by entering the follow (for Windows prompts):
+
+```
+activiate urbansim2
+```
+
+(In a bash shell, type "source activate urbansim2".)
+
+In addition to Anaconda Python, two other packages (zbox and prettytable) are needed. Install using the following pip commands:
    
    ```
    pip install zbox
