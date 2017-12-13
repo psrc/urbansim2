@@ -78,17 +78,6 @@ In the examples below it will be assumed that the base directory for the install
    ```
 
 8. Put the name of the data file into ``psrc_urbansim/configs/settings.yaml`` (node ``store``).
-9. There might be a few changes to the ``urbansim_defaults`` and ``urbansim`` packages that were submitted as pull requests to UDST but were not accepted yet. To keep the repository in sync with those changes do
-  
-  ```
-  cd /d/udst/urbansim_defaults
-  git remote add psrcedits https://github.com/hanase/urbansim_defaults.git
-  git pull psrcedits dev
-  
-  cd /d/udst/urbansim
-  git remote add psrcedits https://github.com/hanase/urbansim.git
-  git pull psrcedits dev
-  ``` 
 
 ### Code Update
 
