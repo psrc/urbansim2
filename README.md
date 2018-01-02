@@ -49,7 +49,7 @@ In addition to Anaconda Python, two other packages (zbox and prettytable) are ne
    git clone https://github.com/UDST/orca.git orca
    git clone https://github.com/UDST/pandana.git pandana
    git clone https://github.com/UDST/developer.git developer
-   git clone https://github.com/choicemodels.git choicemodels
+   git clone https://github.com/UDST/choicemodels.git choicemodels
    ```
    
 4. Set the environment variable PYTHONPATH to point to those directories, as well as this repository, ``psrc_urbansim``. If you plan to switch between Opus and UrbanSim-2, put these settings into a  file that can be executed prior to working in the UrbanSim-2 environment. E.g. create a file ``setpath.bat`` with 
