@@ -118,6 +118,13 @@ def households_lag1(store):
         dfname = 'households'
     return store[dfname]
 
+@orca.table('households_for_estimation', cache=True)
+def households_for_estimation(store):
+    dfname = 'households_for_estimation'
+    if dfname not in store.keys():
+        dfname = 'households'
+    return store[dfname]
+
 @orca.table('job_relocation_rates', cache=True)
 def job_relocation_rates(store):
     df = store['annual_job_relocation_rates']  
@@ -129,6 +136,13 @@ def jobs(store):
     df = store['jobs']
     #df = utils.fill_nas_from_config('jobs', df)
     return df
+
+@orca.table('jobs_for_estimation', cache=True)
+def jobs_for_estimation(store):
+    dfname = 'jobs_for_estimation'
+    if dfname not in store.keys():
+        dfname = 'jobs'
+    return store[dfname]
 
 @orca.table('land_use_types', cache=True)
 def land_use_types(store):
