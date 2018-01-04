@@ -1,3 +1,8 @@
+import os 
+import sys
+os.chdir(r'D:\udst')
+sys.path.append(os.path.join(os.getcwd(),"urbansim_defaults"))
+sys.path.append(os.path.join(os.getcwd(),"developer"))
 import orca
 import random
 import urbansim_defaults.utils as utils
@@ -10,6 +15,9 @@ import pandas as pd
 from psrc_urbansim.mod.allocation import AgentAllocationModel
 import urbansim.developer as dev
 import developer_models as psrcdev
+import os 
+os.chdir('D:/udst/psrc_urbansim')
+
 
 # Residential REPM
 @orca.step('repmres_estimate')
@@ -32,8 +40,8 @@ def repmnr_simulate(parcels, zones, gridcells):
 
 # HLCM
 @orca.step('hlcm_estimate')
-def hlcm_estimate(households, buildings, parcels, zones):
-    return utils.lcm_estimate("hlcm.yaml", households, "building_id",
+def hlcm_estimate(households_for_estimation, buildings, parcels, zones):
+    return utils.lcm_estimate("hlcm.yaml", households_for_estimation, "building_id",
                               buildings, None, out_cfg="hlcmcoef.yaml")
 
 @orca.step('hlcm_simulate')
