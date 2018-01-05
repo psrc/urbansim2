@@ -86,9 +86,12 @@ def zone_id(households_for_estimation, buildings):
 def zone_id(households_for_estimation, buildings):
     return misc.reindex(buildings.zone_id, households_for_estimation.building_id).fillna(-1)
 
-@orca.column('households_for_estimation', 'previous_building_id', cache=True)
-def previous_building_id(households_for_estimation, buildings):
-    return misc.reindex(buildings.zone_id, households_for_estimation.building_id).fillna(-1)
+@orca.column('households_for_estimation', 'prev_residence_is_mf', cache=True)
+def prev_residence_is_mf(households_for_estimation, buildings_lag1):
+    return misc.reindex(buildings_lag1.multifamily_generic_type, households_for_estimation.previous_building_id).fillna(-1)
+#@orca.column('households_for_estimation', 'previous_building_id', cache=True)
+#def previous_building_id(households_for_estimation, buildings):
+#    return misc.reindex(buildings.zone_id, households_for_estimation.building_id).fillna(-1)
 
 
 #@orca.column('households_for_estimation', 'avg_net_dist_from_home_to_work', cache=True)

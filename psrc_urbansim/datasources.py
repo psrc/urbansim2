@@ -217,6 +217,7 @@ orca.broadcast('parcels', 'schools', cast_index=True, onto_on='parcel_id')
 orca.broadcast('tractcity', 'parcels', cast_index=True, onto_on='tractcity_id')
 orca.broadcast('zones', 'parcels', cast_index=True, onto_on='zone_id')
 orca.broadcast('buildings', 'households_for_estimation', cast_index=True, onto_on='building_id')
+orca.broadcast('buildings_lag1', 'households_for_estimation', cast_index=True, onto_on='building_id')
 orca.broadcast('households_for_estimation', 'persons', cast_index=True, onto_on='household_id')
 orca.broadcast('jobs', 'households_for_estimation', cast_index=True, onto_on='job_id')
 # Assumptions
