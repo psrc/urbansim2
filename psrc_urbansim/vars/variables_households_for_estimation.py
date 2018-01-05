@@ -40,9 +40,9 @@ def income_category(households_for_estimation, settings):
     res[(households_for_estimation.income >= income_breaks[2]).values] = 4
     return res
 
-@orca.column('households_for_estimation', 'is_inmigrant', cache=True)
-def is_inmigrant(households_for_estimation, parcels):
-    return (households_for_estimation.building_id < 0).reindex(households_for_estimation.index)
+#@orca.column('households_for_estimation', 'is_inmigrant', cache=True)
+#def is_inmigrant(households_for_estimation, parcels):
+#    return (households_for_estimation.building_id < 0).reindex(households_for_estimation.index)
 
 @orca.column('households_for_estimation', 'is_residence_mf', cache=True)
 def is_residence_mf(households_for_estimation, buildings):
