@@ -3,7 +3,7 @@ import numpy as np
 import orca
 from urbansim.utils import misc
 import urbansim_defaults.utils
-
+from psrc_urbansim.vars.variables_interactions import avg_network_distance_from_home_to_work
 #####################
 # HOUSEHOLDS VARIABLES (in alphabetic order)
 #####################
@@ -67,11 +67,15 @@ def tractcity_id(households, parcels):
 
 @orca.column('households', 'worker1_zone_id', cache=True)
 def worker1_zone_id(households, persons):
-    return misc.reindex(persons.workplace_zone_id[persons.worker1==True], households.building_id).fillna(-1)
+    return ((persons.worker1)*(persons.workplace_zone_id)).\
+        groupby(persons.household_id).sum().\
+        reindex(households.index).fillna(-1).replace(0, -1)
 
 @orca.column('households', 'worker2_zone_id', cache=True)
 def worker2_zone_id(households, persons):
-    return misc.reindex(persons.workplace_zone_id[persons.worker2==True], households.building_id).fillna(-1)
+    return((persons.worker2)*(persons.workplace_zone_id)).\
+        groupby(persons.household_id).sum().\
+        reindex(households.index).fillna(-1).replace(0, -1)
 
 @orca.column('households', 'work_zone_id', cache=True)
 def work_zone_id(households, buildings):
@@ -81,7 +85,13 @@ def work_zone_id(households, buildings):
 def zone_id(households, buildings):
     return misc.reindex(buildings.zone_id, households.building_id).fillna(-1)
 
+@orca.column('households', 'zone_id', cache=True)
+def zone_id(households, buildings):
+    return misc.reindex(buildings.zone_id, households.building_id).fillna(-1)
 
+@orca.column('households', 'previous_building_id', cache=True)
+def previous_building_id(households, buildings):
+    return misc.reindex(buildings.zone_id, households.building_id).fillna(-1)
 
 
 
