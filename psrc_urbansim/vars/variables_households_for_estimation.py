@@ -76,3 +76,6 @@ def zone_id(households_for_estimation, buildings):
 def prev_residence_is_mf(households_for_estimation, buildings_lag1):
     return misc.reindex(buildings_lag1.multifamily_generic_type, households_for_estimation.previous_building_id).fillna(-1)
 
+@orca.column('households_for_estimation', 'prev_residence_large_area_id', cache=True)
+def prev_residence_large_area_id(households_for_estimation, buildings_lag1):
+    return misc.reindex(buildings_lag1.large_area_id, households_for_estimation.previous_building_id).fillna(-1)
