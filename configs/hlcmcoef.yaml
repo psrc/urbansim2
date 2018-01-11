@@ -25,82 +25,122 @@ estimation_sample_size: 3000
 prediction_sample_size: 100
 
 default_config:
-    model_expression: multifamily_generic_type + I((persons < 2)*1):I(np.logical_not(building_type_name
-        == "single_family_residential")*1) + I((persons > 3)*1):I(np.logical_not(large_area_id
-        == 6)*1) + I((tenure == 1)*1):I(~is_multifamily) + I((persons-2)*(persons
-        > 2)):I((building_type_name == "condo_residential")*1) + I(np.log1p(income)/(persons*persons*1.0)):I(np.log1p(sqft_per_unit))
-        + I(1*np.logical_or(mortgage_cost/income < 0.1, mortgage_cost/income > 0.3))
-        + ln_price_residual + I((employment_density_wwd > 25) * np.log1p(employment_density_wwd))
+    model_expression: I((income>0)*1):I(1*(np.logical_or(mortgage_cost/income < 0.1,
+        mortgage_cost/income > 0.5))) + ln_price_residual + multifamily_generic_type
+        + I(np.where(income>0, (np.log1p(income)/(persons*persons*1.0)*(np.log1p(sqft_per_unit))),
+        1)) + I((persons < 2)*1):I(np.logical_not(building_type_name == "single_family_residential")*1)
         + I(1*(np.logical_and(persons == 1, age_of_head < 50))):I(1*(np.log1p(employment_retail_wwd)>4))
-        + avg_network_distance_from_home_to_work(worker1_zone_id, worker2_zone_id,
-        building_zone_id) + max_logsum_hbw_am_from_home_to_work_wzone_logsum(worker1_zone_id,
-        worker2_zone_id, building_zone_id, income_category, twa_logsum_hbw_1, twa_logsum_hbw_2,
-        twa_logsum_hbw_3, twa_logsum_hbw_4) + equals(is_residence_mf, multifamily_generic_type)
-        + equals(residence_large_area, large_area_id)
+        + I((tenure == 1)*1):I(~is_multifamily) + I((persons < 3)*1):I((large_area_id
+        ==3)*1)
 
 models:
     false:
         fit_parameters:
             Coefficient:
-                I((employment_density_wwd > 25) * np.log1p(employment_density_wwd)): 0.21411288013838672
+                I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.4))): -0.8844167670387458
                 I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): -3.0
-                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 1.2995787995772845
-                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 0.4679868455631588
-                I((tenure == 1) * 1):I( ~is_multifamily): 0.6742145716393113
-                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 0.31484651418605547
-                I(1 * np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.3)): -0.3073020553404805
-                I(np.log1p(income) / (persons * persons * 1.0)):I(np.log1p(sqft_per_unit)): -0.021052534647489803
-                avg_network_distance_from_home_to_work(worker1_zone_id, worker2_zone_id, building_zone_id): 0.011331587391785527
-                equals(is_residence_mf, multifamily_generic_type): 3.0
-                equals(residence_large_area, large_area_id): 3.0
-                ln_price_residual: 0.2368911860107092
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 1.5009200317636016
+                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 0.5620809173343111
+                I((tenure == 1) * 1):I( ~is_multifamily): 2.1605917488523967
+                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 1.1554971820183937
+                I(1 * (prev_residence_large_area_id == large_area_id)): 2.6926722665283105
+                I(1 * np.logical_and(multifamily_generic_type, prev_residence_is_mf)): 0.33453543308696265
+                I(np.where(income > 0, (np.log1p(income) / (persons * persons * 1.0) * (np.log1p(sqft_per_unit))), 1)): -0.046293560942830304
+                avg_network_distance_from_home_to_work(worker1_zone_id, worker2_zone_id, building_zone_id): 0.03953841135150274
+                ln_price_residual: 0.2618785423079934
                 ? max_logsum_hbw_am_from_home_to_work_wzone_logsum(worker1_zone_id,
                     worker2_zone_id, building_zone_id, income_category, twa_logsum_hbw_1,
                     twa_logsum_hbw_2, twa_logsum_hbw_3, twa_logsum_hbw_4)
-                : 0.17426976858229395
-                multifamily_generic_type: 1.5626306048666558
+                : 1.6049199496114572
+                multifamily_generic_type: 2.2384424893346857
             Std. Error:
-                I((employment_density_wwd > 25) * np.log1p(employment_density_wwd)): 0.03495652378894938
-                I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): 3307.933903473134
-                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 0.11477451068406964
-                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 0.05907142881987079
-                I((tenure == 1) * 1):I( ~is_multifamily): 0.039727239668655226
-                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 0.12620742090632153
-                I(1 * np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.3)): 0.4919075457415467
-                I(np.log1p(income) / (persons * persons * 1.0)):I(np.log1p(sqft_per_unit)): 0.0010460401565869349
-                avg_network_distance_from_home_to_work(worker1_zone_id, worker2_zone_id, building_zone_id): 0.007561780753633804
-                equals(is_residence_mf, multifamily_generic_type): 0.5293799545556535
-                equals(residence_large_area, large_area_id): 0.3015194455061713
-                ln_price_residual: 0.1533657808419327
+                I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.4))): 0.07322612956049249
+                I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): 187.7767236490829
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 0.09320021018576068
+                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 0.09016122154908957
+                I((tenure == 1) * 1):I( ~is_multifamily): 0.03832407837043918
+                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 0.08798163483886527
+                I(1 * (prev_residence_large_area_id == large_area_id)): 0.04986824078663728
+                I(1 * np.logical_and(multifamily_generic_type, prev_residence_is_mf)): 0.07936405596479809
+                I(np.where(income > 0, (np.log1p(income) / (persons * persons * 1.0) * (np.log1p(sqft_per_unit))), 1)): 0.0014077382284041699
+                avg_network_distance_from_home_to_work(worker1_zone_id, worker2_zone_id, building_zone_id): 0.0021897726167709407
+                ln_price_residual: 0.10839778314222966
                 ? max_logsum_hbw_am_from_home_to_work_wzone_logsum(worker1_zone_id,
                     worker2_zone_id, building_zone_id, income_category, twa_logsum_hbw_1,
                     twa_logsum_hbw_2, twa_logsum_hbw_3, twa_logsum_hbw_4)
-                : 0.051354441450456506
-                multifamily_generic_type: 0.0714415268054738
+                : 0.027774809955457343
+                multifamily_generic_type: 0.0780937592023772
             T-Score:
-                I((employment_density_wwd > 25) * np.log1p(employment_density_wwd)): 6.12511934627988
-                I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): -0.000906910502912461
-                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 11.322886866009197
-                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 7.922389129780701
-                I((tenure == 1) * 1):I( ~is_multifamily): 16.971090296295273
-                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 2.494675130234638
-                I(1 * np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.3)): -0.6247150668876711
-                I(np.log1p(income) / (persons * persons * 1.0)):I(np.log1p(sqft_per_unit)): -20.12593351691289
-                avg_network_distance_from_home_to_work(worker1_zone_id, worker2_zone_id, building_zone_id): 1.4985342422603494
-                equals(is_residence_mf, multifamily_generic_type): 5.667007173549129
-                equals(residence_large_area, large_area_id): 9.949607047611122
-                ln_price_residual: 1.544615654875858
+                I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.4))): -12.077884934613737
+                I((persons - 2) * (persons > 2)):I((building_type_name == "condo_residential") * 1): -0.01597642104783125
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 16.10425586779326
+                I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 6.2341759314815635
+                I((tenure == 1) * 1):I( ~is_multifamily): 56.37687429735932
+                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 13.13339066879854
+                I(1 * (prev_residence_large_area_id == large_area_id)): 53.995734039405704
+                I(1 * np.logical_and(multifamily_generic_type, prev_residence_is_mf)): 4.215200811250697
+                I(np.where(income > 0, (np.log1p(income) / (persons * persons * 1.0) * (np.log1p(sqft_per_unit))), 1)): -32.88506343633878
+                avg_network_distance_from_home_to_work(worker1_zone_id, worker2_zone_id, building_zone_id): 18.0559438220606
+                ln_price_residual: 2.4159031182803834
                 ? max_logsum_hbw_am_from_home_to_work_wzone_logsum(worker1_zone_id,
                     worker2_zone_id, building_zone_id, income_category, twa_logsum_hbw_1,
                     twa_logsum_hbw_2, twa_logsum_hbw_3, twa_logsum_hbw_4)
-                : 3.393470236657492
-                multifamily_generic_type: 21.872861271869237
+                : 57.78329184557081
+                multifamily_generic_type: 28.663525897554013
         fitted: true
         log_likelihoods:
-            convergence: -5644.915630658173
-            'null': -13815.51055796495
-            ratio: 0.5914073817993102
+            convergence: -5640.606137252821
+            'null': -9500.466093693487
+            ratio: 0.4062811148816039
+        model_expression: multifamily_generic_type + avg_network_distance_from_home_to_work(worker1_zone_id,
+            worker2_zone_id, building_zone_id) + max_logsum_hbw_am_from_home_to_work_wzone_logsum(worker1_zone_id,
+            worker2_zone_id, building_zone_id, income_category, twa_logsum_hbw_1,
+            twa_logsum_hbw_2, twa_logsum_hbw_3, twa_logsum_hbw_4) + I(1*np.logical_and(multifamily_generic_type,
+            prev_residence_is_mf)) + I((persons < 2)*1):I(np.logical_not(building_type_name
+            == "single_family_residential")*1) + I((persons > 3)*1):I(np.logical_not(large_area_id
+            == 6)*1) + I(1*(prev_residence_large_area_id == large_area_id)) + I((tenure
+            == 1)*1):I(~is_multifamily) + I((persons-2)*(persons > 2)):I((building_type_name
+            == "condo_residential")*1) + ln_price_residual + I(1*(np.logical_and(persons
+            == 1, age_of_head < 50))):I(1*(np.log1p(employment_retail_wwd)>4)) + I(np.where(income>0,
+            (np.log1p(income)/(persons*persons*1.0)*(np.log1p(sqft_per_unit))), 1))
+            + I((income>0)*1):I(1*(np.logical_or(mortgage_cost/income < 0.1, mortgage_cost/income
+            > 0.4)))
         name: false
+    !!python/long '1':
+        fit_parameters:
+            Coefficient:
+                I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.5))): 3.0
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 1.9239456202930811
+                I((persons < 3) * 1):I((large_area_id == 3) * 1): -1.497912298341782
+                I((tenure == 1) * 1):I( ~is_multifamily): 2.667900418143078
+                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 3.0
+                I(np.where(income > 0, (np.log1p(income) / (persons * persons * 1.0) * (np.log1p(sqft_per_unit))), 1)): -0.030699338672672105
+                ln_price_residual: 0.3515536002163803
+                multifamily_generic_type: 2.822784254618266
+            Std. Error:
+                I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.5))): 0.10541616017269735
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 0.19166145509236734
+                I((persons < 3) * 1):I((large_area_id == 3) * 1): 0.24526139458988513
+                I((tenure == 1) * 1):I( ~is_multifamily): 0.08891708800676222
+                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 0.15938016558561108
+                I(np.where(income > 0, (np.log1p(income) / (persons * persons * 1.0) * (np.log1p(sqft_per_unit))), 1)): 0.0028099976321312725
+                ln_price_residual: 0.2967468049529342
+                multifamily_generic_type: 0.09827847803313441
+            T-Score:
+                I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.5))): 28.45863475851586
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 10.038250097631131
+                I((persons < 3) * 1):I((large_area_id == 3) * 1): -6.107411648892082
+                I((tenure == 1) * 1):I( ~is_multifamily): 30.004361118305873
+                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 18.822919332384238
+                I(np.where(income > 0, (np.log1p(income) / (persons * persons * 1.0) * (np.log1p(sqft_per_unit))), 1)): -10.925040762183086
+                ln_price_residual: 1.184692115799322
+                multifamily_generic_type: 28.722303307002466
+        fitted: true
+        log_likelihoods:
+            convergence: -1870.6066105030563
+            'null': -2615.7366656412546
+            ratio: 0.28486432328061884
+        name: !!python/long '1'
 
 fitted: true
 
