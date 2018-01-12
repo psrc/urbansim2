@@ -5,7 +5,7 @@ from urbansim.utils import misc
 import urbansim_defaults.utils
 #import urbansim_defaults.datasources
 #####################
-# BUILDINGS VARIABLES (in alphabetic order)
+# buildings VARIABLES (in alphabetic order)
 #####################
 
 @orca.column('buildings', 'age', cache=True, cache_scope='iteration')
@@ -197,6 +197,13 @@ def zone_id(buildings, parcels):
 def building_zone_id(buildings, parcels):
     return misc.reindex(parcels.zone_id, buildings.parcel_id)
 
+@orca.column('buildings', 'parcel_land_value', cache=True)
+def parcel_land_value(buildings, parcels):
+    return misc.reindex(parcels.land_cost, buildings.parcel_id)
+
+@orca.column('buildings', 'pbsqft', cache=True)
+def pbsqft(buildings, parcels):
+    return misc.reindex(parcels.building_sqft_pcl, buildings.parcel_id).replace(0, np.nan)
 
 # Functions
 def number_of_jobs_of_sector_from_zone(sector, buildings, zones, jobs):

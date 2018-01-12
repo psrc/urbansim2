@@ -64,8 +64,7 @@ DIRECTORIES = {
     'development_constraints', 'development_event_history', 
     'development_templates', 'development_template_components',
     'employment_adhoc_sector_group_definitions', 'employment_adhoc_sector_groups', 'employment_sectors',
-    'fazes', 'gridcells', 'households', 
-    'jobs', 'land_use_types',
+    'fazes', 'gridcells', 'land_use_types', 'jobs', 'households',
     'parcels', 'persons', 'schools', 'target_vacancies', 'travel_data', 
     'zones', 'zoning_heights', 'households_for_estimation', 'jobs_for_estimation'
 }
@@ -79,7 +78,6 @@ def convert_dirs(base_dir, hdf_name, is_estimation = False, no_compress=False):
     Convert nested set of directories to
     """
     print('Converting directories in {}'.format(base_dir))
-    YEAR = '2000'
 
     dirs = glob.glob(os.path.join(base_dir, YEAR,  '*'))
     dirs = {d for d in dirs if os.path.basename(d) in DIRECTORIES}
@@ -98,11 +96,21 @@ def convert_dirs(base_dir, hdf_name, is_estimation = False, no_compress=False):
     if is_estimation: 
         dirpath = os.path.join(base_dir, '2009/households') 
         df = cache_to_df(dirpath)
-        store.put('households_lag_1', df)
+        df['prev_building_id'] = df['building_id']
+        df = df.set_index('household_id')
+        store.put('households_lag1', df)
 
         dirpath = os.path.join(base_dir, '2000/buildings') 
         df = cache_to_df(dirpath)
-        store.put('buildings_lag_1', df)
+        df = df.set_index('building_id')
+        store.put('buildings_lag1', df)
+
+        dirpath = os.path.join(base_dir, '2014/persons_for_estimation') 
+        df = cache_to_df(dirpath)
+        df = df.set_index('person_id')
+        person_df = df
+        store.put('persons_for_estimation', df)
+         
 
     for dirpath in dirs:
         dirname = os.path.basename(dirpath)
@@ -149,9 +157,15 @@ def convert_dirs(base_dir, hdf_name, is_estimation = False, no_compress=False):
             keys=['plan_type_id'] 
         elif dirname == 'parcels':
                 keys=['parcel_id']
+                parcel_df = df
         elif dirname == 'households_for_estimation':
+                #dirname = 'households'
                 keys=['household_id'] 
+                households_df= df
+        #elif dirname == 'households':
+        #        df['prev_building_id'] = 0 
         elif dirname == 'jobs_for_estimation':
+                #dirname = 'jobs'
                 keys=['job_id']
         elif dirname == 'buildings':
             keys = ['building_id']

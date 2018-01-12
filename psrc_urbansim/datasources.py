@@ -216,7 +216,8 @@ orca.broadcast('buildings', 'jobs', cast_index=True, onto_on='building_id')
 orca.broadcast('fazes', 'zones', cast_index=True, onto_on='faz_id')
 orca.broadcast('gridcells', 'parcels', cast_index=True, onto_on='grid_id')
 orca.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
-orca.broadcast('jobs', 'households', cast_index=True, onto_on='job_id')
+#orca.broadcast('jobs', 'households', cast_index=True, onto_on='job_id')
+orca.broadcast('jobs', 'persons', cast_index=True, onto_on='job_id')
 orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
 orca.broadcast('parcels', 'schools', cast_index=True, onto_on='parcel_id')
 orca.broadcast('tractcity', 'parcels', cast_index=True, onto_on='tractcity_id')
@@ -224,7 +225,7 @@ orca.broadcast('zones', 'parcels', cast_index=True, onto_on='zone_id')
 orca.broadcast('buildings', 'households_for_estimation', cast_index=True, onto_on='building_id')
 orca.broadcast('buildings_lag1', 'households_for_estimation', cast_index=True, onto_on='building_id')
 orca.broadcast('households_for_estimation', 'persons_for_estimation', cast_index=True, onto_on='household_id')
-orca.broadcast('jobs_for_estimation', 'households_for_estimation', cast_index=True, onto_on='job_id')
+orca.broadcast('jobs', 'households_for_estimation', cast_index=True, onto_on='job_id')
 # Assumptions
 
 # this maps building "forms" from the developer model
