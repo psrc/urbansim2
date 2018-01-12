@@ -48,6 +48,11 @@ def hlcm_estimate(households_for_estimation, buildings, parcels, zones):
 def hlcm_simulate(households, buildings, parcels, zones):
     return utils.lcm_simulate("hlcmcoef.yaml", households, buildings, None,
                               "building_id", "residential_units", "vacant_residential_units", cast=True)
+# WPLCM
+@orca.step('wplcm_estimate')
+def wplcm_estimate(persons_for_estimation, jobs, parcels, zones):
+    return utils.lcm_estimate("wplcm.yaml", persons_for_estimation, "job_id",
+                              jobs, None, out_cfg="wplcmcoef.yaml")
 
 # ELCM
 @orca.step('elcm_estimate')
