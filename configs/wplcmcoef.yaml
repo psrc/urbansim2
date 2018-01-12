@@ -33,39 +33,39 @@ choice_mode: individual
 
 fit_parameters:
     Coefficient:
-        I((household_district_id == 19) * 1):I((district_id == 19) * 1): 1.3991445029818042
-        I(1 * (household_district_id == district_id)): 0.22297192005930172
-        I(np.where(is_in_sector_group_basic, edu * 1, 0)): 0.008706865444818305
-        generalized_cost_from_home_to_work(workplace_zone_id, zone_id): -0.7082851543287596
+        I((household_district_id == 19) * 1):I((district_id == 19) * 1): 2.9715950245989124
+        I(1 * (household_district_id == district_id)): 0.05883493506957177
+        I(np.where(is_in_sector_group_basic, edu * 1, 0)): 0.008321798009157791
+        generalized_cost_from_home_to_work(workplace_zone_id, zone_id): -0.807942016128539
         ? logsum_hbw_am_from_home_to_work_wzone_logsum(workplace_zone_id, zone_id,
             household_income_category, twa_logsum_hbw_1, twa_logsum_hbw_2, twa_logsum_hbw_3,
             twa_logsum_hbw_4)
         : 3.0
         network_distance_from_home_to_work(workplace_zone_id, zone_id): -3.0
     Std. Error:
-        I((household_district_id == 19) * 1):I((district_id == 19) * 1): 0.828747677882187
-        I(1 * (household_district_id == district_id)): 0.14813643723762296
-        I(np.where(is_in_sector_group_basic, edu * 1, 0)): 0.03416603492337796
-        generalized_cost_from_home_to_work(workplace_zone_id, zone_id): 0.01377897753796862
+        I((household_district_id == 19) * 1):I((district_id == 19) * 1): 1.1718719039113532
+        I(1 * (household_district_id == district_id)): 0.15248795752262345
+        I(np.where(is_in_sector_group_basic, edu * 1, 0)): 0.033698247541047145
+        generalized_cost_from_home_to_work(workplace_zone_id, zone_id): 0.014536475282953824
         ? logsum_hbw_am_from_home_to_work_wzone_logsum(workplace_zone_id, zone_id,
             household_income_category, twa_logsum_hbw_1, twa_logsum_hbw_2, twa_logsum_hbw_3,
             twa_logsum_hbw_4)
-        : 0.11656030282424222
-        network_distance_from_home_to_work(workplace_zone_id, zone_id): 0.12573917431877904
+        : 0.12391105011679611
+        network_distance_from_home_to_work(workplace_zone_id, zone_id): 0.23896399280016337
     T-Score:
-        I((household_district_id == 19) * 1):I((district_id == 19) * 1): 1.6882635575610068
-        I(1 * (household_district_id == district_id)): 1.5051794427972947
-        I(np.where(is_in_sector_group_basic, edu * 1, 0)): 0.2548397981897709
-        generalized_cost_from_home_to_work(workplace_zone_id, zone_id): -51.40331729092718
+        I((household_district_id == 19) * 1):I((district_id == 19) * 1): 2.53576778714519
+        I(1 * (household_district_id == district_id)): 0.3858333210400755
+        I(np.where(is_in_sector_group_basic, edu * 1, 0)): 0.24695046824085376
+        generalized_cost_from_home_to_work(workplace_zone_id, zone_id): -55.580324693701435
         ? logsum_hbw_am_from_home_to_work_wzone_logsum(workplace_zone_id, zone_id,
             household_income_category, twa_logsum_hbw_1, twa_logsum_hbw_2, twa_logsum_hbw_3,
             twa_logsum_hbw_4)
-        : 25.73775056610491
-        network_distance_from_home_to_work(workplace_zone_id, zone_id): -23.858912834867823
+        : 24.210915791386316
+        network_distance_from_home_to_work(workplace_zone_id, zone_id): -12.554192641519794
 
 probability_mode: full_product
 
 log_likelihoods:
-    convergence: -473.5028844922137
+    convergence: -445.6023670647577
     'null': -9905.721070060497
-    ratio: 0.9521990493025944
+    ratio: 0.955015655709147
