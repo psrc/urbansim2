@@ -16,6 +16,10 @@ def is_in_sector_group(group_name, jobs, employment_sectors, employment_sector_g
     res.index = jobs.index
     return res
 
+@orca.column('jobs', 'district_id', cache=True)
+def faz_id(jobs, zones):
+    return misc.reindex(zones.district_id, jobs.zone_id)
+
 @orca.column('jobs', 'faz_id', cache=True)
 def faz_id(jobs, zones):
     return misc.reindex(zones.faz_id, jobs.zone_id)
@@ -23,6 +27,10 @@ def faz_id(jobs, zones):
 @orca.column('jobs', 'grid_id', cache=True)
 def grid_id(jobs, parcels):
     return misc.reindex(parcels.grid_id, jobs.parcel_id)
+
+@orca.column('jobs', 'is_in_sector_group_basic', cache=True)
+def is_in_sector_group_retail(jobs, employment_sectors, employment_sector_groups, employment_sector_group_definitions):
+    return is_in_sector_group("basic", jobs, employment_sectors, employment_sector_groups, employment_sector_group_definitions)
 
 @orca.column('jobs', 'is_in_sector_group_retail', cache=True)
 def is_in_sector_group_retail(jobs, employment_sectors, employment_sector_groups, employment_sector_group_definitions):
@@ -40,5 +48,19 @@ def tractcity_id(jobs, parcels):
 def zone_id(jobs, buildings):
     return misc.reindex(buildings.zone_id, jobs.building_id)
 
+@orca.column('jobs', 'twa_logsum_hbw_1', cache=True, cache_scope='iteration')
+def twa_logsum_hbw_1(jobs, zones):
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_1, jobs.zone_id)
 
+@orca.column('jobs', 'twa_logsum_hbw_2', cache=True, cache_scope='iteration')
+def twa_logsum_hbw_2(jobs, zones):
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_2, jobs.zone_id)
+
+@orca.column('jobs', 'twa_logsum_hbw_3', cache=True, cache_scope='iteration')
+def twa_logsum_hbw_3(jobs, zones):
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_3, jobs.zone_id)
+
+@orca.column('jobs', 'twa_logsum_hbw_4', cache=True, cache_scope='iteration')
+def twa_logsum_hbw_4(jobs, zones):
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_4, jobs.zone_id)
 
