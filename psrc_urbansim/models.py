@@ -1,13 +1,9 @@
 import os 
 import sys
-os.chdir(r'D:\udst')
-sys.path.append(os.path.join(os.getcwd(),"urbansim_defaults"))
-sys.path.append(os.path.join(os.getcwd(),"developer"))
 import orca
 import random
 import urbansim_defaults.utils as utils
 import psrc_urbansim.utils as psrcutils
-#import urbansim_defaults.models
 import datasources
 import variables
 import numpy as np
@@ -16,7 +12,6 @@ from psrc_urbansim.mod.allocation import AgentAllocationModel
 import urbansim.developer as dev
 import developer_models as psrcdev
 import os 
-os.chdir('D:/udst/psrc_urbansim')
 
 
 # Residential REPM

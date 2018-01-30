@@ -210,7 +210,6 @@ def parse_args(args=None):
 
 
 def main(args=None):
-    args = ["//modelsrv3/e$/opusgit/urbansim_data/data/psrc_parcel/SoundCast/Estimation/", "D:/udst/psrc_urbansim/data/test_.h5", "--is-estimation"]
     args = parse_args(args)
     convert_dirs(args.base_dir, args.hdf_name, args.no_estimation, args.no_compress)
 
