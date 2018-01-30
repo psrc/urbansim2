@@ -6,7 +6,7 @@ being the name of the output file. For example, to convert the baseyear cache fr
 ```
 python cache_to_hdf5.py //modelsrv8/d$/opusgit/urbansim_data/data/psrc_parcel/base_year_2014_inputs/urbansim2_cache/2014 psrc_base_year_2014.h5
 ```
-To convert Opus estimation cashe to urbansim-2 estimation hdf5 file, run the script ''estimation_cache_to_hf5.py'' with the first argument being the cache directory, the second argument being the name of the output file, and the final argument being that we are creating an estimation data set (this script should work for both regular cache and estimation cache, but needs to be tested). Foe exmaple, to convert estimation cache on modelrv3. do:
+To convert Opus estimation cashe to urbansim-2 estimation hdf5 file, run the script ''estimation_cache_to_hf5.py'' with the first argument being the cache directory, the second argument being the name of the output file, and the final argument being a flag to create an estimation data set (this script should work for both regular cache and estimation cache, but needs to be tested). Foe exmaple, to convert estimation cache on modelrv3. do:
 
 ```
 python estimation_cache_to_hdf5.py //modelsrv3/e$/opusgit/urbansim_data/data/psrc_parcel/SoundCast/Estimation/ D:/udst/psrc_urbansim/data/psrc_estimation_data.h5 --is-estimation
