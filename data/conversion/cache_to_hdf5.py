@@ -185,7 +185,6 @@ def parse_args(args=None):
 
 
 def main(args=None):
-    args = ["//modelsrv8/d$/opusgit/urbansim_data/data/psrc_parcel/base_year_2014_inputs/urbansim2_cache/2014/", "D:/udst/psrc_urbansim/data/test_.h5"]
     args = parse_args(args)
     convert_dirs(args.base_dir, args.hdf_name, args.no_compress)
 
