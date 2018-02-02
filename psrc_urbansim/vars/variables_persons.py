@@ -15,6 +15,17 @@ def is_worker_n(n, persons):
 def faz_id(persons, zones):
     return misc.reindex(zones.faz_id, persons.zone_id)
 
+@orca.column('persons', 'household_district_id', cache=True)
+def district_id(persons, zones):
+    return misc.reindex(zones.district_id, persons.zone_id)
+
+@orca.column('persons', 'household_income_category', cache=True)
+def household_income_category(persons, households_for_estimation):
+    # calling households_for_estimation.income_category returns an non-indexed  
+    # array, so converting to df for now. 
+    df = orca.get_raw_table('households').to_frame()
+    return misc.reindex(df.income_category, persons.household_id)
+
 @orca.column('persons', 'parcel_id', cache=True)
 def parcel_id(persons, households):
     return misc.reindex(households.parcel_id, persons.household_id)
