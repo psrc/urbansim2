@@ -109,6 +109,8 @@ def household_relocation_rates(store):
 @orca.table('households', cache=True)
 def households(store):
     df = store['households']
+    if not 'previous_building_id' in df.columns:
+        df['previous_building_id'] = df['building_id']
     return df
 
 @orca.table('households_lag1', cache=True)

@@ -91,19 +91,6 @@ def convert_dirs(base_dir, hdf_name, no_compress=False):
 
     store = pd.HDFStore(
         hdf_name, mode='w', complevel=1, complib=complib)
-    
-    # Need to add a buildings lag table. For the first year it will be a copy of the base year buildings table. 
-    dirpath = os.path.join(base_dir, 'buildings') 
-    df = cache_to_df(dirpath)
-    df = df.set_index('building_id')
-    store.put('buildings_lag1', df)
-
-    # Need to add a households lag table. For the first year it will be a copy of the base year households table. 
-    dirpath = os.path.join(base_dir, 'households') 
-    df = cache_to_df(dirpath)
-    df['prev_building_id'] = df['building_id']
-    df = df.set_index('household_id')
-    store.put('households_lag1', df)
 
     for dirpath in dirs:
         dirname = os.path.basename(dirpath)
@@ -111,9 +98,6 @@ def convert_dirs(base_dir, hdf_name, no_compress=False):
         print(dirname)
         df = cache_to_df(dirpath)
 
-        # Add a previous building id to the household table to calculate lag variables.  
-        if dirname == 'households':
-            df['previous_building_id'] = df['building_id']
         if dirname == 'travel_data':
             keys = ['from_zone_id', 'to_zone_id']
         elif dirname == 'annual_employment_control_totals':
