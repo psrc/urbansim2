@@ -33,7 +33,7 @@ default_config:
             I((persons < 2)*1):I(np.logical_not(building_type_name == "single_family_residential")*1) +
             I(1*(np.logical_and(persons == 1, age_of_head < 50))):I(1*(np.log1p(employment_retail_wwd)>4)) +
             I((tenure == 1)*1):I(~is_multifamily) + 
-            I((persons < 3)*1):I((large_area_id ==3)*1) 
+            I((persons < 3)*1):I((large_area_id ==6)*1) 
  
 
                     #avg_network_distance_from_home_to_work(worker1_zone_id, worker2_zone_id, building_zone_id) + 
@@ -121,7 +121,6 @@ models:
                     I((persons > 3)*1):I(np.logical_not(large_area_id == 6)*1) +
                     I(1*(prev_residence_large_area_id == large_area_id)) +
                     I((tenure == 1)*1):I(~is_multifamily) +
-                    I((persons-2)*(persons > 2)):I((building_type_name == "condo_residential")*1) + 
                     ln_price_residual +  
                     I(1*(np.logical_and(persons == 1, age_of_head < 50))):I(1*(np.log1p(employment_retail_wwd)>4)) +
                     I(np.where(income>0, (np.log1p(income)/(persons*persons*1.0)*(np.log1p(sqft_per_unit))), 1)) +
