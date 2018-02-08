@@ -30,12 +30,13 @@ def tables_in_base_year():
 
 orca.run([
 #    "add_lag1_tables",
-    "proforma_feasibility",
-    "residential_developer",      # residential proforma model
-    "non_residential_developer",  # non-residential proforma model
-    
-    "repmres_simulate",          # residential REPM
-    "repmnr_simulate",            # non-residential REPM
+    #"proforma_feasibility",
+    #"residential_developer",      # residential proforma model
+    #"non_residential_developer",  # non-residential proforma model
+    "update_household_previous_building_id",
+    "update_buildings_lag1",
+    #"repmres_simulate",          # residential REPM
+    #"repmnr_simulate",            # non-residential REPM
 
     "households_transition",     # households transition
     "households_relocation",     # households relocation model
@@ -48,5 +49,6 @@ orca.run([
 
 ], iter_vars=[2015, 2016], data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
+
 
 logging.info('Simulation finished')
