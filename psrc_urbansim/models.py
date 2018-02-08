@@ -137,8 +137,8 @@ def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
 
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year):
-    utils.run_developer(#feasibility.local.residential_forms,
-                        None,
+    utils.run_developer(feasibility.local.residential_forms,
+                        #None,
                         households,
                         buildings,
                         "residential_units",
@@ -200,4 +200,16 @@ def add_lag_tables(lag, year, base_year, filename, table_names):
     for table in table_names:
         orca.add_table("{}_lag1".format(table), store[key_template.format(table)], cache=True)
     store.close()
+
+@orca.step('update_household_previous_building_id')
+def update_household_previous_building_id(households):
+    df = households.to_frame()
+    df.previous_building_id = df.building_id
+    orca.add_table('households', df)
+    
+@orca.step('update_buildings_lag1')
+def update_buildings_lag1(buildings):
+    df = buildings.to_frame()
+    orca.add_table('buildings_lag1', df)
+    
 
