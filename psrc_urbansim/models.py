@@ -43,11 +43,23 @@ def hlcm_estimate(households_for_estimation, buildings, parcels, zones):
 def hlcm_simulate(households, buildings, parcels, zones):
     return utils.lcm_simulate("hlcmcoef.yaml", households, buildings, None,
                               "building_id", "residential_units", "vacant_residential_units", cast=True)
+
+# WAHCM
+@orca.step('wahcm_simulate')
+def wahcm_simulate(persons, jobs, parcels, zones):
+    return utils.lcm_simulate("wahcmcoef.yaml", persons, "job_id",
+                              jobs, None, out_cfg="wplcmcoef.yaml")
+
 # WPLCM
 @orca.step('wplcm_estimate')
-def wplcm_estimate(persons_for_estimation, jobs, parcels, zones):
+def wplcm_estimate(persons_for_estimation, jobs):
     return utils.lcm_estimate("wplcm.yaml", persons_for_estimation, "job_id",
                               jobs, None, out_cfg="wplcmcoef.yaml")
+
+@orca.step('wplcm_simulate')
+def wplcm_simulate(persons, jobs):
+    return utils.lcm_simulate("wplcmcoef.yaml", persons, jobs, None,
+                              "job_id", "number_of_jobs", "vacant_jobs", cast=True)
 
 # ELCM
 @orca.step('elcm_estimate')
@@ -212,4 +224,20 @@ def update_buildings_lag1(buildings):
     df = buildings.to_frame()
     orca.add_table('buildings_lag1', df)
     
+@orca.step('delete_invalid_households_persons')
+def delete_invalid_households_persons(households, persons):
+    df = households.to_frame()
+    df2 = persons.to_frame()
+    res = df[df.parcel_id.isnull()].index.tolist()
+    
+    #delete from persons:
+    df2 = df2[~df2.household_id.isin(res)]
+    df2.workplace_zone_id = 0
 
+    #set job id of non-workers to -2, -1 for workers
+    #df2.loc[df2.employment_status > 0 , 'work_id'] = -1
+    df2['job_id'] = np.where(df2['employment_status']>0, -1, -2)
+    orca.add_table('persons', df2)
+    #delete from households
+    df = df[~df.parcel_id.isnull()]
+    orca.add_table('households', df)

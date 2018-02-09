@@ -14,11 +14,11 @@ def is_worker_n(n, persons_for_estimation):
 
 @orca.column('persons_for_estimation', 'faz_id', cache=True)
 def faz_id(persons_for_estimation, zones):
-    return misc.reindex(zones.faz_id, persons_for_estimation.zone_id)
+    return misc.reindex(zones.faz_id, persons_for_estimation.household_zone_id)
 
 @orca.column('persons_for_estimation', 'household_district_id', cache=True)
 def district_id(persons_for_estimation, zones):
-    return misc.reindex(zones.district_id, persons_for_estimation.zone_id)
+    return misc.reindex(zones.district_id, persons_for_estimation.household_zone_id)
 
 @orca.column('persons_for_estimation', 'household_income_category', cache=True)
 def household_income_category(persons_for_estimation, households_for_estimation):
@@ -45,10 +45,10 @@ def worker2(persons_for_estimation):
 
 @orca.column('persons_for_estimation', 'workplace_zone_id', cache=True)
 def workplace_zone_id(persons_for_estimation, jobs):
-    return misc.reindex(jobs.zone_id, persons_for_estimation.job_id).fillna(-1)
+    return misc.reindex(jobs.job_zone_id, persons_for_estimation.job_id).fillna(-1)
 
-@orca.column('persons_for_estimation', 'zone_id', cache=True)
-def zone_id(persons_for_estimation, households_for_estimation):
+@orca.column('persons_for_estimation', 'household_zone_id', cache=True)
+def household_zone_id(persons_for_estimation, households_for_estimation):
     return misc.reindex(households_for_estimation.zone_id, persons_for_estimation.household_id)
 
 

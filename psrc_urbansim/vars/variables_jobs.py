@@ -18,11 +18,11 @@ def is_in_sector_group(group_name, jobs, employment_sectors, employment_sector_g
 
 @orca.column('jobs', 'district_id', cache=True)
 def faz_id(jobs, zones):
-    return misc.reindex(zones.district_id, jobs.zone_id)
+    return misc.reindex(zones.district_id, jobs.job_zone_id)
 
 @orca.column('jobs', 'faz_id', cache=True)
 def faz_id(jobs, zones):
-    return misc.reindex(zones.faz_id, jobs.zone_id)
+    return misc.reindex(zones.faz_id, jobs.job_zone_id)
 
 @orca.column('jobs', 'grid_id', cache=True)
 def grid_id(jobs, parcels):
@@ -48,23 +48,24 @@ def parcel_id(jobs, buildings):
 def tractcity_id(jobs, parcels):
     return misc.reindex(parcels.tractcity_id, jobs.parcel_id)
 
-@orca.column('jobs', 'zone_id', cache=True)
-def zone_id(jobs, buildings):
+@orca.column('jobs', 'job_zone_id', cache=True)
+def job_zone_id(jobs, buildings):
     return misc.reindex(buildings.zone_id, jobs.building_id)
 
 @orca.column('jobs', 'twa_logsum_hbw_1', cache=True, cache_scope='iteration')
 def twa_logsum_hbw_1(jobs, zones):
-    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_1, jobs.zone_id)
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_1, jobs.job_zone_id)
 
 @orca.column('jobs', 'twa_logsum_hbw_2', cache=True, cache_scope='iteration')
 def twa_logsum_hbw_2(jobs, zones):
-    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_2, jobs.zone_id)
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_2, jobs.job_zone_id)
 
 @orca.column('jobs', 'twa_logsum_hbw_3', cache=True, cache_scope='iteration')
 def twa_logsum_hbw_3(jobs, zones):
-    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_3, jobs.zone_id)
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_3, jobs.job_zone_id)
 
 @orca.column('jobs', 'twa_logsum_hbw_4', cache=True, cache_scope='iteration')
 def twa_logsum_hbw_4(jobs, zones):
-    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_4, jobs.zone_id)
+    return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_4, jobs.job_zone_id)
+
 

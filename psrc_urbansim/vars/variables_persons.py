@@ -13,11 +13,11 @@ def is_worker_n(n, persons):
 
 @orca.column('persons', 'faz_id', cache=True)
 def faz_id(persons, zones):
-    return misc.reindex(zones.faz_id, persons.zone_id)
+    return misc.reindex(zones.faz_id, persons.household_zone_id)
 
 @orca.column('persons', 'household_district_id', cache=True)
 def district_id(persons, zones):
-    return misc.reindex(zones.district_id, persons.zone_id)
+    return misc.reindex(zones.district_id, persons.household_zone_id)
 
 @orca.column('persons', 'household_income_category', cache=True)
 def household_income_category(persons, households_for_estimation):
@@ -44,9 +44,11 @@ def worker2(persons):
 
 @orca.column('persons', 'workplace_zone_id', cache=True)
 def workplace_zone_id(persons, jobs):
-    return misc.reindex(jobs.zone_id, persons.job_id)
+    res = misc.reindex(jobs.job_zone_id, persons.job_id)
+    res = res.fillna(0)
+    return res
 
-@orca.column('persons', 'zone_id', cache=True)
+@orca.column('persons', 'household_zone_id', cache=True)
 def zone_id(persons, households):
     return misc.reindex(households.zone_id, persons.household_id)
 

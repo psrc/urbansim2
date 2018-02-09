@@ -136,7 +136,9 @@ def job_relocation_rates(store):
 @orca.table('jobs', cache=True)
 def jobs(store):
     df = store['jobs']
-    #df = utils.fill_nas_from_config('jobs', df)
+    # below needed to run urbansim_utilties.lcm_simulate
+    df['number_of_jobs'] = 1
+    df['vacant_jobs'] = 1
     return df
 
 @orca.table('jobs_for_estimation', cache=True)
@@ -228,6 +230,7 @@ orca.broadcast('buildings', 'households_for_estimation', cast_index=True, onto_o
 orca.broadcast('buildings_lag1', 'households_for_estimation', cast_index=True, onto_on='building_id')
 orca.broadcast('households_for_estimation', 'persons_for_estimation', cast_index=True, onto_on='household_id')
 orca.broadcast('jobs', 'households_for_estimation', cast_index=True, onto_on='job_id')
+
 # Assumptions
 
 # this maps building "forms" from the developer model
