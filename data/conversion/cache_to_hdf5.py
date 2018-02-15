@@ -105,6 +105,7 @@ def convert_dirs(base_dir, hdf_name, no_compress=False):
         #elif dirname == 'annual_job_relocation_rates':
         #    keys = ['sector_id']
         elif dirname == 'annual_household_control_totals':
+            df.income_max = np.where(df.income_max<>-1, df.income_max + 1, -1)
             keys = ['year']
         #elif dirname == 'annual_household_relocation_rates':
         #    keys = ['age_of_head_max', 'age_of_head_min',
