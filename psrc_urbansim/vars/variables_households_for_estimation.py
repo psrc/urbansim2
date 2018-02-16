@@ -79,3 +79,9 @@ def prev_residence_is_mf(households_for_estimation, buildings_lag1):
 @orca.column('households_for_estimation', 'prev_residence_large_area_id', cache=True)
 def prev_residence_large_area_id(households_for_estimation, buildings_lag1):
     return misc.reindex(buildings_lag1.large_area_id, households_for_estimation.previous_building_id).fillna(-1)
+
+@orca.column('households_for_estimation', 'persons_under_13', cache=True)
+def persons_under_13(households_for_estimation, persons_for_estimation):
+    df = persons_for_estimation.local[persons_for_estimation.local.age < 13]
+    return df.groupby(df.household_id).age.count().reindex(households_for_estimation.index).fillna(0)
+

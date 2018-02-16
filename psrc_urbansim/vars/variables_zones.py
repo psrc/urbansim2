@@ -112,7 +112,7 @@ def number_of_households(zones, households):
 
 @orca.column('zones', 'number_of_jobs', cache=True, cache_scope='iteration')
 def number_of_jobs(zones, jobs):
-    return jobs.zone_id.groupby(jobs.zone_id).size().\
+    return jobs.job_zone_id.groupby(jobs.job_zone_id).size().\
            reindex(zones.index).fillna(0)
 
 @orca.column('zones', 'number_of_jobs_per_acre', cache=True, cache_scope='iteration')

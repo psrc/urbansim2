@@ -85,10 +85,6 @@ def work_zone_id(households, buildings):
 def zone_id(households, buildings):
     return misc.reindex(buildings.zone_id, households.building_id).fillna(-1)
 
-@orca.column('households', 'zone_id', cache=True)
-def zone_id(households, buildings):
-    return misc.reindex(buildings.zone_id, households.building_id).fillna(-1)
-
 @orca.column('households', 'prev_residence_is_mf', cache=True)
 def prev_residence_is_mf(households, buildings_lag1):
     return misc.reindex(buildings_lag1.multifamily_generic_type, households.previous_building_id).fillna(-1)
@@ -96,6 +92,13 @@ def prev_residence_is_mf(households, buildings_lag1):
 @orca.column('households', 'prev_residence_large_area_id', cache=True)
 def prev_residence_large_area_id(households, buildings_lag1):
     return misc.reindex(buildings_lag1.large_area_id, households.previous_building_id).fillna(-1)
+
+@orca.column('households', 'persons_under_13', cache=True)
+def persons_under_13(households, persons):
+    df = persons.local[persons.local.age < 13]
+    return df.groupby(df.household_id).age.count().reindex(households.index).fillna(0)
+                                     
+
 
 
 
