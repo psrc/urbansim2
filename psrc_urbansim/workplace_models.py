@@ -75,49 +75,51 @@ def wahcm_estimate(persons_for_estimation, households_for_estimation, zones):
     return work_at_home_estimate("wahcm.yaml", persons_for_estimation, 'work_at_home', 
                                  [households_for_estimation, zones], 'wahcmcoeff.yaml')
 
-    #cfg = misc.config(cfg)
-    #coefficients = np.array([-0.000650279, -0.0195561, -0.235065, -0.0811701, -0.896509, -4.18865])
-    #df = persons_for_estimation.to_frame()
-    #df = df[df.is_worker==1]
-    #df.age13 = np.where(df.age13>0,1,0)
-    #df['parttime'] = np.where(df.employment_status == 2, 1, 0)
-    #df['constant'] = 1
-    #train_cols = ['kemp30m', 'age', 'age13', 'edu', 'parttime', 'constant']
-    #logit = sm.Logit(df['work_at_home'], df[train_cols])
-    #result = logit.fit()
-    #result_df = pd.DataFrame(result.predict(), columns=['probability'])
-    #result_df['random'] = np.random.random(len(result_df))
-
-## WAHCM
-#@orca.step('wahcm_estimate')
-#def wahcm_simulate(persons_for_estimation, jobs, parcels, zones):
-#    coefficients = np.array([-0.000650279, -0.0195561, -0.235065, -0.0811701, -0.896509, -4.18865])
-#    df = persons_for_estimation.to_frame()
-#    df = df[df.is_worker==1]
-#    df.age13 = np.where(df.age13>0,1,0)
-#    df['parttime'] = np.where(df.employment_status == 2, 1, 0)
-#    df['constant'] = 1
-#    train_cols = ['kemp30m', 'age', 'age13', 'edu', 'parttime', 'constant']
-#    logit = sm.Logit(df['work_at_home'], df[train_cols])
-#    result = logit.fit()
-#    result_df = pd.DataFrame(result.predict(), columns=['probability'])
-#    result_df['random'] = np.random.random(len(result_df))
     
 
 @orca.step('wahcm_simulate')
-def wahcm_simulate(persons, jobs, parcels, zones):
-    coefficients = np.array([-0.000650279, -0.0195561, -0.235065, -0.0811701, -0.896509, -4.18865])
-    df = persons.to_frame()
-    df.age13 = np.where(df.age13>0,1,0)
-    df['parttime'] = np.where(df.employment_status == 2, 1, 0)
-    df['constant'] = 1
-    cols = ['kemp30m', 'age', 'age13', 'edu', 'parttime', 'constant']
-    df = df[cols]
-    binary_choice = choicemodels.Logit(df)
-    binary_choice.predict(coefficients)
-    return utils.lcm_simulate("wahcmcoef.yaml", persons, "job_id",
-                              jobs, None, out_cfg="wplcmcoef.yaml")
+def wahcm_simulate(persons, households, parcels, zones):
+    
+    #this part is handeld by the to_frame function above:
+    columns = misc.column_list([persons, households, zones], 
+                               ['age', 'edu', 'employment_status', 'persons_under_13', 
+                                'jobs_within_30_min_tt_hbw_am_drive_alone'])
+    df = orca.merge_tables(persons,tables=[persons,households,zones], columns=columns)
+    #handled by the prediction filter in the yaml:
+    df = df[df.employment_status>0]
 
+    #boolean variables should be specified in .yaml and handeled by patsy, so below will not be needed
+    # example: I(1*(employment_status ==2))  
+    df['parttime'] = np.where(df.employment_status == 2, 1, 0)
+    df['persons_under_13'] = np.where(df.persons_under_13 > 0, 1, 0)
+    
+    # constant is handled by adding +1 to end of model expression in yaml, so below will not be needed
+    df['constant'] = 1
+    
+    # This is in the .yaml file, handled by the BinaryDiscreteChoiceModel code
+    coefficients = np.array([0.3742693230223763, 0.2143111891006935, 0.03620835983681646, -4.06024070020186, 0.023217851964759246, 3.662406622009484e-07])
+    cols = ['parttime', 'persons_under_13', 'age', 'constant', 'edu', 'jobs_within_30_min_tt_hbw_am_drive_alone']
+    
+    # Constructor requires and observation column, but since we are not estimating any will do so using constant. 
+    logit = choicemodels.Logit(df['constant'], df[cols])
+
+    # Get the prediction probabilities for each worker
+    result_df = pd.DataFrame(logit.predict(coefficients), columns=['probability'])
+
+    # Monte carlo:
+    result_df['mc'] = np.random.random(len(result_df))
+  
+    # Person works at home if probibility > random number. 
+    result_df['work_at_home'] = np.where(result_df.probability > result_df.mc, 1, 0)
+    
+    # Reindex to persons table
+    result_df = result_df.reindex(df.index)
+    work_at_home_col = result_df.work_at_home.reindex(persons.index).fillna(0)
+
+    #Add to persons table
+    orca.add_column(persons, 'work_at_home', work_at_home_col) 
+ 
+  
 @orca.step('wplcm_simulate')
 def wplcm_simulate(persons, jobs):
     return utils.lcm_simulate("wplcmcoef.yaml", persons, jobs, None,
