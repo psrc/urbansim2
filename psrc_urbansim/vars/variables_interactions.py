@@ -80,6 +80,11 @@ def empden_zone_sector(sector, bzone_id):
     zone_density[~np.isfinite(zone_density)] = 0
     return misc.reindex(zone_density, bzone_id)
 
+def ln_am_total_transit_time_walk_from_home_to_work(work_zones, location_zones):
+    travel_data = orca.get_table("travel_data")
+    worker = np.log1p(abstract_travel_time_interaction_variable(travel_data["am_total_transit_time_walk"], work_zones, location_zones, direction_from_home = False))
+    return worker.values 
+
 from urbansim.models import dcm
 dcm.network_distance_from_home_to_work = network_distance_from_home_to_work
 dcm.avg_network_distance_from_home_to_work = avg_network_distance_from_home_to_work
@@ -87,3 +92,4 @@ dcm.max_logsum_hbw_am_from_home_to_work_wzone_logsum = max_logsum_hbw_am_from_ho
 dcm.logsum_hbw_am_from_home_to_work_wzone_logsum = logsum_hbw_am_from_home_to_work_wzone_logsum
 dcm.empden_zone_sector = empden_zone_sector
 dcm.generalized_cost_from_home_to_work = generalized_cost_from_home_to_work
+dcm.ln_am_total_transit_time_walk_from_home_to_work = ln_am_total_transit_time_walk_from_home_to_work
