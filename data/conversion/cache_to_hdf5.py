@@ -101,15 +101,17 @@ def convert_dirs(base_dir, hdf_name, no_compress=False):
         if dirname == 'travel_data':
             keys = ['from_zone_id', 'to_zone_id']
         elif dirname == 'annual_employment_control_totals':
+            df = df.drop(columns=['city_id'])
             keys = ['year']
-        #elif dirname == 'annual_job_relocation_rates':
-        #    keys = ['sector_id']
         elif dirname == 'annual_household_control_totals':
-            df.income_max = np.where(df.income_max<>-1, df.income_max + 1, -1)
+            df.income_max = np.where(df.income_max<>-1, df.income_max + 1, df.income_max)
+            df.workers_max = np.where(df.workers_max > 0, df.workers_max + .5, df.workers_max)
+            df.workers_max = np.where(df.workers_max == 0, .5, df.workers_max)
+            df.persons_max = np.where(df.persons_max > 0, df.persons_max + .5, df.persons_max)
+            df = df.drop(columns=['city_id'])
             keys = ['year']
-        #elif dirname == 'annual_household_relocation_rates':
-        #    keys = ['age_of_head_max', 'age_of_head_min',
-        #            'income_min', 'income_max']
+        elif dirname == 'annual_household_relocation_rates':
+            df = df.rename(columns={'age_min': 'age_of_head_min', 'age_max': 'age_of_head_max'})
         elif dirname == 'building_sqft_per_job':
             keys = ['zone_id', 'building_type_id']
         elif dirname == 'counties':
