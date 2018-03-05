@@ -6,12 +6,16 @@ import urbansim_defaults.utils as utils
 import psrc_urbansim.utils as psrcutils
 import datasources
 import variables
+import psrc_urbansim.vars.variables_persons as variables_persons
+import psrc_urbansim.vars.variables_households as variables_households
 import numpy as np
 import pandas as pd
 from psrc_urbansim.mod.allocation import AgentAllocationModel
 import urbansim.developer as dev
 import developer_models as psrcdev
 import os 
+from urbansim.utils import misc
+
 
 
 # Residential REPM
@@ -32,7 +36,6 @@ def repmnr_estimate(parcels, zones, gridcells):
 def repmnr_simulate(parcels, zones, gridcells):
     return utils.hedonic_simulate("repmnrcoef.yaml", parcels, [zones, gridcells], "land_value", cast=True)
 
-
 # HLCM
 @orca.step('hlcm_estimate')
 def hlcm_estimate(households_for_estimation, buildings, parcels, zones):
@@ -44,22 +47,11 @@ def hlcm_simulate(households, buildings, parcels, zones):
     return utils.lcm_simulate("hlcmcoef.yaml", households, buildings, None,
                               "building_id", "residential_units", "vacant_residential_units", cast=True)
 
-# WAHCM
-@orca.step('wahcm_simulate')
-def wahcm_simulate(persons, jobs, parcels, zones):
-    return utils.lcm_simulate("wahcmcoef.yaml", persons, "job_id",
-                              jobs, None, out_cfg="wplcmcoef.yaml")
-
 # WPLCM
 @orca.step('wplcm_estimate')
 def wplcm_estimate(persons_for_estimation, jobs):
     return utils.lcm_estimate("wplcm.yaml", persons_for_estimation, "job_id",
                               jobs, None, out_cfg="wplcmcoef.yaml")
-
-@orca.step('wplcm_simulate')
-def wplcm_simulate(persons, jobs):
-    return utils.lcm_simulate("wplcmcoef.yaml", persons, jobs, None,
-                              "job_id", "number_of_jobs", "vacant_jobs", cast=True)
 
 # ELCM
 @orca.step('elcm_estimate')
@@ -67,12 +59,10 @@ def elcm_estimate(jobs, buildings, parcels, zones, gridcells):
     return utils.lcm_estimate("elcm.yaml", jobs, "building_id",
                               buildings, [parcels, zones, gridcells], out_cfg="elcmcoef.yaml")
 
-
 @orca.step('elcm_simulate')
 def elcm_simulate(jobs, buildings, parcels, zones, gridcells):
     return utils.lcm_simulate("elcmcoef.yaml", jobs, buildings, [parcels, zones, gridcells],
                               "building_id", "job_spaces", "vacant_job_spaces", cast=True)
-
 
 @orca.step('households_relocation')
 def households_relocation(households, household_relocation_rates):
@@ -95,17 +85,40 @@ def jobs_relocation(jobs, job_relocation_rates):
                             pd.Series(-1, index=movers), cast=True) 
     print "%s jobs are unplaced in total." % ((jobs.local["building_id"] <= 0).sum())
 
+@orca.step('update_persons_jobs')
+def update_persons_jobs(jobs, persons):
+    # persons whoose jobs have relocated no longer have those jobs
+    jobs_df = jobs.to_frame()
+    persons_df = persons.to_frame()
+    persons_df.job_id = np.where(persons_df.job_id.isin(jobs_df[jobs_df.building_id ==-1].index), -1, persons_df.job_id)
+    persons_df.index_name = 'person_id'
+    orca.add_table('persons', persons_df, cache= True)
+
+    # update jobs available column to reflect which jobs are taken, available:
+    jobs_df.vacant_jobs = np.where(jobs_df.index.isin(persons_df.job_id), 0, 1)
+    jobs_df.index.name = 'job_id'
+    orca.add_table('jobs', jobs_df, cache = True)
 
 @orca.step('households_transition')
 def households_transition(households, household_controls, year, settings, persons):
     orig_size_hh = households.local.shape[0]
     orig_size_pers = persons.local.shape[0]
+    persons_index = persons.index 
     res = utils.full_transition(households, household_controls, year, 
                                  settings['households_transition'], "building_id", linked_tables={"persons": (persons.local, 'household_id')})
     print "Net change: %s households" % (orca.get_table("households").local.shape[0] - orig_size_hh)
     print "Net change: %s persons" % (orca.get_table("persons").local.shape[0] - orig_size_pers)
-    return res
+    
+    # need to make some updates to the persons table
+    persons_new = orca.get_table("persons").to_frame()
+    # new workers dont have jobs yet, set job_id to -1
+    persons_new.job_id = np.where(~persons_new.index.isin(persons_index), -1, persons_new.job_id)
+    # set non-worker job_id to -2
+    persons_new.job_id = np.where(persons_new.employment_status>0, persons_new.job_id, -2)
+    persons_new.index.name  = 'person_id'
+    orca.add_table('persons', persons_new, cache = True)
 
+    return res
 
 @orca.step('jobs_transition')
 def jobs_transition(jobs, employment_controls, year, settings):
@@ -215,29 +228,20 @@ def add_lag_tables(lag, year, base_year, filename, table_names):
 
 @orca.step('update_household_previous_building_id')
 def update_household_previous_building_id(households):
-    df = households.to_frame()
-    df.previous_building_id = df.building_id
-    orca.add_table('households', df)
+    orca.add_column(households, 'previous_building_id', households.building_id, cache = True)
+    #df = households.to_frame()
+    #df.previous_building_id = df.building_id
+    #orca.add_table('households', df, cache=True)
     
 @orca.step('update_buildings_lag1')
 def update_buildings_lag1(buildings):
     df = buildings.to_frame()
-    orca.add_table('buildings_lag1', df)
+    orca.add_table('buildings_lag1', df, cache=True)
     
-@orca.step('delete_invalid_households_persons')
-def delete_invalid_households_persons(households, persons):
-    df = households.to_frame()
-    df2 = persons.to_frame()
-    res = df[df.parcel_id.isnull()].index.tolist()
-    
-    #delete from persons:
-    df2 = df2[~df2.household_id.isin(res)]
-    df2.workplace_zone_id = 0
-
-    #set job id of non-workers to -2, -1 for workers
-    #df2.loc[df2.employment_status > 0 , 'work_id'] = -1
-    df2['job_id'] = np.where(df2['employment_status']>0, -1, -2)
-    orca.add_table('persons', df2)
-    #delete from households
-    df = df[~df.parcel_id.isnull()]
-    orca.add_table('households', df)
+@orca.step('delete_unplaced_jobs')
+#*******ELCM is not finding locations for all jobs because developer model is not running. Having records with building_id = -1 is causing wplcm to crash, so deleting them for now.
+def delete_unplaced_jobs(jobs):
+    df = jobs.to_frame()
+    df = df[df.building_id>0]
+    df.index.name = 'job_id'
+    orca.add_table('jobs', df, cache = True)
