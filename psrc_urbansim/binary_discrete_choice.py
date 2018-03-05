@@ -68,12 +68,10 @@ class DiscreteChoiceModel(object):
         return choosers
 
     @abc.abstractmethod
-    def apply_predict_filters(self, choosers, alternatives):
+    def apply_predict_filters(self, choosers):
         choosers = util.apply_filter_query(
             choosers, self.choosers_predict_filters)
-        alternatives = util.apply_filter_query(
-            alternatives, self.alts_predict_filters)
-        return choosers, alternatives
+        return choosers
 
     @abc.abstractproperty
     def fitted(self):
@@ -260,7 +258,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         return super(BinaryDiscreteChoiceModel, self).apply_fit_filters(
             choosers)
 
-    def apply_predict_filters(self, choosers, alternatives):
+    def apply_predict_filters(self, choosers):
         """
         Filter `choosers` and `alternatives` for prediction.
 
@@ -277,8 +275,8 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         filtered_choosers, filtered_alts : pandas.DataFrame
 
         """
-        return super(MNLDiscreteChoiceModel, self).apply_predict_filters(
-            choosers, alternatives)
+        return super(BinaryDiscreteChoiceModel, self).apply_predict_filters(
+            choosers)
 
     def fit(self, choosers, current_choice):
         """
@@ -386,7 +384,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
 
         print(tbl)
 
-    def probabilities(self, choosers, alternatives, filter_tables=True):
+    def probabilities(self, choosers, filter_tables=True):
         """
         Returns the probabilities for a set of choosers to choose
         from among a set of alternatives.
@@ -417,28 +415,28 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
             choosers, alternatives = self.apply_predict_filters(
                 choosers, alternatives)
 
-        if self.prediction_sample_size is not None:
-            sample_size = self.prediction_sample_size
-        else:
-            sample_size = len(alternatives)
+        #if self.prediction_sample_size is not None:
+        #    sample_size = self.prediction_sample_size
+        #else:
+        #    sample_size = len(alternatives)
 
-        if self.probability_mode == 'single_chooser':
-            _, merged, _ = interaction.mnl_interaction_dataset(
-                choosers.head(1), alternatives, sample_size)
-        elif self.probability_mode == 'full_product':
-            _, merged, _ = interaction.mnl_interaction_dataset(
-                choosers, alternatives, sample_size)
-        else:
-            raise ValueError(
-                'Unrecognized probability_mode option: {}'.format(
-                    self.probability_mode))
+        #if self.probability_mode == 'single_chooser':
+        #    _, merged, _ = interaction.mnl_interaction_dataset(
+        #        choosers.head(1), alternatives, sample_size)
+        #elif self.probability_mode == 'full_product':
+        #    _, merged, _ = interaction.mnl_interaction_dataset(
+        #        choosers, alternatives, sample_size)
+        #else:
+        #    raise ValueError(
+        #        'Unrecognized probability_mode option: {}'.format(
+        #            self.probability_mode))
 
-        merged = util.apply_filter_query(
-            merged, self.interaction_predict_filters)
+        #merged = util.apply_filter_query(
+        #    merged, self.interaction_predict_filters)
         model_design = dmatrix(
-            self.str_model_expression, data=merged, return_type='dataframe')
+            self.str_model_expression, data=choosers, return_type='dataframe')
 
-        if len(merged) != model_design.as_matrix().shape[0]:
+        if len(choosers) != model_design.as_matrix().shape[0]:
             raise ModelEvaluationError(
                 'Simulated data does not have the same length as input.  '
                 'This suggests there are null values in one or more of '
@@ -449,30 +447,38 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         coeffs = [self.fit_parameters['Coefficient'][x]
                   for x in model_design.columns]
 
+        # Constructor requires and observation column, but since we are not estimating any will do so using constant. 
+        logit = choicemodels.Logit(model_design.ix[:,0], model_design)
+
+        # Get the prediction probabilities for each chooser
+        return pd.DataFrame(logit.predict(coeffs), columns=['probability'], index=model_design.index)
+       
+        
+
         # probabilities are returned from mnl_simulate as a 2d array
         # with choosers along rows and alternatives along columns
-        if self.probability_mode == 'single_chooser':
-            numalts = len(merged)
-        else:
-            numalts = sample_size
+        #if self.probability_mode == 'single_chooser':
+        #    numalts = len(merged)
+        #else:
+        #    numalts = sample_size
 
-        probabilities = mnl.mnl_simulate(
-            model_design.as_matrix(),
-            coeffs,
-            numalts=numalts, returnprobs=True)
+        #probabilities = mnl.mnl_simulate(
+        #    model_design.as_matrix(),
+        #    coeffs,
+        #    numalts=numalts, returnprobs=True)
 
-        # want to turn probabilities into a Series with a MultiIndex
-        # of chooser IDs and alternative IDs.
-        # indexing by chooser ID will get you the probabilities
-        # across alternatives for that chooser
-        mi = pd.MultiIndex.from_arrays(
-            [merged['join_index'].values, merged.index.values],
-            names=('chooser_id', 'alternative_id'))
-        probabilities = pd.Series(probabilities.flatten(), index=mi)
+        ## want to turn probabilities into a Series with a MultiIndex
+        ## of chooser IDs and alternative IDs.
+        ## indexing by chooser ID will get you the probabilities
+        ## across alternatives for that chooser
+        #mi = pd.MultiIndex.from_arrays(
+        #    [merged['join_index'].values, merged.index.values],
+        #    names=('chooser_id', 'alternative_id'))
+        #probabilities = pd.Series(probabilities.flatten(), index=mi)
 
-        logger.debug('finish: calculate probabilities for LCM model {}'.format(
-            self.name))
-        return probabilities
+        #logger.debug('finish: calculate probabilities for LCM model {}'.format(
+        #    self.name))
+        #return probabilities
 
     def summed_probabilities(self, choosers, alternatives):
         """
@@ -511,7 +517,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
                 'Unrecognized probability_mode option: {}'.format(
                     self.probability_mode))
 
-    def predict(self, choosers, alternatives, debug=False):
+    def predict(self, choosers, debug=False):
         """
         Choose from among alternatives for a group of agents.
 
@@ -537,39 +543,43 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         self.assert_fitted()
         logger.debug('start: predict LCM model {}'.format(self.name))
 
-        choosers, alternatives = self.apply_predict_filters(
-            choosers, alternatives)
+        choosers = self.apply_predict_filters(choosers)
 
         if len(choosers) == 0:
             return pd.Series()
 
-        if len(alternatives) == 0:
-            return pd.Series(index=choosers.index)
+        probability_df = self.probabilities(
+            choosers, filter_tables=False)
 
-        probabilities = self.probabilities(
-            choosers, alternatives, filter_tables=False)
+        # Monte carlo:
+        probability_df['mc'] = np.random.random(len(probability_df))
+  
+        # True if probibility > random number. 
+        probability_df['choice'] = np.where(probability_df.probability > probability_df.mc, 1, 0)
 
-        if debug:
-            self.sim_pdf = probabilities
+        return(probability_df['choice'])
 
-        if self.choice_mode == 'aggregate':
-            choices = unit_choice(
-                choosers.index.values,
-                probabilities.index.get_level_values('alternative_id').values,
-                probabilities.values)
-        elif self.choice_mode == 'individual':
-            def mkchoice(probs):
-                probs.reset_index(0, drop=True, inplace=True)
-                return np.random.choice(
-                    probs.index.values, p=probs.values / probs.sum())
-            choices = probabilities.groupby(level='chooser_id', sort=False)\
-                .apply(mkchoice)
-        else:
-            raise ValueError(
-                'Unrecognized choice_mode option: {}'.format(self.choice_mode))
+        #if debug:
+        #    self.sim_pdf = probabilities
 
-        logger.debug('finish: predict LCM model {}'.format(self.name))
-        return choices
+        #if self.choice_mode == 'aggregate':
+        #    choices = unit_choice(
+        #        choosers.index.values,
+        #        probabilities.index.get_level_values('alternative_id').values,
+        #        probabilities.values)
+        #elif self.choice_mode == 'individual':
+        #    def mkchoice(probs):
+        #        probs.reset_index(0, drop=True, inplace=True)
+        #        return np.random.choice(
+        #            probs.index.values, p=probs.values / probs.sum())
+        #    choices = probabilities.groupby(level='chooser_id', sort=False)\
+        #        .apply(mkchoice)
+        #else:
+        #    raise ValueError(
+        #        'Unrecognized choice_mode option: {}'.format(self.choice_mode))
+
+        #logger.debug('finish: predict LCM model {}'.format(self.name))
+        #return choices
 
     def to_dict(self):
         """
@@ -694,8 +704,8 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         return lcm
 
     @classmethod
-    def predict_from_cfg(cls, choosers, alternatives, cfgname=None, cfg=None,
-                         alternative_ratio=2.0, debug=False):
+    def predict_from_cfg(cls, choosers, cfgname=None, cfg=None,
+                         debug=False):
         """
         Simulate choices for the specified choosers
 
@@ -737,24 +747,24 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
             logger.error(msg)
             raise ValueError(msg)
 
-        if len(alternatives) > len(choosers) * alternative_ratio:
-            logger.info(
-                ("Alternative ratio exceeded: %d alternatives "
-                 "and only %d choosers") %
-                (len(alternatives), len(choosers)))
-            idxes = np.random.choice(
-                alternatives.index, size=int(len(choosers) *
-                                             alternative_ratio),
-                replace=False)
-            alternatives = alternatives.loc[idxes]
-            logger.info(
-                "  after sampling %d alternatives are available\n" %
-                len(alternatives))
+        #if len(alternatives) > len(choosers) * alternative_ratio:
+        #    logger.info(
+        #        ("Alternative ratio exceeded: %d alternatives "
+        #         "and only %d choosers") %
+        #        (len(alternatives), len(choosers)))
+        #    idxes = np.random.choice(
+        #        alternatives.index, size=int(len(choosers) *
+        #                                     alternative_ratio),
+        #        replace=False)
+        #    alternatives = alternatives.loc[idxes]
+        #    logger.info(
+        #        "  after sampling %d alternatives are available\n" %
+        #        len(alternatives))
 
-        new_units = lcm.predict(choosers, alternatives, debug=debug)
-        print("Assigned %d choosers to new units" % len(new_units.dropna()))
+        choice = lcm.predict(choosers, debug=debug)
+        print("Assigned %d choosers" % len(choice.dropna()))
         logger.debug('finish: predict from configuration {}'.format(cfgname))
-        return new_units, lcm
+        return choice, lcm
 
 
 #class MNLDiscreteChoiceModelGroup(DiscreteChoiceModel):
