@@ -157,7 +157,7 @@ def trip_weighted_average_time_hbw_from_home_am_drive_alone(zones, travel_data):
 
 # Functions
 def number_of_jobs_of_sector(sector, zones, jobs):
-    return (jobs.sector_id==sector).groupby(jobs.zone_id).sum().reindex(zones.index).fillna(0).astype("int32")
+    return (jobs.sector_id==sector).groupby(jobs.job_zone_id).sum().reindex(zones.index).fillna(0).astype("int32")
 
 def generalized_cost_hbw_am_drive_alone_to_zone(zone_id, travel_data):
     return 
