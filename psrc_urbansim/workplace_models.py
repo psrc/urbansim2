@@ -92,7 +92,16 @@ def wahcm_simulate(persons, households, zones):
   
 @orca.step('wplcm_simulate')
 def wplcm_simulate(persons, households, jobs):
+    # persons/households have been modified, need to update all columns
     persons.clear_cached()
     households.clear_cached()
-    return utils.lcm_simulate("wplcmcoef.yaml", persons, jobs, None,
+
+    # can only send in jobs that have a valid building_id, so remove unlocated jobs for now
+    jobs_df = jobs.to_frame()
+    located_jobs_df = jobs_df[jobs_df.building_id>0]
+    orca.add_table('jobs', located_jobs_df)
+    jobs = orca.get_table('jobs')
+    res = utils.lcm_simulate("wplcmcoef.yaml", persons, jobs, None,
                               "job_id", "number_of_jobs", "vacant_jobs", cast=True)
+    # add all jobs back to the jobs table
+    orca.add_table('jobs', jobs_df, cache = True)
