@@ -557,7 +557,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         # True if probibility > random number. 
         probability_df['choice'] = np.where(probability_df.probability > probability_df.mc, 1, 0)
 
-        return(probability_df['choice'])
+        return(probability_df.choice, probability_df.probability)
 
         #if debug:
         #    self.sim_pdf = probabilities
@@ -761,10 +761,10 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         #        "  after sampling %d alternatives are available\n" %
         #        len(alternatives))
 
-        choice = lcm.predict(choosers, debug=debug)
+        choice, probs = lcm.predict(choosers, debug=debug)
         print("Assigned %d choosers" % len(choice.dropna()))
         logger.debug('finish: predict from configuration {}'.format(cfgname))
-        return choice, lcm
+        return choice, probs, lcm
 
 
 #class MNLDiscreteChoiceModelGroup(DiscreteChoiceModel):
