@@ -15,6 +15,14 @@ def is_worker_n(n, persons):
 def faz_id(persons, zones):
     return misc.reindex(zones.faz_id, persons.household_zone_id)
 
+@orca.column('persons', 'household_building_id', cache=True)
+def household_building_id(persons, households):
+    return misc.reindex(households.building_id, persons.household_id)
+
+@orca.column('persons', 'prev_household_building_id', cache=True)
+def prev_household_building_id(persons, households):
+    return misc.reindex(households.previous_building_id, persons.household_id)
+
 @orca.column('persons', 'household_district_id', cache=True)
 def household_district_id(persons, zones):
     return misc.reindex(zones.district_id, persons.household_zone_id)
@@ -52,8 +60,9 @@ def workplace_zone_id(persons, jobs):
 def household_zone_id(persons, households):
     return misc.reindex(households.zone_id, persons.household_id)
 
-
-
+@orca.column('persons', 'prev_household_zone_id', cache=True)
+def prev_household_zone_id(persons, households):
+    return misc.reindex(households.prev_zone_id, persons.household_id)
 
 
 

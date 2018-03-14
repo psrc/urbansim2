@@ -15,7 +15,7 @@ import urbansim.developer as dev
 import developer_models as psrcdev
 import os 
 from urbansim.utils import misc
-
+from psrc_urbansim.vars.variables_interactions import network_distance_from_home_to_work
 
 
 # Residential REPM
@@ -43,9 +43,34 @@ def hlcm_estimate(households_for_estimation, buildings, parcels, zones):
                               buildings, None, out_cfg="hlcmcoef.yaml")
 
 @orca.step('hlcm_simulate')
-def hlcm_simulate(households, buildings, parcels, zones):
-    return utils.lcm_simulate("hlcmcoef.yaml", households, buildings, None,
+def hlcm_simulate(households, buildings, persons, parcels, zones):
+    movers = households.to_frame()
+    movers = movers[movers.building_id == -1]
+    relocated = movers[movers.is_inmigrant < 1]
+  
+    res = utils.lcm_simulate("hlcmcoef.yaml", households, buildings, None,
                               "building_id", "residential_units", "vacant_residential_units", cast=True)
+    orca.clear_cache()
+
+    # Determine which relocated persons get disconnected from their job
+    persons_df = persons.to_frame()
+    relocated_workers = persons_df.loc[(persons_df.employment_status > 0) & (persons_df.household_id.isin(relocated.index))]
+    relocated_workers['current_distance_to_work'] = network_distance_from_home_to_work(relocated_workers.workplace_zone_id, relocated_workers.household_zone_id)
+    relocated_workers['prev_distance_to_work'] = network_distance_from_home_to_work(relocated_workers.workplace_zone_id, relocated_workers.prev_household_zone_id)
+    assert(relocated_workers['prev_distance_to_work'].mean() <> relocated_workers['current_distance_to_work'].mean())
+    
+    # if new distance to work is greater than old, then disconnect person from job
+    relocated_workers.job_id = np.where(relocated_workers.current_distance_to_work > relocated_workers.prev_distance_to_work, -1, relocated_workers.job_id)
+    persons.update_col_from_series("job_id", relocated_workers.job_id, cast=True)
+  
+    # Update is_inmigrant- I think this it is ok to do this now, but perhaps this should be part of a clean up step
+    # at the end of the sim year. 
+
+    households.update_col_from_series("is_inmigrant", pd.Series(0, index=households.index), cast=True)
+    
+    orca.clear_cache()
+
+    return res
 
 # WPLCM
 @orca.step('wplcm_estimate')
@@ -61,8 +86,9 @@ def elcm_estimate(jobs, buildings, parcels, zones, gridcells):
 
 @orca.step('elcm_simulate')
 def elcm_simulate(jobs, buildings, parcels, zones, gridcells):
-    return utils.lcm_simulate("elcmcoef.yaml", jobs, buildings, [parcels, zones, gridcells],
+    res = utils.lcm_simulate("elcmcoef.yaml", jobs, buildings, [parcels, zones, gridcells],
                               "building_id", "job_spaces", "vacant_job_spaces", cast=True)
+    orca.clear_cache()
 
 @orca.step('households_relocation')
 def households_relocation(households, household_relocation_rates):
@@ -85,39 +111,54 @@ def jobs_relocation(jobs, job_relocation_rates):
                             pd.Series(-1, index=movers), cast=True) 
     print "%s jobs are unplaced in total." % ((jobs.local["building_id"] <= 0).sum())
 
+
 @orca.step('update_persons_jobs')
 def update_persons_jobs(jobs, persons):
-    # persons whoose jobs have relocated no longer have those jobs
-    jobs_df = jobs.to_frame()
-    persons_df = persons.to_frame()
-    persons_df.job_id = np.where(persons_df.job_id.isin(jobs_df[jobs_df.building_id ==-1].index), -1, persons_df.job_id)
-    persons_df.index_name = 'person_id'
-    orca.add_table('persons', persons_df, cache= True)
 
-    # update jobs available column to reflect which jobs are taken, available:
-    jobs_df.vacant_jobs = np.where(jobs_df.index.isin(persons_df.job_id), 0, 1)
-    jobs_df.index.name = 'job_id'
-    orca.add_table('jobs', jobs_df, cache = True)
+    # Persons whoose jobs have relocated no longer have those jobs
+    persons.update_col_from_series("job_id",
+                            pd.Series(np.where(persons.job_id.isin(jobs.building_id[jobs.building_id ==-1].index), -1, persons.job_id), index = persons.index), cast=True)
+    
+    # Their home-based status should be set to 0 for now. Because their job_id is -1, they will be run through the wahlcm later:
+    persons.update_col_from_series("work_at_home",
+                            pd.Series(np.where(np.logical_or(persons.job_id.isin(jobs.building_id[jobs.building_id ==-1].index), 
+                                                             persons.job_id == -1), 0, persons.work_at_home), index=persons.index), cast=True)
+    # Update jobs available column to reflect which jobs are taken, available:
+    jobs.update_col_from_series("vacant_jobs",
+                            pd.Series(np.where(jobs.index.isin(persons.job_id), 0, 1), index = jobs.index), cast=True)
+    
 
 @orca.step('households_transition')
 def households_transition(households, household_controls, year, settings, persons):
     orig_size_hh = households.local.shape[0]
     orig_size_pers = persons.local.shape[0]
-    persons_index = persons.index 
+    orig_pers_index = persons.index 
+    orig_hh_index = households.index 
     res = utils.full_transition(households, household_controls, year, 
                                  settings['households_transition'], "building_id", linked_tables={"persons": (persons.local, 'household_id')})
     print "Net change: %s households" % (orca.get_table("households").local.shape[0] - orig_size_hh)
     print "Net change: %s persons" % (orca.get_table("persons").local.shape[0] - orig_size_pers)
-    
-    # need to make some updates to the persons table
-    persons_new = orca.get_table("persons").to_frame()
-    # new workers dont have jobs yet, set job_id to -1
-    persons_new.job_id = np.where(~persons_new.index.isin(persons_index), -1, persons_new.job_id)
-    # set non-worker job_id to -2
-    persons_new.job_id = np.where(persons_new.employment_status>0, persons_new.job_id, -2)
-    persons_new.index.name  = 'person_id'
-    orca.add_table('persons', persons_new, cache = True)
 
+    # changes to households/persons table are not reflected in local scope
+    # need to reset vars to get changes. 
+    households = orca.get_table('households')
+    persons = orca.get_table("persons")
+
+    # need to make some updates to the persons & households table
+    households.update_col_from_series("is_inmigrant",
+                            pd.Series(np.where(~households.index.isin(orig_hh_index), 1, 0), index = households.index), cast=True) 
+   
+    # new workers dont have jobs yet, set job_id to -1
+    persons.update_col_from_series("job_id",
+                            pd.Series(np.where(~persons.index.isin(orig_pers_index), -1, persons.job_id), index = persons.index), cast=True) 
+    
+    # dont know their work at home status yet, set to 0:
+    persons.update_col_from_series("work_at_home",
+                            pd.Series(np.where(~persons.index.isin(orig_pers_index), 0, persons.work_at_home), index = persons.index), cast=True) 
+    # set non-worker job_id to -2
+    persons.update_col_from_series("job_id",
+                            pd.Series(np.where(persons.employment_status > 0, persons.job_id, -2), index = persons.index), cast=True) 
+    orca.clear_cache()
     return res
 
 @orca.step('jobs_transition')
@@ -206,12 +247,6 @@ def add_extra_columns(df):
     return df
 
 
-#@orca.step('add_lag_tables')
-#def add_lag_tables(households, buildings, year):
-    #orca.add_table("households_lag1", households, cache=True)
-    #orca.add_table("buildings_lag1", buildings, cache=True)
-
-
 @orca.step('add_lag1_tables')
 def add_lag1_tables(year, simfile, settings):
     add_lag_tables(1, year, settings['base_year'], simfile, ["households", "buildings"])
@@ -228,20 +263,15 @@ def add_lag_tables(lag, year, base_year, filename, table_names):
 
 @orca.step('update_household_previous_building_id')
 def update_household_previous_building_id(households):
-    orca.add_column(households, 'previous_building_id', households.building_id, cache = True)
-    #df = households.to_frame()
-    #df.previous_building_id = df.building_id
-    #orca.add_table('households', df, cache=True)
+    #orca.add_column(households, 'previous_building_id', households.building_id, cache = True)
+    households.update_col_from_series("previous_building_id",
+                            households.building_id, cast=True) 
     
 @orca.step('update_buildings_lag1')
 def update_buildings_lag1(buildings):
     df = buildings.to_frame()
     orca.add_table('buildings_lag1', df, cache=True)
     
-@orca.step('delete_unplaced_jobs')
-#*******ELCM is not finding locations for all jobs because developer model is not running. Having records with building_id = -1 is causing wplcm to crash, so deleting them for now.
-def delete_unplaced_jobs(jobs):
-    df = jobs.to_frame()
-    df = df[df.building_id>0]
-    df.index.name = 'job_id'
-    orca.add_table('jobs', df, cache = True)
+@orca.step('clear_cache')
+def clear_cache():
+    orca.clear_cache()

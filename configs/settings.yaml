@@ -1,5 +1,4 @@
-store: psrc_base_year_2014.h5
-
+store: just_friends_2014.h5
 base_year: 2014
 
 households_transition:
@@ -7,6 +6,7 @@ households_transition:
 
 jobs_transition:
   total_column: total_number_of_jobs
+  
   
 
 cell_walking_radius: 600

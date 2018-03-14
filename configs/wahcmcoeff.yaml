@@ -4,7 +4,9 @@ model_type: binarydiscretechoice
 
 choosers_fit_filters: is_worker==1
 
-choosers_predict_filters: employment_status>0
+choosers_predict_filters: 
+- employment_status > 0
+- job_id == -1
 
 alts_fit_filters: null
 

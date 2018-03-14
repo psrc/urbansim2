@@ -30,6 +30,20 @@ def avg_network_distance_from_home_to_work(work1_zones, work2_zones, location_zo
     #return res.values
     return res.values
 
+def max_network_distance_from_home_to_work(work1_zones, work2_zones, location_zones):
+    travel_data = orca.get_table("travel_data")
+    worker1 = abstract_travel_time_interaction_variable(travel_data["single_vehicle_to_work_travel_distance"], work1_zones, location_zones, direction_from_home = False)
+    worker2 = abstract_travel_time_interaction_variable(travel_data["single_vehicle_to_work_travel_distance"], work2_zones, location_zones, direction_from_home = False)
+    # if worker2 does not work set it to the same value as worker1 in order for the average to be the worker1 distance  
+    fillidx = np.where(np.logical_and(np.isnan(worker2), np.isnan(worker1)==False))
+    worker2.iloc[fillidx] = worker1.iloc[fillidx]
+    res = pd.concat([worker1, worker2], axis=1).max(axis=1)
+    # if there are no workers set it to the regional mean
+    fillidx = np.where(np.isnan(res))
+    res.iloc[fillidx] = 999999
+    #return res.values
+    return res.values
+
 def max_logsum_hbw_am_from_home_to_work(work1_zones, work2_zones, location_zones, agent_income_categories):
     travel_data = orca.get_table("travel_data")
     tm_dict = {1: travel_data["logsum_hbw_am_income_1"], 2: travel_data["logsum_hbw_am_income_2"], 

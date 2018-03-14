@@ -111,6 +111,8 @@ def households(store):
     df = store['households']
     if not 'previous_building_id' in df.columns:
         df['previous_building_id'] = df['building_id']
+    if not 'is_inmigrant' in df.columns:
+        df['is_inmigrant'] = 0
     return df
 
 @orca.table('households_lag1', cache=True)
@@ -177,6 +179,8 @@ def persons(store):
 @orca.table('persons_for_estimation', cache=True)
 def persons(store):
     df = store['persons_for_estimation']
+    # job_id = -1 is used for workers that have not been assigned a job, so coding non-workers to -2
+    df.job_id = np.where(df.employment_status>0, df.job_id, -2)
     return df
 
 @orca.table('schools', cache=True)
@@ -201,7 +205,7 @@ def tractcity(store):
     return df
 
 @orca.table('travel_data', cache=True)
-def tractcity(store):
+def travel_data(store):
     df = store['travel_data']
     return df
 

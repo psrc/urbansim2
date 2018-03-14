@@ -82,13 +82,10 @@ def wahcm_estimate(persons_for_estimation, households_for_estimation, zones):
 
 @orca.step('wahcm_simulate')
 def wahcm_simulate(persons, jobs, households, zones):
-    # persons/households have been modified, need to update all columns
-    persons.clear_cached()
-    households.clear_cached()
+    
     work_at_home_prob = work_at_home_simulate("wahcmcoeff.yaml", persons, 
                                  [households, zones])[1]
     jobs_df = jobs.to_frame()
-    persons_df =  persons.to_frame()
     home_based_jobs = jobs_df[(jobs_df.home_based_status == 1) & (jobs_df.vacant_jobs>0)]
 
     # sample home workers using the exact number of vacant home based jobs, weighted by the probablities from the wachm:
@@ -102,35 +99,35 @@ def wahcm_simulate(persons, jobs, households, zones):
     combine_indexes['work_at_home'] = 1
     
     # updates job_id, work_at_home on the persons table where index (person_id) matches in combine_indexes
-    persons_df.update(combine_indexes, overwrite=True)
-    
+    persons.update_col_from_series("job_id", combine_indexes.job_id, cast = True)
+    persons.update_col_from_series('work_at_home', combine_indexes.work_at_home, cast = True)
+    print "%s additional people assigned to work at home." % len(combine_indexes)
+                           
     # building_id on jobs table for home based workers should be the household building_id of the person assigned the job
     # get building_id:
-    combine_indexes['household_building_id'] = 0
-    combine_indexes.update(persons_df, overwrite=True)
+    combine_indexes['building_id'] = 0
+    combine_indexes.building_id.update(persons.household_building_id)
     
-    #update building_id on jobs table:
+    #update building_id & vacant_jobs on jobs table:
     combine_indexes.reset_index(level = None, inplace = True)
     combine_indexes.set_index('job_id', inplace=True)
-    combine_indexes['building_id'] = combine_indexes.household_building_id
-    # drop all columns except building_id
-    combine_indexes = combine_indexes[['building_id']]
-    # update job capacity to reflect these jobs are taken
     combine_indexes['vacant_jobs'] = 0
+    
     # update jobs table- building_id of at home workers and 0 for vacant_jobs
-    jobs_df.update(combine_indexes, overwrite=True)
-
-    orca.add_table('jobs', jobs_df, cache = True)
-    orca.add_table('persons', persons_df, cache = True)
+    jobs.update_col_from_series('building_id', combine_indexes.building_id, cast = True)
+    jobs.update_col_from_series('vacant_jobs', combine_indexes.vacant_jobs, cast = True)
+    print "Number of unplaced home-based jobs: %s" % len(jobs.local[(jobs.local.home_based_status==1) & (jobs.local.vacant_jobs > 0) & (jobs.building_id > 0)])
+    orca.clear_cache()
   
 @orca.step('wplcm_simulate')
 def wplcm_simulate(persons, households, jobs):
     # can only send in jobs that have a valid building_id, so remove unlocated jobs for now
     jobs_df = jobs.to_frame()
-    located_jobs_df = jobs_df[jobs_df.building_id>0]
-    orca.add_table('jobs', located_jobs_df)
-    jobs = orca.get_table('jobs')
-    res = utils.lcm_simulate("wplcmcoef.yaml", persons, jobs, None,
+    jobs_df = jobs_df[jobs_df.building_id>0]
+    jobs_df.index.name = 'job_id'
+    orca.add_table('located_jobs', jobs_df)
+    located_jobs =  orca.get_table('located_jobs')
+    res = utils.lcm_simulate("wplcmcoef.yaml", persons, located_jobs, None,
                               "job_id", "number_of_jobs", "vacant_jobs", cast=True)
-    # add all jobs back to the jobs table
-    orca.add_table('jobs', jobs_df, cache = True)
+        
+    orca.clear_cache()

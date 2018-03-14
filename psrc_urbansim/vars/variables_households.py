@@ -4,6 +4,7 @@ import orca
 from urbansim.utils import misc
 import urbansim_defaults.utils
 from psrc_urbansim.vars.variables_interactions import avg_network_distance_from_home_to_work
+from psrc_urbansim.vars.variables_interactions import max_network_distance_from_home_to_work
 #####################
 # HOUSEHOLDS VARIABLES (in alphabetic order)
 #####################
@@ -39,9 +40,9 @@ def income_category(households, settings):
     res[(households.income >= income_breaks[2]).values] = 4
     return res
 
-@orca.column('households', 'is_inmigrant', cache=True)
-def is_inmigrant(households, parcels):
-    return (households.building_id < 0).reindex(households.index)
+#@orca.column('households', 'is_inmigrant', cache=True)
+#def is_inmigrant(households, parcels):
+#    return (households.building_id < 0).reindex(households.index)
 
 @orca.column('households', 'is_residence_mf', cache=True)
 def is_residence_mf(households, buildings):
@@ -97,6 +98,20 @@ def prev_residence_large_area_id(households, buildings_lag1):
 def persons_under_13(households, persons):
     df = persons.local[persons.local.age < 13]
     return df.groupby(df.household_id).age.count().reindex(households.index).fillna(0)
+
+#@orca.column('households', 'max_distance_to_work', cache=True)
+#def max_distance_to_work(households):
+#    return pd.Series(max_network_distance_from_home_to_work(households.worker1_zone_id, households.worker1_zone_id, households.zone_id))
+
+@orca.column('households', 'prev_zone_id', cache=True)
+def prev_zone_id(households, buildings_lag1):
+    return misc.reindex(buildings_lag1.zone_id, households.previous_building_id).fillna(-1)
+
+
+#@orca.column('households', 'prev_max_distance_to_work', cache=True)
+#def prev_max_distance_to_work(households):
+#    return pd.Series(max_network_distance_from_home_to_work(households.worker1_zone_id, households.worker1_zone_id, households.prev_zone_id))
+
                                      
 
 
