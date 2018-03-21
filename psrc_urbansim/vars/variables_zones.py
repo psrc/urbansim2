@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import orca
 from urbansim.utils import misc
-import urbansim_parcels.utils
+import urbansim_defaults.utils
 from abstract_variables import abstract_trip_weighted_average_from_home, abstract_weighted_access
 from abstract_variables import abstract_access_within_threshold_variable_from_origin
 from abstract_variables import abstract_travel_time_variable_to_destination
