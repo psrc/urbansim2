@@ -81,7 +81,10 @@ def convert_dirs(base_dir, hdf_name, year, is_estimation=False,
     """
     print('Converting directories in {}'.format(base_dir))
 
-    dirs = glob.glob(os.path.join(base_dir, year[0],  '*'))
+    if is_estimation:
+        dirs = glob.glob(os.path.join(base_dir, year[0],  '*'))
+    else:
+        dirs = glob.glob(os.path.join(base_dir,  '*'))
     dirs = {d for d in dirs if os.path.basename(d) in DIRECTORIES}
     if not dirs:
         raise RuntimeError('No directories found matching known data.')
@@ -135,8 +138,9 @@ def convert_dirs(base_dir, hdf_name, year, is_estimation=False,
                                       .5, df.workers_max)
             df.persons_max = np.where(df.persons_max > 0,
                                       df.persons_max + .5, df.persons_max)
-            df = df.drop(columns=['city_id'])
+            #df = df.drop(columns=['city_id'])
             keys = ['year']
+
         elif dirname == 'annual_household_relocation_rates':
             df = df.rename(columns={'age_min': 'age_of_head_min',
                                     'age_max': 'age_of_head_max'})
@@ -232,8 +236,11 @@ def parse_args(args=None):
 
 
 def main(args=None):
+    if len(args) == 2:
+        # using 2014 as a filler- argument is only needed when using --is_estimation
+        args.append(["2014"])
     args = parse_args(args)
-    convert_dirs(args.base_dir, args.hdf_name, args.year,
+    convert_dirs(args.base_dir, args.hdf_name, args.year, 
                  args.no_estimation, args.no_compress)
 
 
