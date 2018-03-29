@@ -55,7 +55,7 @@ def hlcm_estimate(households_for_estimation, buildings, parcels, zones):
 
 
 @orca.step('hlcm_simulate')
-def hlcm_simulate(households, buildings, persons, parcels, zones):
+def hlcm_simulate(households, buildings, persons, settings):
     movers = households.to_frame()
     movers = movers[movers.building_id == -1]
     relocated = movers[movers.is_inmigrant < 1]
@@ -65,29 +65,30 @@ def hlcm_simulate(households, buildings, persons, parcels, zones):
     orca.clear_cache()
 
     # Determine which relocated persons get disconnected from their job
-    persons_df = persons.to_frame()
-    relocated_workers = persons_df.loc[(persons_df.employment_status > 0) &
+    if settings['remove_jobs_from_workers']:
+        persons_df = persons.to_frame()
+        relocated_workers = persons_df.loc[(persons_df.employment_status > 0) &
                                        (persons_df.household_id.isin
                                        (relocated.index))]
-    relocated_workers['new_dist_to_work'] = network_distance_from_home_to_work(
+        relocated_workers['new_dist_to_work'] = network_distance_from_home_to_work(
                                         relocated_workers.workplace_zone_id,
                                         relocated_workers.household_zone_id)
-    relocated_workers['prev_dist_to_work'] = network_distance_from_home_to_work(
+        relocated_workers['prev_dist_to_work'] = network_distance_from_home_to_work(
                                         relocated_workers.workplace_zone_id,
                                         relocated_workers.prev_household_zone_id)
 
-    # if new distance to work is greater than old, disconnect person from job
-    relocated_workers.job_id = np.where(relocated_workers.new_dist_to_work >
+        # if new distance to work is greater than old, disconnect person from job
+        relocated_workers.job_id = np.where(relocated_workers.new_dist_to_work >
                                         relocated_workers.prev_dist_to_work,
                                         -1, relocated_workers.job_id)
-    persons.update_col_from_series("job_id", relocated_workers.job_id,
+        persons.update_col_from_series("job_id", relocated_workers.job_id,
                                    cast=True)
 
-    # Update is_inmigrant- I think this it is ok to do this now,
-    # but perhaps this should be part of a clean up step
-    # at the end of the sim year.
+        # Update is_inmigrant- I think this it is ok to do this now,
+        # but perhaps this should be part of a clean up step
+        # at the end of the sim year.
 
-    households.update_col_from_series("is_inmigrant", pd.Series(0,
+        households.update_col_from_series("is_inmigrant", pd.Series(0,
                                       index=households.index), cast=True)
 
     orca.clear_cache()
