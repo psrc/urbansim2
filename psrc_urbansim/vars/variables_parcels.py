@@ -81,7 +81,10 @@ def employment_retail_wwd(parcels, gridcells, settings):
 def existing_units(parcels):
     results = np.zeros(parcels.local.shape[0], dtype=np.int32)
     for name in ["building_sqft_pcl", "parcel_sqft", "residential_units"]:
-        w = np.where(parcels.unit_name == name)[0]
+        if name == "building_sqft_pcl":
+            w = np.where(parcels.unit_name == 'building_sqft')[0]
+        else:
+            w = np.where(parcels.unit_name == name)[0]
         results[w] = parcels[name].iloc[w].astype(np.int32)
     return pd.Series(results, index=parcels.index)
 
