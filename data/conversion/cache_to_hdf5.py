@@ -41,7 +41,7 @@ def cache_to_df(dir_path):
             attrib_data = np.fromfile(attrib, np.int64)
             table[attrib_name] = attrib_data
 
-        elif attrib_ext == '.ib1':
+        elif attrib_ext == '.ib1' or attrib_ext == '.ii1':
             attrib_data = np.fromfile(attrib, np.bool_)
             table[attrib_name] = attrib_data
 
@@ -67,24 +67,23 @@ DIRECTORIES = {
     'employment_adhoc_sector_groups', 'employment_sectors',
     'fazes', 'gridcells', 'land_use_types', 'jobs', 'households',
     'parcels', 'persons', 'schools', 'target_vacancies', 'travel_data',
-    'zones', 'zoning_heights', 'households_for_estimation',
-    'jobs_for_estimation'
+    'zones', 'zoning_heights', 'jobs_for_estimation', 'persons_for_estimation'
 }
 
 NO_INDEX = ['annual_household_relocation_rates', 'annual_job_relocation_rates']
 
 
-def convert_dirs(base_dir, hdf_name, year, is_estimation=False,
+def convert_dirs(base_dir, hdf_name, year, lag_year, is_estimation=False,
                  no_compress=False):
     """
     Convert nested set of directories to
     """
     print('Converting directories in {}'.format(base_dir))
 
-    if is_estimation:
-        dirs = glob.glob(os.path.join(base_dir, year[0],  '*'))
-    else:
-        dirs = glob.glob(os.path.join(base_dir,  '*'))
+    #if is_estimation:
+    #    dirs = glob.glob(os.path.join(base_dir, year[0],  '*'))
+    #else:
+    dirs = glob.glob(os.path.join(base_dir, year,  '*'))
     dirs = {d for d in dirs if os.path.basename(d) in DIRECTORIES}
     if not dirs:
         raise RuntimeError('No directories found matching known data.')
@@ -99,22 +98,26 @@ def convert_dirs(base_dir, hdf_name, year, is_estimation=False,
         hdf_name, mode='w', complevel=1, complib=complib)
 
     if is_estimation:
-        dirpath = os.path.join(base_dir, year[0] + '/buildings')
-        df = cache_to_df(dirpath)
-        df = df.set_index('building_id')
-        store.put('buildings_lag1', df)
+        #dirpath = os.path.join(base_dir, lag_year + '/households_for_estimation')
+        dirpath = os.path.join(base_dir, year + '/households_for_estimation')
+        households_for_estimation_df = cache_to_df(dirpath)
+        #households_for_estimation_df['prev_building_id'] = 0
+        households_for_estimation_df['for_estimation'] = 1
+        #households_for_estimation_df.set_index('household_id')
+        #households_for_estimation_df.prev_building_id.update(households_lag_df.building_id)
+        #households_for_estimation_df.reset_index(inplace = True)
 
-        dirpath = os.path.join(base_dir, year[1] + '/households')
-        df = cache_to_df(dirpath)
-        df['prev_building_id'] = df['building_id']
-        df = df.set_index('household_id')
-        store.put('households_lag1', df)
+        #dirpath = os.path.join(base_dir, year + '/households')
+        #households_df = cache_to_df(dirpath)
 
-        dirpath = os.path.join(base_dir, year[2] + '/persons_for_estimation')
-        df = cache_to_df(dirpath)
-        df = df.set_index('person_id')
-        person_df = df
-        store.put('persons_for_estimation', df)
+        #df = df.set_index('household_id')
+        #store.put('households_lag1', df)
+
+        #dirpath = os.path.join(base_dir, year[2] + '/persons_for_estimation')
+        #df = cache_to_df(dirpath)
+        #df = df.set_index('person_id')
+        #person_df = df
+        #store.put('persons_for_estimation', df)
 
     for dirpath in dirs:
         dirname = os.path.basename(dirpath)
@@ -122,11 +125,24 @@ def convert_dirs(base_dir, hdf_name, year, is_estimation=False,
         print(dirname)
         df = cache_to_df(dirpath)
 
-        if dirname == 'travel_data':
+        if dirname == 'households':
+            # If estimation, append households_for_estimation records to households
+            if is_estimation:
+                for col in households_for_estimation_df.columns:
+                    if col not in df.columns:
+                        df[col] = 0
+                df = pd.concat([df, households_for_estimation_df])
+            keys = ['household_id']
+
+        elif dirname == 'persons_for_estimation':
+            keys = ['person_id']
+
+        elif dirname == 'travel_data':
             keys = ['from_zone_id', 'to_zone_id']
 
         elif dirname == 'annual_employment_control_totals':
-            df = df.drop(columns=['city_id'])
+            if 'city_id' in df.columns:
+                df = df.drop(columns=['city_id'])
             keys = ['year']
 
         elif dirname == 'annual_household_control_totals':
@@ -236,12 +252,20 @@ def parse_args(args=None):
 
 
 def main(args=None):
-    if len(args) == 2:
-        # using 2014 as a filler- argument is only needed when using --is_estimation
-        args.append(["2014"])
-    args = parse_args(args)
-    convert_dirs(args.base_dir, args.hdf_name, args.year, 
-                 args.no_estimation, args.no_compress)
+    base_dir = r'\\MODELSRV8\d$\opusgit\urbansim_data\data\psrc_parcel\base_year_2014_inputs\urbansim2_estimation_cache'
+    year = '2014'
+    lag_year = '2009'
+    is_estimation = True
+    hdf_name = r'D:\udst\psrc_urbansim\data\test.h5'
+    #args = ["//modelsrv3/e$/opusgit/urbansim_data/data/psrc_parcel/SoundCast/Estimation/", "D:/udst/psrc_urbansim/data/test_.h5", ["2000", "2009", "2014"], "--is-estimation"]
+    #args = ["//modelsrv3/e$/opusgit/urbansim_data/data/psrc_parcel/SoundCast/Estimation/", "D:/udst/psrc_urbansim/data/test_.h5", ['2000', '2009', '2014'], "--is-estimation"]
+    #args = [r'\\MODELSRV8\d$\opusgit\urbansim_data\data\psrc_parcel\base_year_2014_inputs\urbansim2_cache\2014', "D:/udst/psrc_urbansim/data/test_.h5"]
+    #if len(args) == 2:
+    #    # using 2014, but does not matter because this argument is only needed i
+    #args.append(["2014"])
+    #args = parse_args(args)
+    convert_dirs(base_dir, hdf_name, year, lag_year, 
+                 is_estimation)
 
 
 if __name__ == '__main__':
