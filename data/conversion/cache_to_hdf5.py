@@ -95,7 +95,7 @@ def convert_dirs(base_dir, hdf_name, is_estimation=False,
         hdf_name, mode='w', complevel=1, complib=complib)
 
     if is_estimation:
-        dirpath = os.path.join(base_dir, '/households_for_estimation')
+        dirpath = os.path.join(base_dir, 'households_for_estimation')
         households_for_estimation_df = cache_to_df(dirpath)
         households_for_estimation_df['for_estimation'] = 1
 
@@ -231,14 +231,6 @@ def parse_args(args=None):
 
 
 def main(args=None):
-    #base_dir = r'\\MODELSRV8\d$\opusgit\urbansim_data\data\psrc_parcel\base_year_2014_inputs\urbansim2_estimation_cache'
-    #year = '2014'
-    #lag_year = '2009'
-    #is_estimation = True
-    #hdf_name = r'D:\udst\psrc_urbansim\data\test.h5'
-    #args = ["//modelsrv3/e$/opusgit/urbansim_data/data/psrc_parcel/SoundCast/Estimation/", "D:/udst/psrc_urbansim/data/test_.h5", ["2000", "2009", "2014"], "--is-estimation"]
-    #args = ['//MODELSRV8/d$/opusgit/urbansim_data/data/psrc_parcel/base_year_2014_inputs/urbansim2_cache/2014', "D:/udst/psrc_urbansim/data/reg_cache_.h5"]
-    args = [r'\\MODELSRV8\d$\opusgit\urbansim_data\data\psrc_parcel\base_year_2014_inputs\urbansim2_estimation_cache\2014', "D:/udst/psrc_urbansim/data/est_cache_.h5", "--is-estimation"]
     args = parse_args(args)
     convert_dirs(args.base_dir, args.hdf_name, args.no_estimation)
 
