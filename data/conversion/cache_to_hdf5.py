@@ -122,7 +122,7 @@ def convert_dirs(base_dir, hdf_name, is_estimation=False,
 
         elif dirname == 'annual_employment_control_totals':
             if 'city_id' in df.columns:
-                df = df.drop(columns=['city_id'])
+                df = df.drop(['city_id'], axis=1)
             keys = ['year']
 
         elif dirname == 'annual_household_control_totals':
@@ -134,7 +134,8 @@ def convert_dirs(base_dir, hdf_name, is_estimation=False,
                                       .5, df.workers_max)
             df.persons_max = np.where(df.persons_max > 0,
                                       df.persons_max + .5, df.persons_max)
-            #df = df.drop(columns=['city_id'])
+            if 'city_id' in df.columns:
+                df = df.drop(['city_id'], axis=1)
             keys = ['year']
 
         elif dirname == 'annual_household_relocation_rates':
