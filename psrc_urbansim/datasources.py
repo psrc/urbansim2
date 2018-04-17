@@ -127,7 +127,10 @@ def households_for_estimation(store):
     dfname = 'households_for_estimation'
     if dfname not in [x[1:] for x in store.keys()]: 
         dfname = 'households'
-    return store[dfname]
+    df = store[dfname]
+    if 'for_estimation' in df.columns:
+        df = df[df.for_estimation == 1]
+    return df
 
 @orca.table('job_relocation_rates', cache=True)
 def job_relocation_rates(store):
@@ -148,7 +151,10 @@ def jobs_for_estimation(store):
     dfname = 'jobs_for_estimation'
     if dfname not in [x[1:] for x in store.keys()]: 
         dfname = 'jobs'
-    return store[dfname]
+    df = store[dfname]
+    if 'for_estimation' in df.columns:
+        df = df[df.for_estimation == 1]    
+    return df
 
 @orca.table('land_use_types', cache=True)
 def land_use_types(store):
