@@ -118,6 +118,10 @@ def mortgage_cost(buildings, parcels):
         buildings.sqft_per_unit.divide(pbsqft).fillna(0) * 
         misc.reindex(parcels.land_value, buildings.parcel_id))
 
+@orca.column('buildings', 'mortgage_cost2', cache=True, cache_scope='iteration')
+def mortgage_cost2(buildings, parcels):
+    return buildings.price_per_unit * .06
+
 @orca.column('buildings', 'multifamily_generic_type', cache=True, cache_scope='iteration')
 def multifamily_generic_type(buildings):
     return ((buildings.building_type_id == 4) | (buildings.building_type_id == 12)).astype("int16")

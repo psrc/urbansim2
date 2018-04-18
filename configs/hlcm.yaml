@@ -4,7 +4,7 @@ model_type: segmented_discretechoice
 
 segmentation_col: is_inmigrant
 
-choosers_fit_filters: building_id > 0
+choosers_fit_filters: [building_id > 0, for_estimation == 1]
 
 choosers_predict_filters: null
 
@@ -26,7 +26,7 @@ prediction_sample_size: 100 # #alternatives in prediction
 
 default_config: 
     
-    model_expression: I((income>0)*1):I(1*(np.logical_or(mortgage_cost/income < 0.1, mortgage_cost/income > 0.5))) + 
+    model_expression: I((income>0)*1):I(1*(np.logical_or(mortgage_cost2/income < 0.1, mortgage_cost2/income > 0.5))) + 
             ln_price_residual + 
             multifamily_generic_type + 
             I(np.where(income>0, (np.log1p(income)/(persons*persons*1.0)*(np.log1p(sqft_per_unit))), 1)) +
@@ -65,7 +65,7 @@ models:
                 I((persons > 3) * 1):I(np.logical_not(large_area_id == 6) * 1): 0.1479877796056009
                 I((tenure == 1) * 1):I(np.logical_not(building_type_name == "multi_family_residential") * 1): 1.5682145719521847
                 I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): -3.0
-                I(1 * np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.3)): 0.36765836843629446
+                I(1 * np.logical_or(mortgage_cost2 / income < 0.1, mortgage_cost2 / income > 0.3)): 0.36765836843629446
                 I(np.log1p(income) / (persons * persons * 1.0)):I(np.log1p(sqft_per_unit)): -0.01385181640794796
                 avg_network_distance_from_home_to_work(worker1_zone_id, worker2_zone_id, building_zone_id): 0.004504568811178641
                 ln_price_residual: 0.4939655919773986
@@ -124,7 +124,7 @@ models:
                     ln_price_residual +  
                     I(1*(np.logical_and(persons == 1, age_of_head < 50))):I(1*(np.log1p(employment_retail_wwd)>4)) +
                     I(np.where(income>0, (np.log1p(income)/(persons*persons*1.0)*(np.log1p(sqft_per_unit))), 1)) +
-                    I((income>0)*1):I(1*(np.logical_or(mortgage_cost/income < 0.1, mortgage_cost/income > 0.4))) 
+                    I((income>0)*1):I(1*(np.logical_or(mortgage_cost2/income < 0.1, mortgage_cost2/income > 0.5))) 
         
                     #I(1*(mortgage_cost/income < 0.1)) +
                     #I(1*(mortgage_cost/income > 0.3))
