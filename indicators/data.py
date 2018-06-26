@@ -11,19 +11,49 @@ def store(settings):
 def base_year(settings):
     return settings['base_year']
 
-@orca.injectable()
-def year(iter_var):
-    return iter_var
+#@orca.injectable()
+#def year(iter_var):
+#    return iter_var
+@orca.injectable()   
+def year(base_year):
+    if 'iter_var' in orca.list_injectables():
+        year = orca.get_injectable('iter_var')
+        if year is not None:
+            return year
+    # outside of a run, return the base/default
+    return base_year
 
 @orca.injectable()
 def fileyear(year, base_year):
     if year == base_year:
         return "base"
     return year
+
+@orca.injectable('store_table_list', cache=True)
+def store_table_list(store):
+    return store.keys()
+
+@orca.injectable()
+def find_table_in_store(table, store, fileyear, base_year):
+    searchyear = fileyear
+    if searchyear == "base":
+        return store['%s/%s' % (fileyear, table)]
+    else:
+        while searchyear > base_year:
+            if (('%s/%s' % (searchyear, table)) in store_table_list):
+                return store['%s/%s' % (searchyear, table)]
+            else:
+                searchyear -= 1
+        else:
+            return store['%s/%s' % ("base", table)]
     
 @orca.table('buildings', cache=True)
 def buildings(store, fileyear):
-    return store['%s/buildings' % fileyear]
+    return find_table_in_store('buildings', store, fileyear, base_year)
+    
+#@orca.table('buildings', cache=True)
+#def buildings(store, fileyear):
+#    return store['%s/buildings' % fileyear]
 
 @orca.table('zones', cache=True)
 def zones(store, fileyear):

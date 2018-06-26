@@ -62,5 +62,3 @@ def parcels(store, fileyear):
 @orca.table('fazes', cache=True)
 def fazes(store, fileyear):
     return store['%s/fazes' % fileyear]
-
-orca.get_table('buildings').to_frame().head()
