@@ -29,49 +29,44 @@ def fileyear(year, base_year):
         return "base"
     return year
 
-@orca.injectable('store_table_list', cache=True)
 def store_table_list(store):
     return store.keys()
 
-@orca.injectable()
-def find_table_in_store(table, store, fileyear, base_year):
-    searchyear = fileyear
-    if searchyear == "base":
-        return store['%s/%s' % (fileyear, table)]
-    else:
-        while searchyear > base_year:
-            if (('%s/%s' % (searchyear, table)) in store_table_list):
-                return store['%s/%s' % (searchyear, table)]
-            else:
-                searchyear -= 1
+def find_table_in_store(table, store, year, base_year):
+    searchyear = year
+    while searchyear > base_year:
+        if (('%s/%s' % (searchyear, table)) in store_table_list):
+            return store['%s/%s' % (searchyear, table)]
         else:
-            return store['%s/%s' % ("base", table)]
+            searchyear -= 1
+    else:
+        return store['%s/%s' % ("base", table)]
     
 @orca.table('buildings', cache=True)
-def buildings(store, fileyear):
-    return find_table_in_store('buildings', store, fileyear, base_year)
+def buildings(store, year):
+    return find_table_in_store('buildings', store, year, base_year)
     
-#@orca.table('buildings', cache=True)
-#def buildings(store, fileyear):
-#    return store['%s/buildings' % fileyear]
-
 @orca.table('zones', cache=True)
 def zones(store, fileyear):
-    return store['%s/zones' % fileyear]
+    return find_table_in_store('zones', store, year, base_year)
 
 @orca.table('households', cache=True)
 def households(store, fileyear):
-    return store['%s/households' % fileyear]
+    return find_table_in_store('households', store, year, base_year)
 
 @orca.table('jobs', cache=True)
 def jobs(store, fileyear):
-    return store['%s/jobs' % fileyear]
+    return find_table_in_store('jobs', store, year, base_year)
 
 @orca.table('parcels', cache=True)
 def parcels(store, fileyear):
-    return store['%s/parcels' % fileyear]
+    return find_table_in_store('parcels', store, year, base_year)
 
 @orca.table('fazes', cache=True)
 def fazes(store, fileyear):
-    return store['%s/fazes' % fileyear]
+    return find_table_in_store('fazes', store, year, base_year)
+
+@orca.table('buildings_types', cache=True)
+def buildings_types(store, year):
+    return find_table_in_store('buildings_types', store, year, base_year)
 
