@@ -35,7 +35,7 @@ def store_table_list(store):
 def find_table_in_store(table, store, year, base_year):
     searchyear = year
     while searchyear > base_year:
-        if (('%s/%s' % (searchyear, table)) in store_table_list):
+        if (('%s/%s' % (searchyear, table)) in store_table_list(store)):
             return store['%s/%s' % (searchyear, table)]
         else:
             searchyear -= 1
@@ -43,7 +43,7 @@ def find_table_in_store(table, store, year, base_year):
         return store['%s/%s' % ("base", table)]
     
 @orca.table('buildings', cache=True)
-def buildings(store, year):
+def buildings(store, year, base_year):
     return find_table_in_store('buildings', store, year, base_year)
     
 @orca.table('zones', cache=True)
@@ -59,14 +59,14 @@ def jobs(store, fileyear):
     return find_table_in_store('jobs', store, year, base_year)
 
 @orca.table('parcels', cache=True)
-def parcels(store, fileyear):
+def parcels(store, year, base_year):
     return find_table_in_store('parcels', store, year, base_year)
 
 @orca.table('fazes', cache=True)
 def fazes(store, fileyear):
     return find_table_in_store('fazes', store, year, base_year)
 
-@orca.table('buildings_types', cache=True)
-def buildings_types(store, year):
-    return find_table_in_store('buildings_types', store, year, base_year)
+@orca.table('building_types', cache=True)
+def building_types(store, year):
+    return find_table_in_store('building_types', store, year, base_year)
 
