@@ -8,11 +8,11 @@ import orca
 # uncomment models you want to estimate
 
 # REPM
-#orca.run(["repmres_estimate"])
+orca.run(["repmres_estimate"])
 #orca.run(["repmnr_estimate"])
 
 # HLCM
-orca.run(["hlcm_estimate"])
+#orca.run(["hlcm_estimate"])
 
 # WPLCM
 #orca.run(["wplcm_estimate"])

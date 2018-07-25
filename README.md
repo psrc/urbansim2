@@ -13,7 +13,7 @@ This is an urbansim-2 implementation of the PSRC land use model. It is a python 
 In the examples below it will be assumed that the base directory for the installation is ``d:/udst``.
 
 
-1. Install [Anaconda Python](http://continuum.io/downloads), the latest of the 2.* series (not 3.*). By default it will be installed in a different directory than existing Python, so there is no danger in messing up the current Python installation. Alternatively, use a virtual enviornment specific for Urbansim2. In a command prompt, start a new virtual environment called "urbansim2" as follows:
+1. Install [Anaconda Python](http://continuum.io/downloads), the latest of the 2.* series (not 3.*). By default it will be installed in a different directory than existing Python, so there is no danger in messing up the current Python installation. Alternatively, use a virtual environment specific for Urbansim2. In a command prompt, start a new virtual environment called "urbansim2" as follows:
 
 ```
 conda create -n urbansim2 python=2.7 anaconda
@@ -21,7 +21,7 @@ conda create -n urbansim2 python=2.7 anaconda
 Activate this environment every time you restart the prompt and want to work with urbansim2 by entering the follow (for Windows prompts):
 
 ```
-activiate urbansim2
+activate urbansim2
 ```
 
 (In a bash shell, type "source activate urbansim2".)
@@ -40,7 +40,7 @@ In addition to Anaconda Python, two other packages (zbox and prettytable) are ne
    git clone https://github.com/psrc/urbansim2.git psrc_urbansim
    ```
    
-3. Install the UDST packages ``urbansim``, ``urbansim_defaults``, ``orca`` and ``pandana`` by cloning them from [UDST GitHub](https://github.com/UDST):
+3. Install various UDST packages by cloning them from [UDST GitHub](https://github.com/UDST):
 
    ```
    cd /d/udst
@@ -99,17 +99,14 @@ The code is evolving fast, so update it regularly.
 ```
 cd /d/udst/urbansim
 git pull
-git pull psrcedits dev
 cd ../orca
 git pull
 cd ../pandana
 git pull
 cd ../urbansim_defaults
 git pull
-git pull psrcedits dev
 ```
-
-This can be automated as has been done on modelsrv3, see the next section.
+... etc. This can be automated as has been done on modelsrv3, see the next section.
 
 ### Setup Note for modelsrv3
 
@@ -140,12 +137,12 @@ To set the environment variables in step 4, 5 and 7, depending where you want to
 
 In both cases, it changes the environment only for the session in this terminal or bash window.
 
-The base year data are stored in ``/d/udst/psrc_urbansim/data/psrc_base_year_2014.h5``.
+The base year data are stored in ``/d/udst/psrc_urbansim/data``. The file to be used for estimation is ``psrc_estimation_2014.h5``. For a simulation use ``psrc_base_year_2014.h5``. 
 
 
 ## Using UrbanSim-2
 
-The code is under construction. Currently, only a prototype of the model system is implemented. One can estimate the real estate price model, household location choice model and job location choice model. A simulation script is also available. 
+Note that the code is under construction and not everythng will work. Here is documentation of its [status](https://github.com/psrc/urbansim2/wiki/Implementation-status). 
 
 ### Estimation
 
@@ -155,7 +152,9 @@ Model estimation is controlled from the file ``estimate.py``. In that file, unco
 orca.run(["repmres_estimate"])
 ```
 
-is uncommented, while all other lines except imports are commented out. Then run 
+is uncommented, while all other lines except imports are commented out. Put the name of the estimation data file into ``configs/settings.yaml`` under the node ``store``.
+
+Then run 
 
 ```
 python estimate.py
@@ -165,11 +164,12 @@ The UI of the various models is implemented in ``psrc_urbansim/models.py``. For 
 
 ```
 @orca.step('repmres_estimate')
-def repmres_estimate(parcels):
-    return utils.hedonic_estimate("repmres.yaml", parcels, None)
+def repmres_estimate(parcels, zones, gridcells):
+    return utils.hedonic_estimate("repmres.yaml", parcels, [zones, gridcells],
+                                  out_cfg = "repmrescoef.yaml")
 ```
 
-This tells us that the model is using a specification defined in the file  ``configs/repmres.yaml``. Note that this file is used as an input as well as output, so the estimation results can be found there. New variables should be implemented in the directory ``psrc_urbansim/vars``, depending on the corresponding dataset. 
+This tells us that the model is using a specification defined in the file  ``configs/repmres.yaml``. Estimated coefficients are stored in ``configs/repmrescoef.yaml``.  New variables should be implemented in the directory ``psrc_urbansim/vars``, in a file that corresponds to the affected dataset. 
 
 
 
@@ -209,7 +209,7 @@ The first line excludes all yaml files while the second line "unexcludes" hlcm.y
 
 ### Merging
 
-If you excluded a file and somebody else makes changes to it that collide with yours, the ``git pull`` command will most likely throw an error. There are various ways to deal with it depending on if you want to keep your changes or not. For keeping your changes look at the [git stash documentation](https://git-scm.com/book/en/v1/Git-Tools-Stashing). If you want to throw your changes away, do 
+If you excluded a file and somebody else makes changes to it that collide with yours, the ``git pull`` command will most likely throw an error. There are various ways to deal with it depending on if you want to keep your changes or not. For keeping your changes, look at the [git stash documentation](https://git-scm.com/book/en/v1/Git-Tools-Stashing). If you want to throw your changes away, do 
 
 ```
 git checkout filename

@@ -129,7 +129,7 @@ def abstract_within_walking_distance_gridcells(attribute, gridcells, filled_valu
     attr2d, index2d = get2Dattribute( attribute, gridcells, x_name=x_name, y_name=y_name)
     summed = ndi.correlate( np.ma.filled(attr2d, filled_value ), wd_footprint, mode=mode)
     attr2d[:] = summed
-    res = pd.Series(attr2d.stack().loc[index2d]["value"].values, index=gridcells.index)
+    res = pd.Series(attr2d.stack().reindex(index2d)["value"].values, index=gridcells.index)
     res[np.isnan(res)] = filled_value
     return res
     
