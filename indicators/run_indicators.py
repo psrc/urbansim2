@@ -8,6 +8,9 @@ import data
 # Indicators script
 # ==================
 
+# List of Indicator tables created during all iterations
+ind_table_list = []
+
 # Define injectables
 
 # replace this by passing yaml file name as argument
@@ -21,16 +24,45 @@ def settings(settings_file):
     return yamlio.yaml_to_dict(str_or_buffer=settings_file)
 
 @orca.step()
-def compute_indicators(settings):
-    # loop over indicators and dataests from settings and store into file
+def compute_indicators(settings, iter_var):
+    # loop over indicators and datasets from settings and store into file
     for ind, value in settings['indicators'].iteritems():
         for ds in value['dataset']:
-            print ds
-            print orca.get_table(ds)[ind]
+            ds_tablename = '%s_%s_%s' % (ds, ind, str(iter_var))
+            df = orca.get_table(ds)[ind]
+            orca.add_table(ds_tablename, df)
+            ind_table_list.append(ds_tablename)
              
 
 # Compute indicators
-#orca.run(['compute_indicators'], iter_vars=settings(settings_file())['years'])
+orca.run(['compute_indicators'], iter_vars=settings(settings_file())['years'])
 
-#test find_table_in_store()
-orca.get_table('buildings').to_frame().head()
+# Create CSV files
+
+# Creating a unique list of indicators from the tables added in compute_indicators 
+unique_ind_table_list = []
+for table in ind_table_list:
+    if table[:-5] not in unique_ind_table_list:
+        unique_ind_table_list.append(table[:-5])
+        
+# create a CSV file for each indicator with a column per each iterationn year
+for ind_table in unique_ind_table_list:
+    ind_table_list_for_csv =[] 
+    for table in ind_table_list:
+        if ind_table in table:
+            ind_table_list_for_csv.append(table)
+    
+    ind_df_list_for_csv = []
+    column_labels = []
+    for table in ind_table_list_for_csv:
+        ind_df_list_for_csv.append(orca.get_table(table).to_frame())
+        column_labels.append(table[table.find('_') + 1:])
+        
+    ind_csv = pd.concat(ind_df_list_for_csv, axis=1)
+    ind_csv.columns = column_labels
+    ind_csv.to_csv('%s.csv' % ind_table)
+    #print ind_csv     
+
+
+# test find_table_in_store()
+#print orca.get_table('gridcells').to_frame().head()

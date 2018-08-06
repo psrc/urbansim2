@@ -36,10 +36,12 @@ def find_table_in_store(table, store, year, base_year):
     searchyear = year
     while searchyear > base_year:
         if (('%s/%s' % (searchyear, table)) in store_table_list(store)):
+            #print '%s/%s' % (searchyear, table) #for debugging purposes only
             return store['%s/%s' % (searchyear, table)]
         else:
-            searchyear -= 1
+            searchyear = searchyear - 1
     else:
+        #print '%s/%s' % ("base", table) #for debugging purposes only
         return store['%s/%s' % ("base", table)]
     
 @orca.table('buildings', cache=True)
@@ -47,15 +49,15 @@ def buildings(store, year, base_year):
     return find_table_in_store('buildings', store, year, base_year)
     
 @orca.table('zones', cache=True)
-def zones(store, fileyear):
+def zones(store, year, base_year):
     return find_table_in_store('zones', store, year, base_year)
 
 @orca.table('households', cache=True)
-def households(store, fileyear):
+def households(store, year, base_year):
     return find_table_in_store('households', store, year, base_year)
 
 @orca.table('jobs', cache=True)
-def jobs(store, fileyear):
+def jobs(store, year, base_year):
     return find_table_in_store('jobs', store, year, base_year)
 
 @orca.table('parcels', cache=True)
@@ -63,10 +65,42 @@ def parcels(store, year, base_year):
     return find_table_in_store('parcels', store, year, base_year)
 
 @orca.table('fazes', cache=True)
-def fazes(store, fileyear):
+def fazes(store, year, base_year):
     return find_table_in_store('fazes', store, year, base_year)
 
 @orca.table('building_types', cache=True)
-def building_types(store, year):
+def building_types(store, year, base_year):
     return find_table_in_store('building_types', store, year, base_year)
+
+@orca.table('land_use_types', cache=True)
+def land_use_types(store, year, base_year):
+    return find_table_in_store('land_use_types', store, year, base_year)
+
+@orca.table('persons', cache=True)
+def persons(store, year, base_year):
+    return find_table_in_store('persons', store, year, base_year)
+
+@orca.table('building_sqft_per_job', cache=True)
+def building_sqft_per_job(store, year, base_year):
+    return find_table_in_store('building_sqft_per_job', store, year, base_year)
+
+@orca.table('employment_sectors', cache=True)
+def employment_sectors(store, year, base_year):
+    return find_table_in_store('employment_sectors', store, year, base_year)
+
+@orca.table('employment_adhoc_sector_groups', cache=True)
+def employment_adhoc_sector_groups(store, year, base_year):
+    return find_table_in_store('employment_adhoc_sector_groups', store, year, base_year)
+
+@orca.table('schools', cache=True)
+def schools(store, year, base_year):
+    return find_table_in_store('schools', store, year, base_year)
+
+@orca.table('travel_data', cache=True)
+def travel_data(store, year, base_year):
+    return find_table_in_store('travel_data', store, year, base_year)
+
+@orca.table('gridcells', cache=True)
+def gridcells(store, year, base_year):
+    return find_table_in_store('gridcells', store, year, base_year)
 
