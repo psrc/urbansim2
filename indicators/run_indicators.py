@@ -30,8 +30,10 @@ def compute_indicators(settings, iter_var):
         for ds in value['dataset']:
             ds_tablename = '%s_%s_%s' % (ds, ind, str(iter_var))
             df = orca.get_table(ds)[ind]
+            #print orca.get_table(ds)[ind].to_frame().head()
             orca.add_table(ds_tablename, df)
             ind_table_list.append(ds_tablename)
+            
              
 
 # Compute indicators
@@ -45,7 +47,7 @@ for table in ind_table_list:
     if table[:-5] not in unique_ind_table_list:
         unique_ind_table_list.append(table[:-5])
         
-# create a CSV file for each indicator with a column per each iterationn year
+# create a CSV file for each indicator with a column per iterationn year
 for ind_table in unique_ind_table_list:
     ind_table_list_for_csv =[] 
     for table in ind_table_list:
@@ -65,4 +67,4 @@ for ind_table in unique_ind_table_list:
 
 
 # test find_table_in_store()
-#print orca.get_table('gridcells').to_frame().head()
+#print orca.get_table('land_use_types').to_frame().head()
