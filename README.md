@@ -26,11 +26,12 @@ activate urbansim2
 
 (In a bash shell, type "source activate urbansim2".)
 
-In addition to Anaconda Python, two other packages (zbox and prettytable) are needed. Install using the following pip commands:
+In addition to Anaconda Python, three other packages (zbox, prettytable and pylogit) are needed. Install using the following pip commands:
    
    ```
    pip install zbox
    pip install prettytable
+   pip install pylogit
    ```
    
 2. Clone this repository into a directory called ``psrc_urbansim``:
@@ -55,14 +56,14 @@ In addition to Anaconda Python, two other packages (zbox and prettytable) are ne
 4. Set the environment variable PYTHONPATH to point to those directories, as well as this repository, ``psrc_urbansim``. If you plan to switch between Opus and UrbanSim-2, put these settings into a  file that can be executed prior to working in the UrbanSim-2 environment. E.g. create a file ``setpath.bat`` with 
 
    ```
-   SET PYTHONPATH=D:/udst/psrc_urbansim;D:/udst/urbansim;D:/udst/urbansim_defaults;D:/udst/orca;D:/udst/pandana
+   SET PYTHONPATH=D:/udst/psrc_urbansim;D:/udst/urbansim;D:/udst/urbansim_defaults;D:/udst/orca;D:/udst/choicemodels;D:/udst/developer;D:/udst/pandana
    ```
    
    If you prefer to work with Git Bash, you can put something like this into a file called ``setpath.sh``:
    
    ```
    DIR=/d/udst
-   export PYTHONPATH=$DIR/psrc_urbansim:$DIR/urbansim:$DIR/urbansim_defaults:$DIR/orca:$DIR/pandana
+   export PYTHONPATH=$DIR/psrc_urbansim:$DIR/urbansim:$DIR/urbansim_defaults:$DIR/orca:$DIR/choicemodels:$DIR/developer:$DIR/pandana
    ```
    
 5. Set the PATH variable to point to the Anaconda directory. E.g. add this line to the ``setpath.bat`` file:

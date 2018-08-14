@@ -65,7 +65,7 @@ def hlcm_simulate(households, buildings, persons, settings):
     orca.clear_cache()
 
     # Determine which relocated persons get disconnected from their job
-    if settings['remove_jobs_from_workers']:
+    if settings.get('remove_jobs_from_workers', False):
         persons_df = persons.to_frame()
         relocated_workers = persons_df.loc[(persons_df.employment_status > 0) &
                                        (persons_df.household_id.isin
