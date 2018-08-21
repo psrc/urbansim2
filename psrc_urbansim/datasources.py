@@ -19,7 +19,20 @@ def year(base_year):
     # outside of a run, return the base/default
     return base_year
 
+@orca.injectable()
+def store_table_names_dict(): 
+    # Dictionary with pairs of orca.table name and the associated name in storage.
+    # Only entries where the names differ.
+    return {'employment_controls': "annual_employment_control_totals",
+            'employment_sector_group_definitions': "employment_adhoc_sector_group_definitions", 
+            'employment_sector_groups': "employment_adhoc_sector_groups",
+            'household_controls': "annual_household_control_totals",
+            'household_relocation_rates': 'annual_household_relocation_rates',
+            'job_relocation_rates': 'annual_job_relocation_rates',
+            'parcel_zoning': 'development_constraints'
+            }
 
+    
 # datasets in alphabetical order
 
 @orca.table('building_sqft_per_job', cache=True)
