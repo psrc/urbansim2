@@ -7,7 +7,7 @@ import data
 
 # Indicators script
 # ==================
-
+print orca.list_tables()
 # List of Indicator tables created during all iterations
 ind_table_list = []
 
@@ -22,7 +22,7 @@ def settings_file():
 @orca.injectable()
 def settings(settings_file):
     return yamlio.yaml_to_dict(str_or_buffer=settings_file)
-
+#print orca.list_tables()
 @orca.step()
 def compute_indicators(settings, iter_var):
     # loop over indicators and datasets from settings and store into file
@@ -40,6 +40,8 @@ def compute_indicators(settings, iter_var):
 orca.run(['compute_indicators'], iter_vars=settings(settings_file())['years'])
 
 # Create CSV files
+
+#print orca.list_tables()
 
 # Creating a unique list of indicators from the tables added in compute_indicators 
 unique_ind_table_list = []

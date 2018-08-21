@@ -35,7 +35,7 @@ def find_table_in_store(table, store, fileyear, base_year):
             if (('%s/%s' % (searchyear, table)) in store_table_list):
                 return store['%s/%s' % (searchyear, table)]
             else:
-                searchyear -= 1
+                searchyear = searchyear - 1
         else:
             return store['%s/%s' % ("base", table)]
     

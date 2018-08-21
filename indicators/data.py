@@ -34,7 +34,10 @@ def store_table_list(store):
 
 def find_table_in_store(table, store, year, base_year):
     searchyear = year
+    #print searchyear
+    #print base_year
     while searchyear > base_year:
+        #print searchyear
         if (('%s/%s' % (searchyear, table)) in store_table_list(store)):
             #print '%s/%s' % (searchyear, table) #for debugging purposes only
             return store['%s/%s' % (searchyear, table)]
@@ -88,9 +91,9 @@ def building_sqft_per_job(store, year, base_year):
 def employment_sectors(store, year, base_year):
     return find_table_in_store('employment_sectors', store, year, base_year)
 
-@orca.table('employment_adhoc_sector_groups', cache=True)
-def employment_adhoc_sector_groups(store, year, base_year):
-    return find_table_in_store('employment_adhoc_sector_groups', store, year, base_year)
+@orca.table('employment_sector_groups', cache=True)
+def employment_sector_groups(store, year, base_year):
+    return find_table_in_store('employment_sector_groups', store, year, base_year)
 
 @orca.table('schools', cache=True)
 def schools(store, year, base_year):
