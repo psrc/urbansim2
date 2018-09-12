@@ -7,7 +7,8 @@ import data
 
 # Indicators script
 # ==================
-print orca.list_tables()
+#print orca.list_tables()
+
 # List of Indicator tables created during all iterations
 ind_table_list = []
 
@@ -22,7 +23,9 @@ def settings_file():
 @orca.injectable()
 def settings(settings_file):
     return yamlio.yaml_to_dict(str_or_buffer=settings_file)
+
 #print orca.list_tables()
+    
 @orca.step()
 def compute_indicators(settings, iter_var):
     # loop over indicators and datasets from settings and store into file
@@ -30,6 +33,7 @@ def compute_indicators(settings, iter_var):
         for ds in value['dataset']:
             ds_tablename = '%s_%s_%s' % (ds, ind, str(iter_var))
             df = orca.get_table(ds)[ind]
+            #print 'ds is %s and ind is %s' % (ds, ind)
             #print orca.get_table(ds)[ind].to_frame().head()
             orca.add_table(ds_tablename, df)
             ind_table_list.append(ds_tablename)
@@ -40,33 +44,35 @@ def compute_indicators(settings, iter_var):
 orca.run(['compute_indicators'], iter_vars=settings(settings_file())['years'])
 
 # Create CSV files
-
 #print orca.list_tables()
-
-# Creating a unique list of indicators from the tables added in compute_indicators 
-unique_ind_table_list = []
-for table in ind_table_list:
-    if table[:-5] not in unique_ind_table_list:
-        unique_ind_table_list.append(table[:-5])
-        
-# create a CSV file for each indicator with a column per iterationn year
-for ind_table in unique_ind_table_list:
-    ind_table_list_for_csv =[] 
-    for table in ind_table_list:
-        if ind_table in table:
-            ind_table_list_for_csv.append(table)
+def create_csv_files():
+    print "now in create_csv_tables()"
     
-    ind_df_list_for_csv = []
-    column_labels = []
-    for table in ind_table_list_for_csv:
-        ind_df_list_for_csv.append(orca.get_table(table).to_frame())
-        column_labels.append(table[table.find('_') + 1:])
+    # Creating a unique list of indicators from the tables added in compute_indicators 
+    unique_ind_table_list = []
+    for table in ind_table_list:
+        if table[:-5] not in unique_ind_table_list:
+            unique_ind_table_list.append(table[:-5])
+            
+    # create a CSV file for each indicator with a column per iterationn year
+    for ind_table in unique_ind_table_list:
+        ind_table_list_for_csv =[] 
+        for table in ind_table_list:
+            if ind_table in table:
+                ind_table_list_for_csv.append(table)
         
-    ind_csv = pd.concat(ind_df_list_for_csv, axis=1)
-    ind_csv.columns = column_labels
-    ind_csv.to_csv('%s.csv' % ind_table)
-    #print ind_csv     
+        ind_df_list_for_csv = []
+        column_labels = []
+        for table in ind_table_list_for_csv:
+            ind_df_list_for_csv.append(orca.get_table(table).to_frame())
+            column_labels.append(table[table.find('_') + 1:])
+            
+        ind_csv = pd.concat(ind_df_list_for_csv, axis=1)
+        ind_csv.columns = column_labels
+        ind_csv.to_csv('%s.csv' % ind_table)
+        #print ind_csv     
 
+create_csv_files()
 
 # test find_table_in_store()
 #print orca.get_table('land_use_types').to_frame().head()
