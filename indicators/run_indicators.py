@@ -34,7 +34,7 @@ def compute_indicators(settings, iter_var):
             ds_tablename = '%s_%s_%s' % (ds, ind, str(iter_var))
             df = orca.get_table(ds)[ind]
             #print 'ds is %s and ind is %s' % (ds, ind)
-            #print orca.get_table(ds)[ind].to_frame().head()
+            print orca.get_table(ds)[ind].to_frame().head()
             orca.add_table(ds_tablename, df)
             ind_table_list.append(ds_tablename)
             
