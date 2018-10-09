@@ -7,9 +7,8 @@ import data
 
 # Indicators script
 # ==================
-#print orca.list_tables()
 
-# List of Indicator tables created during all iterations
+# List of Indicator tables created during each iteration
 ind_table_list = []
 
 # Define injectables
@@ -23,8 +22,6 @@ def settings_file():
 @orca.injectable()
 def settings(settings_file):
     return yamlio.yaml_to_dict(str_or_buffer=settings_file)
-
-#print orca.list_tables()
     
 @orca.step()
 def compute_indicators(settings, iter_var):
@@ -34,20 +31,17 @@ def compute_indicators(settings, iter_var):
             ds_tablename = '%s_%s_%s' % (ds, ind, str(iter_var))
             df = orca.get_table(ds)[ind]
             #print 'ds is %s and ind is %s' % (ds, ind)
-            print orca.get_table(ds)[ind].to_frame().head()
+            #print orca.get_table(ds)[ind].to_frame().head()
             orca.add_table(ds_tablename, df)
             ind_table_list.append(ds_tablename)
-            
+    orca.clear_cache()      
              
 
 # Compute indicators
 orca.run(['compute_indicators'], iter_vars=settings(settings_file())['years'])
 
 # Create CSV files
-#print orca.list_tables()
 def create_csv_files():
-    print "now in create_csv_tables()"
-    
     # Creating a unique list of indicators from the tables added in compute_indicators 
     unique_ind_table_list = []
     for table in ind_table_list:
@@ -70,7 +64,6 @@ def create_csv_files():
         ind_csv = pd.concat(ind_df_list_for_csv, axis=1)
         ind_csv.columns = column_labels
         ind_csv.to_csv('%s.csv' % ind_table)
-        #print ind_csv     
 
 create_csv_files()
 

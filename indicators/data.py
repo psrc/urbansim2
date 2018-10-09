@@ -35,21 +35,14 @@ def store_table_list(store):
 
 def find_table_in_store(table, store, year, base_year):
     searchyear = year
-    #print 'searchyear is %s' % searchyear
-    #print 'base_year is %s' % base_year
-    #print store_table_list(store)
     while searchyear > base_year:
-        #print searchyear
         if (('/%s/%s' % (searchyear, table)) in store_table_list(store)):
-            print 'returning /%s/%s' % (searchyear, table) #for debugging purposes only
             return store['/%s/%s' % (searchyear, table)]
         else:
             searchyear = searchyear - 1
     else:
         if year <> base_year:
             print 'Could not find table /%s/%s. Instead using the base table' % (year, table)
-        print 'returning /%s/%s' % ("base", table) #for debugging purposes only
-        #print store['%s/%s' % ("base", table)]
         return store['/%s/%s' % ("base", table)]
     
 @orca.table('buildings', cache=True, cache_scope='iteration')
