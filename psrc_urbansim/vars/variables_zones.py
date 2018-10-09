@@ -112,7 +112,7 @@ def number_of_households(zones, households):
 
 @orca.column('zones', 'number_of_jobs', cache=True, cache_scope='iteration')
 def number_of_jobs(zones, jobs):
-    return jobs.zone_id.groupby(jobs.zone_id).size().\
+    return jobs.job_zone_id.groupby(jobs.job_zone_id).size().\
            reindex(zones.index).fillna(0)
 
 @orca.column('zones', 'number_of_jobs_per_acre', cache=True, cache_scope='iteration')
@@ -157,7 +157,7 @@ def trip_weighted_average_time_hbw_from_home_am_drive_alone(zones, travel_data):
 
 # Functions
 def number_of_jobs_of_sector(sector, zones, jobs):
-    return (jobs.sector_id==sector).groupby(jobs.zone_id).sum().reindex(zones.index).fillna(0).astype("int32")
+    return (jobs.sector_id==sector).groupby(jobs.job_zone_id).sum().reindex(zones.index).fillna(0).astype("int32")
 
 def generalized_cost_hbw_am_drive_alone_to_zone(zone_id, travel_data):
     return 

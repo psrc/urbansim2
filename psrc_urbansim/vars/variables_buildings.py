@@ -5,7 +5,7 @@ from urbansim.utils import misc
 import urbansim_parcels.utils
 
 #####################
-# BUILDINGS VARIABLES (in alphabetic order)
+# buildings VARIABLES (in alphabetic order)
 #####################
 
 @orca.column('buildings', 'age', cache=True, cache_scope='iteration')
@@ -118,6 +118,10 @@ def mortgage_cost(buildings, parcels):
         buildings.sqft_per_unit.divide(pbsqft).fillna(0) * 
         misc.reindex(parcels.land_value, buildings.parcel_id))
 
+@orca.column('buildings', 'mortgage_cost2', cache=True, cache_scope='iteration')
+def mortgage_cost2(buildings, parcels):
+    return buildings.price_per_unit * .06
+
 @orca.column('buildings', 'multifamily_generic_type', cache=True, cache_scope='iteration')
 def multifamily_generic_type(buildings):
     return ((buildings.building_type_id == 4) | (buildings.building_type_id == 12)).astype("int16")
@@ -197,6 +201,13 @@ def zone_id(buildings, parcels):
 def building_zone_id(buildings, parcels):
     return misc.reindex(parcels.zone_id, buildings.parcel_id)
 
+@orca.column('buildings', 'parcel_land_value', cache=True)
+def parcel_land_value(buildings, parcels):
+    return misc.reindex(parcels.land_cost, buildings.parcel_id)
+
+@orca.column('buildings', 'pbsqft', cache=True)
+def pbsqft(buildings, parcels):
+    return misc.reindex(parcels.building_sqft_pcl, buildings.parcel_id).replace(0, np.nan)
 
 # Functions
 def number_of_jobs_of_sector_from_zone(sector, buildings, zones, jobs):

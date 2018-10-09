@@ -1,0 +1,80 @@
+name: Workplace Location Choice Model
+
+model_type: discretechoice
+
+choosers_fit_filters:
+- job_id > 0
+- work_at_home == 0
+
+choosers_predict_filters:
+- work_at_home == 0
+- employment_status > 0
+
+alts_fit_filters: null
+
+alts_predict_filters: 
+- vacant_jobs > 0
+- home_based_status == 0
+
+interaction_predict_filters: null
+
+choice_column: null
+
+sample_size: 100
+
+estimation_sample_size: 3000
+
+prediction_sample_size: 100
+
+model_expression: logsum_hbw_am_from_home_to_work_wzone_logsum(job_zone_id, household_zone_id,
+    household_income_category, twa_logsum_hbw_1, twa_logsum_hbw_2, twa_logsum_hbw_3,
+    twa_logsum_hbw_4) + ln_am_total_transit_time_walk_from_home_to_work(job_zone_id,
+    household_zone_id) + I(1*(household_district_id == district_id)) + I((household_district_id==19)*1):I((district_id
+    ==19)*1) + I(np.where(is_in_sector_group_basic, edu * 1, 0)) + I(np.where(is_in_sector_group_retail,
+    edu * 1, 0)) + I(np.where(is_in_sector_group_edu, edu * 1, 0))
+
+fitted: true
+
+choice_mode: individual
+
+fit_parameters:
+    Coefficient:
+        I((household_district_id == 19) * 1):I((district_id == 19) * 1): 0.21083438912074112
+        I(1 * (household_district_id == district_id)): 0.5987557417781341
+        I(np.where(is_in_sector_group_basic, edu * 1, 0)): -0.1343182974594891
+        I(np.where(is_in_sector_group_edu, edu * 1, 0)): 0.015354384358309632
+        I(np.where(is_in_sector_group_retail, edu * 1, 0)): -0.07960597405833957
+        ln_am_total_transit_time_walk_from_home_to_work(job_zone_id, household_zone_id): -0.19156461043229472
+        ? logsum_hbw_am_from_home_to_work_wzone_logsum(job_zone_id, household_zone_id,
+            household_income_category, twa_logsum_hbw_1, twa_logsum_hbw_2, twa_logsum_hbw_3,
+            twa_logsum_hbw_4)
+        : 0.6395259442623183
+    Std. Error:
+        I((household_district_id == 19) * 1):I((district_id == 19) * 1): 0.19577263980888934
+        I(1 * (household_district_id == district_id)): 0.053151429005593755
+        I(np.where(is_in_sector_group_basic, edu * 1, 0)): 0.012127122003350387
+        I(np.where(is_in_sector_group_edu, edu * 1, 0)): 0.013166442526298252
+        I(np.where(is_in_sector_group_retail, edu * 1, 0)): 0.011637353061917505
+        ln_am_total_transit_time_walk_from_home_to_work(job_zone_id, household_zone_id): 0.011675381007530756
+        ? logsum_hbw_am_from_home_to_work_wzone_logsum(job_zone_id, household_zone_id,
+            household_income_category, twa_logsum_hbw_1, twa_logsum_hbw_2, twa_logsum_hbw_3,
+            twa_logsum_hbw_4)
+        : 0.021021199506855305
+    T-Score:
+        I((household_district_id == 19) * 1):I((district_id == 19) * 1): 1.076934904318371
+        I(1 * (household_district_id == district_id)): 11.265092077112731
+        I(np.where(is_in_sector_group_basic, edu * 1, 0)): -11.075859335989254
+        I(np.where(is_in_sector_group_edu, edu * 1, 0)): 1.1661756262286682
+        I(np.where(is_in_sector_group_retail, edu * 1, 0)): -6.8405567515902765
+        ln_am_total_transit_time_walk_from_home_to_work(job_zone_id, household_zone_id): -16.40756822485993
+        ? logsum_hbw_am_from_home_to_work_wzone_logsum(job_zone_id, household_zone_id,
+            household_income_category, twa_logsum_hbw_1, twa_logsum_hbw_2, twa_logsum_hbw_3,
+            twa_logsum_hbw_4)
+        : 30.42290446145854
+
+probability_mode: full_product
+
+log_likelihoods:
+    convergence: -8732.520117023669
+    'null': -9790.591815410779
+    ratio: 0.10807024931032905

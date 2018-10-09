@@ -1,10 +1,17 @@
 ## Conversion scripts
 
 To convert Opus cache into an urbansim-2 hdf5 file, run the script ``cache_to_hdf5.py`` with the first argument being the cache directory and the second argument 
-being the name of the output file. For example, to convert the baseyear cache from modelsrv3, do:
+being the name of the output file. For example, to convert the baseyear cache from modelsrv8, do:
 
 ```
-python cache_to_hdf5.py //modelsrv8/d$/opusgit/urbansim_data/data/psrc_parcel/base_year_2014_inputs/urbansim2_cache/2014 psrc_base_year_2014.h5
+python cache_to_hdf5.py //MODELSRV8/d$/opusgit/urbansim_data/data/psrc_parcel/base_year_2014_inputs/urbansim2_cache/2014 psrc_base_year_2014.h5
+```
+To convert Opus estimation cache to urbansim-2 estimation hdf5 file, run the script ''cache_to_hf5.py'' with the first argument being the estimation cache directory, 
+the second argument being the name of the output file, and the final argument being a flag to create an estimation data set. 
+For exmaple, to convert estimation cache on modelrv8, do:
+
+```
+python estimation_cache_to_hdf5.py //MODELSRV8/d$/opusgit/urbansim_data/data/psrc_parcel/base_year_2014_inputs/urbansim2_estimation_cache/2014 psrc_estimation_data.h5 --is-estimation
 ```
 
 To check what was put into the hdf5 file, you can run 

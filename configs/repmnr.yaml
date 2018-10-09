@@ -20,22 +20,22 @@ default_config:
     ytransform: np.exp
 
 models:
-    2:
-        name: 2 # Civic
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(employment_density_wwd)) + 
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + 
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) +             
+    civic:
+        name: 2 
+        model_expression: np.log1p(land_value) ~ np.log1p(employment_density_wwd) + 
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) + 
+            np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone) +             
             np.log1p(parcel_sqft) + np.log1p(income_per_person_wwd) + np.log1p(nonres_building_sqft) +
-            np.log1p(median_parcel_sqft) + subtract_mean(np.log1p(retail_density_wwd))
-    3:
-        name: 3 # Commercial
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(population_density_wwd)) +
-            subtract_mean(np.log1p(retail_density_wwd)) +
-            subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)) + 
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + 
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) + 
+            np.log1p(median_parcel_sqft) + np.log1p(retail_density_wwd)
+    commercial:
+        name: 3
+        model_expression: np.log1p(land_value) ~ np.log1p(population_density_wwd) +
+            np.log1p(retail_density_wwd) +
+            np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone) + 
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) + 
+            np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone) + 
             I(avg_building_age > 60) + I(blds_with_valid_age == 0) + np.log1p(avg_building_age) + 
-            subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)) + I(developable_capacity == 0) +
+            np.log1p(developable_capacity) * (developable_capacity > 0) + I(developable_capacity == 0) +
             np.log1p(parcel_sqft) + 
             I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0) + 
             I(np.log1p(parcel_sqft))*(seattle_cbd + bellevue_cbd > 0) + 
@@ -43,136 +43,136 @@ models:
             np.log1p(income_per_person_wwd) + 
             np.log1p(nonres_building_sqft) + 
             is_waterfront +
-            subtract_mean(np.log1p(building_density_wwd)) + 
-            subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk))
-    7: # Government
+            np.log1p(building_density_wwd) + 
+            np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk)
+    government:
         name: 7
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(employment_density_wwd)) + 
-            subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk)) + 
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + 
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) +
+        model_expression: np.log1p(land_value) ~ np.log1p(employment_density_wwd) + 
+            np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk) + 
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) + 
+            np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone) +
             np.log1p(nonres_building_sqft) +
             np.log1p(income_per_person_wwd) + 
             number_of_good_public_schools_within_3000_radius + np.log1p(parcel_sqft)
-    9: # Hospital
+    hospital:
         name: 9
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone)) + np.log1p(parcel_sqft) +
+        model_expression: np.log1p(land_value) ~ np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) +
+            np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone) + np.log1p(parcel_sqft) +
             np.log1p(nonres_building_sqft) + np.log1p(total_improvement_value) + I(total_improvement_value <= 0)            
 
-    10: # Industrial
+    industrial:
         name: 10
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) + 
+        model_expression: np.log1p(land_value) ~ np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) +
+            np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone) + 
             I(distance_to_arterial < 600) +
-            subtract_mean(np.log1p(building_density_wwd)) + 
+            np.log1p(building_density_wwd) + 
             np.log1p(parcel_sqft) +
             number_of_good_public_schools_within_3000_radius + 
-            subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)) + I(developable_capacity == 0) +
+            np.log1p(developable_capacity) * (developable_capacity > 0) + I(developable_capacity == 0) +
             np.log1p(total_improvement_value) + I(total_improvement_value <= 0) + 
             np.log1p(income_per_person_wwd) + 
-            subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)) + 
-            subtract_mean(np.log1p(employment_density_wwd))
-    18: # Office
+            np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone) + 
+            np.log1p(employment_density_wwd)
+    office:
         name: 18
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd)) +
-            subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)) +         
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) + 
+        model_expression: np.log1p(land_value) ~ np.log1p(retail_density_wwd) +
+            np.log1p(jobs_within_10_min_tt_hbw_am_walk) +         
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) +
+            np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone) + 
             np.log1p(nonres_building_sqft) + 
             np.log1p(parcel_sqft) +           
             number_of_good_public_schools_within_3000_radius + 
-            subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)) + I(developable_capacity == 0) +
+            np.log1p(developable_capacity) * (developable_capacity > 0) + I(developable_capacity == 0) +
             np.log1p(income_per_person_wwd) + 
-            subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)) + 
-            subtract_mean(np.log1p(building_density_wwd))
+            np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone) + 
+            np.log1p(building_density_wwd)
 
-    19: # park and open space
+    park:
         name: 19
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone)) + 
+        model_expression: np.log1p(land_value) ~ np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone) + 
             np.log1p(parcel_sqft) +
             I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0) + 
-            subtract_mean(np.log1p(population_density_wwd)) + is_waterfront +
+            np.log1p(population_density_wwd) + is_waterfront +
             np.log1p(number_of_jobs_per_acre) + 
             np.log1p(total_improvement_value) + I(total_improvement_value <= 0) + 
             I(distance_to_arterial < 600) +
             np.log1p(max_developable_capacity) + 
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone))
-    20: # Parking
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) +
+            np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)
+    parking: 
         name: 20
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd)) +
-            subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)) + 
-            subtract_mean(np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk)) + 
-            subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)) + 
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone)) +
+        model_expression: np.log1p(land_value) ~ np.log1p(retail_density_wwd) +
+            np.log1p(jobs_within_10_min_tt_hbw_am_walk) + 
+            np.log1p(jobs_within_30_min_tt_hbw_am_transit_walk) + 
+            np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone) + 
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) +
+            np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone) +
             I(distance_to_arterial < 300) +
-            subtract_mean(np.log1p(building_density_wwd)) +
+            np.log1p(building_density_wwd) +
             np.log1p(parcel_sqft) +
             number_of_good_public_schools_within_3000_radius + 
-            subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)) + I(developable_capacity == 0) +
+            np.log1p(developable_capacity) * (developable_capacity > 0) + I(developable_capacity == 0) +
             np.log1p(income_per_person_wwd) + 
             is_waterfront +
             np.log1p(number_of_jobs_per_acre) + 
             I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0)
-    25:
-        name: 25 # Transportation
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)) + 
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
+    transportation:
+        name: 25 
+        model_expression: np.log1p(land_value) ~ np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone) + 
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) +
             np.log1p(parcel_sqft) +
-            subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)) + I(developable_capacity == 0) +
+            np.log1p(developable_capacity) * (developable_capacity > 0) + I(developable_capacity == 0) +
             I(distance_to_arterial < 600) +
-            subtract_mean(np.log1p(employment_density_wwd)) + 
+            np.log1p(employment_density_wwd) + 
             np.log1p(total_improvement_value) + I(total_improvement_value <= 0) + 
             is_waterfront + 
-            subtract_mean(np.log1p(population_density_wwd))
-    26:
-        name: 26 # vacant developable
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(population_density_wwd)) +
-            subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)) + 
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) + 
+            np.log1p(population_density_wwd)
+    vacant_developable:
+        name: 26 
+        model_expression: np.log1p(land_value) ~ np.log1p(population_density_wwd) +
+            np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone) + 
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) +
+            np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone) + 
             I(distance_to_arterial < 300) +
             I(distance_to_arterial < 600) +
             I(distance_to_highway < 200) +
             np.log1p(median_parcel_sqft) + 
             np.log1p(parcel_sqft) +
             I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0) + 
-            subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)) + I(developable_capacity == 0) +
+            np.log1p(developable_capacity) * (developable_capacity > 0) + I(developable_capacity == 0) +
             np.log1p(income_per_person_wwd) + 
             is_waterfront + 
-            subtract_mean(np.log1p(building_density_wwd)) +
+            np.log1p(building_density_wwd) +
             avg_school_score +
-            subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)) + 
+            np.log1p(jobs_within_10_min_tt_hbw_am_walk) + 
             np.log1p(number_of_jobs_per_acre)
-    28:
-        name: 28 # Warehousing
+    warehousing:
+        name: 28 
         model_expression: np.log1p(land_value) ~ np.log1p(number_of_jobs_per_acre) + 
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) + 
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) +
+            np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone) + 
             np.log1p(nonres_building_sqft) + 
-            subtract_mean(np.log1p(building_density_wwd)) +
+            np.log1p(building_density_wwd) +
             np.log1p(parcel_sqft) +
             number_of_good_public_schools_within_3000_radius + 
-            subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)) + I(developable_capacity == 0) +
+            np.log1p(developable_capacity) * (developable_capacity > 0) + I(developable_capacity == 0) +
             is_waterfront +
             I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0) + 
             np.log1p(median_parcel_sqft)
-    30:
-        name: 30 # mixed use
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd)) +
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) +
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) + 
+    mix_use:
+        name: 30
+        model_expression: np.log1p(land_value) ~ np.log1p(retail_density_wwd) +
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) +
+            np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone) + 
             np.log1p(building_sqft_pcl) +
             np.log1p(parcel_sqft) +
-            subtract_mean(np.log1p(building_density_wwd)) +
+            np.log1p(building_density_wwd) +
             number_of_good_public_schools_within_3000_radius + 
-            subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)) + I(developable_capacity == 0) +
+            np.log1p(developable_capacity) * (developable_capacity > 0) + I(developable_capacity == 0) +
             np.log1p(income_per_person_wwd) + 
-            subtract_mean(np.log1p(employment_density_wwd)) + 
+            np.log1p(employment_density_wwd) + 
             I(distance_to_arterial < 300) +
-            subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)) + 
+            np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone) + 
             np.log1p(park_area_wwd) + 
             is_waterfront +
             I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0) + 

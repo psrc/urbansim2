@@ -22,238 +22,41 @@ interaction_predict_filters: null
 
 choice_column: null
 
-sample_size: 100
+sample_size: 30
 
-estimation_sample_size: 5000
+estimation_sample_size: null
 
-prediction_sample_size: 100
+prediction_sample_size: 30
 
 default_config:
     model_expression: np.log1p(median_income)
 
 models:
-    1:
-        fit_parameters:
-            Coefficient:
-                is_near_arterial: -0.18610064303249538
-                np.log1p(median_income): 3.0
-                np.log1p(empden_zone_sector(1, building_zone_id)): 3.0
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): -0.9011592883707235
-                np.log1p(number_of_jobs_per_acre): -0.328057647187541
-                np.log1p(population_per_acre): -0.4978709905371837
-                np.log1p(unit_price_trunc): -0.07820959571377899
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 0.03810048257356124
-            Std. Error:
-                is_near_arterial: 0.05247186564736965
-                np.log1p(median_income): 0.1110166159911342
-                np.log1p(empden_zone_sector(1, building_zone_id)): 0.07599501634333156
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 0.05455127262817039
-                np.log1p(number_of_jobs_per_acre): 0.026985431526800326
-                np.log1p(population_per_acre): 0.022692748988321826
-                np.log1p(unit_price_trunc): 0.08426925045832218
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 0.006720661682107094
-            T-Score:
-                is_near_arterial: -3.546674789174842
-                np.log1p(median_income): 27.022981859216284
-                np.log1p(empden_zone_sector(1, building_zone_id)): 39.47627284461063
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): -16.51949157104289
-                np.log1p(number_of_jobs_per_acre): -12.15684273426325
-                np.log1p(population_per_acre): -21.939650889956027
-                np.log1p(unit_price_trunc): -0.9280917450720632
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 5.669156457465925
-        fitted: true
-        log_likelihoods:
-            convergence: -9966.878188749166
-            'null': -13097.104008950704
-            ratio: 0.23900137145297984
+    mining:
         model_expression: trip_weighted_average_time_hbw_from_home_am_drive_alone
             + is_near_arterial + np.log1p(empden_zone_sector(1, building_zone_id))
             + np.log1p(unit_price_trunc) + np.log1p(median_income) + np.log1p(number_of_jobs_per_acre)
             + np.log1p(population_per_acre) + np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd)
         name: 1
-    2:
-        fit_parameters:
-            Coefficient:
-                is_inside_urban_growth_boundary: 0.21519224028083458
-                is_near_arterial: -0.11363978849466906
-                np.log1p(building_sqft): 0.33781293916734617
-                np.log1p(empden_zone_sector(2, building_zone_id)): 1.8025943509912072
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 0.21447019758618016
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.5234226483966682
-                np.log1p(number_of_jobs_per_acre): -0.43297528495552723
-                np.log1p(population_per_acre): -0.19720551659693777
-            Std. Error:
-                is_inside_urban_growth_boundary: 0.08258724096724343
-                is_near_arterial: 0.0404962193873001
-                np.log1p(building_sqft): 0.010323936854348584
-                np.log1p(empden_zone_sector(2, building_zone_id)): 0.035223494449983586
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 0.031192901265204954
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.013473633873341547
-                np.log1p(number_of_jobs_per_acre): 0.026447254498242978
-                np.log1p(population_per_acre): 0.017488127411787912
-            T-Score:
-                is_inside_urban_growth_boundary: 2.605635419715574
-                is_near_arterial: -2.806182656406373
-                np.log1p(building_sqft): 32.7213294630967
-                np.log1p(empden_zone_sector(2, building_zone_id)): 51.17590912369137
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 6.875609157440488
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 38.84791982007865
-                np.log1p(number_of_jobs_per_acre): -16.371275324033803
-                np.log1p(population_per_acre): -11.276537044441417
-        fitted: true
-        log_likelihoods:
-            convergence: -11456.07206501424
-            'null': -14994.434125578071
-            ratio: 0.23597836576759912
+    construction:
         model_expression: is_near_arterial + np.log1p(empden_zone_sector(2, building_zone_id))
             + np.log1p(number_of_jobs_per_acre) + np.log1p(population_per_acre) +
             np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd) + is_inside_urban_growth_boundary
             + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone) + np.log1p(building_sqft)
         name: 2
-    3:
+    aerospace:
         fit_parameters:
-            Coefficient:
-                is_industrial: 1.9060037936745091
-                is_near_arterial: -1.1391927138924571
-                is_near_highway: -3.0
-                np.log1p(empden_zone_sector(3, building_zone_id)): 2.545773165327459
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 0.23629408618725348
-                np.log1p(population_per_acre): -0.18700204136645765
-                np.log1p(unit_price_trunc): -1.2462431693812912
-            Std. Error:
-                is_industrial: 0.052577748578527594
-                is_near_arterial: 0.07276930367721365
-                is_near_highway: 0.5920774732171741
-                np.log1p(empden_zone_sector(3, building_zone_id)): 0.023393336702420275
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 0.042385938278726505
-                np.log1p(population_per_acre): 0.0311806262655627
-                np.log1p(unit_price_trunc): 0.23278995246406994
-            T-Score:
-                is_industrial: 36.25114892144523
-                is_near_arterial: -15.654852476610602
-                is_near_highway: -5.066904477380107
-                np.log1p(empden_zone_sector(3, building_zone_id)): 108.8247135375123
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 5.574822589355051
-                np.log1p(population_per_acre): -5.997379262808175
-                np.log1p(unit_price_trunc): -5.353509273874881
-        fitted: true
-        log_likelihoods:
-            convergence: -4079.979069414105
-            'null': -23016.64058956786
-            ratio: 0.822737855529476
         model_expression: is_near_arterial + is_near_highway + np.log1p(empden_zone_sector(3,
             building_zone_id)) + np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd)
             + np.log1p(population_per_acre) + np.log1p(unit_price_trunc) + is_industrial
         name: 3
-    4:
-        fit_parameters:
-            Coefficient:
-                is_commercial: -0.7781472324781306
-                is_industrial: 2.3721615844681665
-                is_inside_urban_growth_boundary: 1.0448061677313676
-                is_near_arterial: -0.42260629703900165
-                is_near_highway: 0.172211806056864
-                is_office: 1.4219151354208375
-                is_warehouse: 1.4416518321350276
-                np.log1p(median_income): 0.24904352399003754
-                np.log1p(building_sqft): 0.48858633451088757
-                np.log1p(empden_zone_sector(4, building_zone_id)): 1.8294716089228529
-                np.log1p(number_of_jobs_per_acre): -0.4076328890190676
-                np.log1p(unit_price_trunc): 0.09486568336282392
-            Std. Error:
-                is_commercial: 0.1270314525291575
-                is_industrial: 0.06471976112237976
-                is_inside_urban_growth_boundary: 0.09037591072226872
-                is_near_arterial: 0.042377011778868504
-                is_near_highway: 0.07153833892338135
-                is_office: 0.07212979899034574
-                is_warehouse: 0.06847454361779101
-                np.log1p(median_income): 0.04408564277599881
-                np.log1p(building_sqft): 0.008097779959949165
-                np.log1p(empden_zone_sector(4, building_zone_id)): 0.029768786916840456
-                np.log1p(number_of_jobs_per_acre): 0.02132414693834151
-                np.log1p(unit_price_trunc): 0.04661080398531715
-            T-Score:
-                is_commercial: -6.125626504188185
-                is_industrial: 36.6528173672119
-                is_inside_urban_growth_boundary: 11.560670972845049
-                is_near_arterial: -9.972536507393292
-                is_near_highway: 2.4072659310877413
-                is_office: 19.713282933329047
-                is_warehouse: 21.0538363012975
-                np.log1p(median_income): 5.649084561507682
-                np.log1p(building_sqft): 60.335837343986654
-                np.log1p(empden_zone_sector(4, building_zone_id)): 61.45603494134674
-                np.log1p(number_of_jobs_per_acre): -19.116023266850142
-                np.log1p(unit_price_trunc): 2.035272410077018
-        fitted: true
-        log_likelihoods:
-            convergence: -11700.387407138023
-            'null': -22183.104785904226
-            ratio: 0.47255411178633655
+    other_durable_goods:
         model_expression: is_near_arterial + is_near_highway + np.log1p(empden_zone_sector(4,
             building_zone_id)) + is_inside_urban_growth_boundary + np.log1p(unit_price_trunc)
             + is_industrial + np.log1p(median_income) + np.log1p(number_of_jobs_per_acre)
             + np.log1p(building_sqft) + is_commercial + is_office + is_warehouse
         name: 4
-    5:
-        fit_parameters:
-            Coefficient:
-                is_commercial: 1.0932262446571985
-                is_industrial: 3.0
-                is_inside_urban_growth_boundary: 1.2911774198307522
-                is_mixed_use: 1.6113277554783911
-                is_near_arterial: -0.3431714245262905
-                is_near_highway: -0.46116102865948944
-                is_office: 2.032592317078174
-                is_warehouse: 2.4851964924983863
-                np.log1p(median_income): 0.3509122978576223
-                np.log1p(empden_zone_sector(5, building_zone_id)): 1.8040508036634528
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 0.2122057564656928
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.7556424827490059
-                np.log1p(number_of_jobs_per_acre): -0.30967362174045765
-                np.log1p(population_per_acre): -0.3436085170372761
-                np.log1p(unit_price_trunc): -0.3723388850482245
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -0.0035577262978481786
-            Std. Error:
-                is_commercial: 0.10694379787605789
-                is_industrial: 0.09634339171034752
-                is_inside_urban_growth_boundary: 0.10383783515138566
-                is_mixed_use: 0.15514815401120793
-                is_near_arterial: 0.03844975034178502
-                is_near_highway: 0.08298957356262947
-                is_office: 0.10128888544860688
-                is_warehouse: 0.09572603181334689
-                np.log1p(median_income): 0.1388484159194252
-                np.log1p(empden_zone_sector(5, building_zone_id)): 0.029516902181054818
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 0.03542243538471602
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.024783488003872825
-                np.log1p(number_of_jobs_per_acre): 0.024206330270016178
-                np.log1p(population_per_acre): 0.014599975986966007
-                np.log1p(unit_price_trunc): 0.08497387428808839
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 0.009496524549947132
-            T-Score:
-                is_commercial: 10.222437077877007
-                is_industrial: 31.138617260012786
-                is_inside_urban_growth_boundary: 12.434556421061155
-                is_mixed_use: 10.38573591640664
-                is_near_arterial: -8.925192529881036
-                is_near_highway: -5.556855022413949
-                is_office: 20.067278932686985
-                is_warehouse: 25.961553460653114
-                np.log1p(median_income): 2.52730501485346
-                np.log1p(empden_zone_sector(5, building_zone_id)): 61.11924593568522
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 5.990716170725371
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 30.489755220529265
-                np.log1p(number_of_jobs_per_acre): -12.793084217480219
-                np.log1p(population_per_acre): -23.534868642525808
-                np.log1p(unit_price_trunc): -4.381804268284597
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -0.3746345601631688
-        fitted: true
-        log_likelihoods:
-            convergence: -12569.753917115902
-            'null': -21685.746405817637
-            ratio: 0.42036793745112633
+    nondurable_goods:
         model_expression: is_near_arterial + is_near_highway + np.log1p(empden_zone_sector(5,
             building_zone_id)) + is_inside_urban_growth_boundary + np.log1p(unit_price_trunc)
             + np.log1p(median_income) + np.log1p(number_of_jobs_per_acre) + is_commercial
@@ -261,608 +64,86 @@ models:
             + trip_weighted_average_time_hbw_from_home_am_drive_alone + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone)
             + np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd)
         name: 5
-    6:
-        fit_parameters:
-            Coefficient:
-                is_commercial: 0.9272889358004399
-                is_industrial: 2.298841544635384
-                is_inside_urban_growth_boundary: 0.6918955470423521
-                is_near_arterial: -0.25978381699964476
-                is_office: 2.1853880393091676
-                is_warehouse: 2.5940641230892405
-                np.log1p(empden_zone_sector(6, building_zone_id)): 1.5721598101806706
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): -0.5115110823710888
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.31468334731885705
-                np.log1p(number_of_jobs_per_acre): -0.3105195093646885
-                np.log1p(population_per_acre): -0.18591853057583868
-                np.log1p(unit_price_trunc): -0.2543488883967473
-            Std. Error:
-                is_commercial: 0.09200839116085556
-                is_industrial: 0.08487210256813292
-                is_inside_urban_growth_boundary: 0.09043146658528997
-                is_near_arterial: 0.0365515042634166
-                is_office: 0.08110073872810092
-                is_warehouse: 0.07897005329168433
-                np.log1p(empden_zone_sector(6, building_zone_id)): 0.03489017514202508
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): 0.029669662023607792
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.013062122483119346
-                np.log1p(number_of_jobs_per_acre): 0.024817131950122077
-                np.log1p(population_per_acre): 0.017153671894841502
-                np.log1p(unit_price_trunc): 0.06210403889542746
-            T-Score:
-                is_commercial: 10.078308337978521
-                is_industrial: 27.08595021302717
-                is_inside_urban_growth_boundary: 7.6510486135906515
-                is_near_arterial: -7.107335860309729
-                is_office: 26.946586104917237
-                is_warehouse: 32.848706756063436
-                np.log1p(empden_zone_sector(6, building_zone_id)): 45.0602441455506
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): -17.240205903393356
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 24.091287440118077
-                np.log1p(number_of_jobs_per_acre): -12.512304402812388
-                np.log1p(population_per_acre): -10.838410091762837
-                np.log1p(unit_price_trunc): -4.095528936934796
-        fitted: true
-        log_likelihoods:
-            convergence: -13065.38429638529
-            'null': -20239.72296741774
-            ratio: 0.35446822481621054
+    wholesale:
         model_expression: is_near_arterial +  np.log1p(empden_zone_sector(6, building_zone_id))
             + is_inside_urban_growth_boundary + np.log1p(unit_price_trunc) + np.log1p(number_of_jobs_per_acre)
             + is_commercial + is_office + is_warehouse + is_industrial + np.log1p(population_per_acre)
             + + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone) + np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd)
         name: 6
-    7:
-        fit_parameters:
-            Coefficient:
-                is_commercial: 2.062947488548059
-                is_inside_urban_growth_boundary: 1.2328657582577545
-                is_mixed_use: 0.7373731395788853
-                is_near_arterial: -0.3903469437694677
-                is_near_highway: 0.25857682211026817
-                is_warehouse: 0.7032766332413553
-                np.log1p(median_income): 3.0
-                np.log1p(empden_zone_sector(7, building_zone_id)): 1.5561354480560456
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): -0.5260333526074319
-                np.log1p(number_of_jobs_per_acre): -0.647364605148467
-                np.log1p(unit_price_trunc): -0.46844823180732004
-            Std. Error:
-                is_commercial: 0.039837760200350215
-                is_inside_urban_growth_boundary: 0.08479751881310983
-                is_mixed_use: 0.11976952413491675
-                is_near_arterial: 0.0333958963536142
-                is_near_highway: 0.07489024262306027
-                is_warehouse: 0.06123155714034057
-                np.log1p(median_income): 0.06481939999913341
-                np.log1p(empden_zone_sector(7, building_zone_id)): 0.025598885083270094
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): 0.028154791236833263
-                np.log1p(number_of_jobs_per_acre): 0.024218659222397274
-                np.log1p(unit_price_trunc): 0.10742381974204027
-            T-Score:
-                is_commercial: 51.783721729665004
-                is_inside_urban_growth_boundary: 14.538936699019919
-                is_mixed_use: 6.15660072881526
-                is_near_arterial: -11.688470332889365
-                is_near_highway: 3.452743816197051
-                is_warehouse: 11.485525864211978
-                np.log1p(median_income): 46.282440134282446
-                np.log1p(empden_zone_sector(7, building_zone_id)): 60.789188396061945
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd): -18.68361758332817
-                np.log1p(number_of_jobs_per_acre): -26.7299935642097
-                np.log1p(unit_price_trunc): -4.3607482300686895
-        fitted: true
-        log_likelihoods:
-            convergence: -14603.863431291787
-            'null': -21796.270490281324
-            ratio: 0.3299833823495877
+    retail:
         model_expression: is_inside_urban_growth_boundary + is_commercial + is_mixed_use  +
             is_near_arterial + is_near_highway  + is_warehouse + np.log1p(median_income)
             +  np.log1p(number_of_jobs_per_acre)  + np.log1p(generalized_cost_hbw_am_drive_alone_to_seattle_cbd)
             +  np.log1p(empden_zone_sector(7, building_zone_id)) + np.log1p(unit_price_trunc)
         name: 7
-    8:
-        fit_parameters:
-            Coefficient:
-                is_commercial: 0.8342845637907724
-                is_industrial: 1.1371917263710318
-                is_inside_urban_growth_boundary: 1.2175391518181793
-                is_near_arterial: -0.6034339339829199
-                is_near_highway: -0.19626840451934968
-                is_office: 1.8051329641817606
-                is_warehouse: 1.4675494621994067
-                np.log1p(median_income): 0.14783658050026688
-                np.log1p(building_sqft): 0.2837081201759801
-                np.log1p(empden_zone_sector(8, building_zone_id)): 2.176740851174839
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.4886280157517792
-                np.log1p(number_of_jobs_per_acre): -0.6349170593692202
-                np.log1p(population_per_acre): -0.5119789982151536
-            Std. Error:
-                is_commercial: 0.08123013514062997
-                is_industrial: 0.0787105731938364
-                is_inside_urban_growth_boundary: 0.10750150934292954
-                is_near_arterial: 0.044795755564869116
-                is_near_highway: 0.08772858215960794
-                is_office: 0.07112797609119108
-                is_warehouse: 0.06741286811071664
-                np.log1p(median_income): 0.06135209332187361
-                np.log1p(building_sqft): 0.007247901086282133
-                np.log1p(empden_zone_sector(8, building_zone_id)): 0.02548722099763277
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.016710725376736537
-                np.log1p(number_of_jobs_per_acre): 0.022959229810754277
-                np.log1p(population_per_acre): 0.018191712039795215
-            T-Score:
-                is_commercial: 10.270628780149314
-                is_industrial: 14.447763244850593
-                is_inside_urban_growth_boundary: 11.325786579742173
-                is_near_arterial: -13.470783702020206
-                is_near_highway: -2.2372230313978076
-                is_office: 25.37866340900032
-                is_warehouse: 21.76957461280467
-                np.log1p(median_income): 2.409641994196787
-                np.log1p(building_sqft): 39.14348675548916
-                np.log1p(empden_zone_sector(8, building_zone_id)): 85.4051860490013
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 29.240383330816496
-                np.log1p(number_of_jobs_per_acre): -27.654109680622657
-                np.log1p(population_per_acre): -28.14353025681012
-        fitted: true
-        log_likelihoods:
-            convergence: -9793.067673841353
-            'null': -21303.51728038072
-            ratio: 0.5403074738808418
+    transportation:
         model_expression: is_inside_urban_growth_boundary + is_commercial + is_industrial
             + is_near_arterial + is_near_highway  + is_office  + is_warehouse + np.log1p(median_income)
             + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone) + np.log1p(number_of_jobs_per_acre)  +
             np.log1p(population_per_acre) +  np.log1p(building_sqft) + np.log1p(empden_zone_sector(8,
             building_zone_id))
         name: 8
-    9:
-        fit_parameters:
-            Coefficient:
-                is_commercial: -2.9376363110493138
-                is_office: 1.498142830039637
-                np.log1p(median_income): 2.484689106399068
-                np.log1p(building_sqft): 0.4233530663966283
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.10297446436051072
-                np.log1p(unit_price_trunc): -0.2716668023105727
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 0.057728081557773286
-            Std. Error:
-                is_commercial: 0.25332627454844064
-                is_office: 0.047685749117676104
-                np.log1p(median_income): 0.14095887679648722
-                np.log1p(building_sqft): 0.01025070055066397
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.021020515389658708
-                np.log1p(unit_price_trunc): 0.09050029403589986
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 0.008587352986440203
-            T-Score:
-                is_commercial: -11.596255920495068
-                is_office: 31.41699266048244
-                np.log1p(median_income): 17.62704955422139
-                np.log1p(building_sqft): 41.2999154842355
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 4.89876020885626
-                np.log1p(unit_price_trunc): -3.001833366450802
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 6.722453548716163
-        fitted: true
-        log_likelihoods:
-            convergence: -7601.796294916232
-            'null': -9491.25575332151
-            ratio: 0.19907370610512232
+    utilities:
         model_expression: trip_weighted_average_time_hbw_from_home_am_drive_alone
             +  is_commercial + is_office  + np.log1p(median_income) + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone)
             + np.log1p(building_sqft) + np.log1p(unit_price_trunc)
         name: 9
-    10:
-        fit_parameters:
-            Coefficient:
-                is_commercial: 0.7565119782730527
-                is_industrial: 2.0484600809150533
-                is_near_arterial: -0.5110167057993451
-                is_near_highway: -0.03650567010812376
-                is_office: 2.4924497584386023
-                is_tcu: 1.8534092956143144
-                np.log1p(median_income): 3.0
-                np.log1p(empden_zone_sector(10, building_zone_id)): 2.2464048166971144
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): -0.37201194743111077
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.3879105651552798
-                np.log1p(number_of_jobs_per_acre): -0.31306828910534923
-                np.log1p(population_per_acre): -0.10695875288624286
-                np.log1p(unit_price_trunc): -0.513799731848383
-            Std. Error:
-                is_commercial: 0.06207294296119489
-                is_industrial: 0.07232034138639526
-                is_near_arterial: 0.04732665955259441
-                is_near_highway: 0.10026517128416926
-                is_office: 0.0514704305228581
-                is_tcu: 0.18548548713536647
-                np.log1p(median_income): 0.2476282374935292
-                np.log1p(empden_zone_sector(10, building_zone_id)): 0.026187780760977775
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): 0.04297664569328077
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.04294919681858787
-                np.log1p(number_of_jobs_per_acre): 0.024313353171774642
-                np.log1p(population_per_acre): 0.017796015397697547
-                np.log1p(unit_price_trunc): 0.08373910574154071
-            T-Score:
-                is_commercial: 12.187467553229896
-                is_industrial: 28.324812101902012
-                is_near_arterial: -10.797650005943249
-                is_near_highway: -0.3640912356760477
-                is_office: 48.42488654396821
-                is_tcu: 9.992206529137801
-                np.log1p(median_income): 12.114934994351739
-                np.log1p(empden_zone_sector(10, building_zone_id)): 85.7806485093409
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): -8.656141991306534
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 9.03184678385876
-                np.log1p(number_of_jobs_per_acre): -12.876392939036892
-                np.log1p(population_per_acre): -6.010264123511671
-                np.log1p(unit_price_trunc): -6.135720310104778
-        fitted: true
-        log_likelihoods:
-            convergence: -8235.149482129807
-            'null': -22680.463165990815
-            ratio: 0.6369055860164994
+    telecommunication:
         model_expression: is_commercial + is_industrial + is_near_arterial + is_near_highway  +
             is_office  + is_tcu + np.log1p(median_income) + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone)
             + np.log1p(number_of_jobs_per_acre)  + np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd)
             + +  np.log1p(population_per_acre) +  np.log1p(empden_zone_sector(10,
             building_zone_id)) + np.log1p(unit_price_trunc)
         name: 10
-    11:
-        fit_parameters:
-            Coefficient:
-                is_commercial: 0.3520822105381064
-                is_industrial: 1.1125425129070807
-                is_inside_urban_growth_boundary: 1.2978582858228445
-                is_mixed_use: 0.45684569403242375
-                is_near_highway: 0.3170018836798346
-                is_office: 2.0462164505588905
-                np.log1p(median_income): 3.0
-                np.log1p(empden_zone_sector(11, building_zone_id)): 1.8069808664841585
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.6673775453910117
-                np.log1p(number_of_jobs_per_acre): -0.23455168926028533
-                np.log1p(population_per_acre): -0.1768625293849757
-                np.log1p(unit_price_trunc): -0.26380615021609194
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -0.1919599226434755
-            Std. Error:
-                is_commercial: 0.0861462690957195
-                is_industrial: 0.1295830655791318
-                is_inside_urban_growth_boundary: 0.2892976511175542
-                is_mixed_use: 0.13921467345514307
-                is_near_highway: 0.0796938095340791
-                is_office: 0.06434041693701557
-                np.log1p(median_income): 0.22707148658098725
-                np.log1p(empden_zone_sector(11, building_zone_id)): 0.025267390306190022
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.04569523425896363
-                np.log1p(number_of_jobs_per_acre): 0.030351795058211204
-                np.log1p(population_per_acre): 0.018749314205647037
-                np.log1p(unit_price_trunc): 0.05804786249536148
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 0.015524630930516384
-            T-Score:
-                is_commercial: 4.0870279610936855
-                is_industrial: 8.585554817173934
-                is_inside_urban_growth_boundary: 4.486238587866959
-                is_mixed_use: 3.2815915355332557
-                is_near_highway: 3.977747902040955
-                is_office: 31.802971568586234
-                np.log1p(median_income): 13.211698417846138
-                np.log1p(empden_zone_sector(11, building_zone_id)): 71.51434495558028
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 14.604970435403734
-                np.log1p(number_of_jobs_per_acre): -7.7277699328966385
-                np.log1p(population_per_acre): -9.43301325291712
-                np.log1p(unit_price_trunc): -4.544631600124334
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -12.364862231033436
-        fitted: true
-        log_likelihoods:
-            convergence: -5023.7878396153255
-            'null': -21616.668853027833
-            ratio: 0.7675965768004238
+    information:
         model_expression: trip_weighted_average_time_hbw_from_home_am_drive_alone
             + is_inside_urban_growth_boundary + is_commercial + is_industrial + is_mixed_use  +
             is_near_highway  + is_office  + np.log1p(median_income) + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone)
             + np.log1p(number_of_jobs_per_acre)  + np.log1p(population_per_acre) +  np.log1p(empden_zone_sector(11,
             building_zone_id)) + np.log1p(unit_price_trunc)
         name: 11
-    12:
-        fit_parameters:
-            Coefficient:
-                is_commercial: 0.9292030225718075
-                is_mixed_use: 1.098078017006103
-                is_near_highway: 0.24941433998827586
-                is_office: 2.1425329913430624
-                np.log1p(median_income): 3.0
-                np.log1p(empden_zone_sector(12, building_zone_id)): 1.0883595195576647
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): -0.1636755055610035
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.39938550666561584
-                np.log1p(population_per_acre): -0.1986200314530622
-                np.log1p(unit_price_trunc): -0.2909224303121642
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -0.11868158423562841
-            Std. Error:
-                is_commercial: 0.056682812680818366
-                is_mixed_use: 0.10659231176075927
-                is_near_highway: 0.06998006878525426
-                is_office: 0.048599334698291176
-                np.log1p(median_income): 0.1603479128404549
-                np.log1p(empden_zone_sector(12, building_zone_id)): 0.01512558522089602
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): 0.028511887344692517
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.028662644999967214
-                np.log1p(population_per_acre): 0.014354197903196388
-                np.log1p(unit_price_trunc): 0.04076171384017504
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 0.011227778593499495
-            T-Score:
-                is_commercial: 16.393029537968793
-                is_mixed_use: 10.301662463899651
-                is_near_highway: 3.5640768052635985
-                is_office: 44.08564447731827
-                np.log1p(median_income): 18.709317426444958
-                np.log1p(empden_zone_sector(12, building_zone_id)): 71.95487008688393
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): -5.74060578951718
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 13.934007369734115
-                np.log1p(population_per_acre): -13.837069322336259
-                np.log1p(unit_price_trunc): -7.137149126085787
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -10.570353097659144
-        fitted: true
-        log_likelihoods:
-            convergence: -10959.756060373182
-            'null': -20023.279968676354
-            ratio: 0.4526493123245442
+    finance:
         model_expression: trip_weighted_average_time_hbw_from_home_am_drive_alone
             + is_commercial + is_mixed_use  + is_near_highway  + is_office  + np.log1p(median_income)
             + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone) + np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd)
             + np.log1p(population_per_acre) + np.log1p(empden_zone_sector(12, building_zone_id))
             + np.log1p(unit_price_trunc)
         name: 12
-    13:
-        fit_parameters:
-            Coefficient:
-                is_industrial: 0.21989691220027013
-                is_inside_urban_growth_boundary: 0.1962194369704239
-                is_mixed_use: 1.044245727497169
-                is_near_arterial: -0.4625006198113037
-                is_near_highway: -0.14665080705130348
-                is_office: 2.036419866692284
-                np.log1p(median_income): 1.6060057070020317
-                np.log1p(empden_zone_sector(13, building_zone_id)): 1.2476162745558956
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.5635031804198098
-                np.log1p(number_of_jobs_per_acre): -0.2947157620551698
-                np.log1p(population_per_acre): -0.20838967927045227
-                np.log1p(unit_price_trunc): -0.13390142157555593
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -0.07282712701884286
-            Std. Error:
-                is_industrial: 0.10429348491262871
-                is_inside_urban_growth_boundary: 0.10373741946494942
-                is_mixed_use: 0.0976969363841454
-                is_near_arterial: 0.03989560326407269
-                is_near_highway: 0.07497080813520322
-                is_office: 0.0404315783028108
-                np.log1p(median_income): 0.11620618663277432
-                np.log1p(empden_zone_sector(13, building_zone_id)): 0.02948043480627921
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.026188786988231273
-                np.log1p(number_of_jobs_per_acre): 0.030025969310176082
-                np.log1p(population_per_acre): 0.014567137703914133
-                np.log1p(unit_price_trunc): 0.038029215208538844
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 0.009668548943949667
-            T-Score:
-                is_industrial: 2.1084434217965535
-                is_inside_urban_growth_boundary: 1.8915010415959124
-                is_mixed_use: 10.688623063789674
-                is_near_arterial: -11.59277168338499
-                is_near_highway: -1.9561054588985052
-                is_office: 50.36706337409323
-                np.log1p(median_income): 13.820311581836904
-                np.log1p(empden_zone_sector(13, building_zone_id)): 42.32014496238565
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 21.516963755252853
-                np.log1p(number_of_jobs_per_acre): -9.815362129051662
-                np.log1p(population_per_acre): -14.3054650478425
-                np.log1p(unit_price_trunc): -3.5210145894751603
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -7.532374034721749
-        fitted: true
-        log_likelihoods:
-            convergence: -10169.104210430312
-            'null': -18775.278848273894
-            ratio: 0.45837799307224625
+    professional:
         model_expression: trip_weighted_average_time_hbw_from_home_am_drive_alone
             + is_inside_urban_growth_boundary + is_industrial + is_mixed_use  + is_near_arterial
             + is_near_highway  + is_office  + np.log1p(median_income) + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone)
             + np.log1p(number_of_jobs_per_acre)  + np.log1p(population_per_acre) +  np.log1p(empden_zone_sector(13,
             building_zone_id)) + np.log1p(unit_price_trunc)
         name: 13
-    14:
-        fit_parameters:
-            Coefficient:
-                is_commercial: 2.513192166675498
-                is_inside_urban_growth_boundary: 0.7227963749946049
-                is_mixed_use: 2.1786412013204473
-                is_near_arterial: 0.06236256000671563
-                is_office: 1.0414580979740722
-                np.log1p(median_income): -0.3269184570711401
-                np.log1p(empden_zone_sector(14, building_zone_id)): 0.9609178824261335
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.21134261104145197
-                np.log1p(number_of_jobs_per_acre): -0.14742415070651815
-                np.log1p(population_per_acre): -0.24625720624293704
-                np.log1p(unit_price_trunc): -0.20424194194892398
-            Std. Error:
-                is_commercial: 0.04463103797203461
-                is_inside_urban_growth_boundary: 0.09095505915207591
-                is_mixed_use: 0.07936762160070973
-                is_near_arterial: 0.03183099925460265
-                is_office: 0.06432469017195837
-                np.log1p(median_income): 0.05581942070140507
-                np.log1p(empden_zone_sector(14, building_zone_id)): 0.028250652643622323
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.013666581062792156
-                np.log1p(number_of_jobs_per_acre): 0.022808685248253552
-                np.log1p(population_per_acre): 0.012521866964505714
-                np.log1p(unit_price_trunc): 0.04339665343698186
-            T-Score:
-                is_commercial: 56.310412682990716
-                is_inside_urban_growth_boundary: 7.946741849577569
-                is_mixed_use: 27.44999985360485
-                is_near_arterial: 1.95917694910876
-                is_office: 16.190643051524315
-                np.log1p(median_income): -5.85671533246333
-                np.log1p(empden_zone_sector(14, building_zone_id)): 34.01400649209652
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 15.464190353858227
-                np.log1p(number_of_jobs_per_acre): -6.463509365047963
-                np.log1p(population_per_acre): -19.66617333828684
-                np.log1p(unit_price_trunc): -4.706398437969703
-        fitted: true
-        log_likelihoods:
-            convergence: -15885.816062541999
-            'null': -22040.34451013863
-            ratio: 0.27923921265230356
+    food:
         model_expression: is_inside_urban_growth_boundary + is_commercial + is_mixed_use  +
             is_near_arterial + is_office  + np.log1p(median_income) + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone)
             + np.log1p(number_of_jobs_per_acre)  + np.log1p(population_per_acre) +  np.log1p(empden_zone_sector(14,
             building_zone_id)) + np.log1p(unit_price_trunc)
         name: 14
-    15:
-        fit_parameters:
-            Coefficient:
-                is_commercial: -0.37399341339564246
-                is_industrial: -0.7171728467725964
-                is_inside_urban_growth_boundary: 0.18303683500634052
-                is_near_arterial: -0.23281246726918556
-                is_near_highway: -0.08215923929733117
-                np.log1p(median_income): 1.3900080153005216
-                np.log1p(empden_zone_sector(15, building_zone_id)): 2.125339813681199
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.8318183917739782
-                np.log1p(number_of_jobs_per_acre): -0.10809859834428315
-                np.log1p(population_per_acre): -0.16892044018083013
-                np.log1p(unit_price_trunc): -0.5807189365441153
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -0.052755516867667135
-            Std. Error:
-                is_commercial: 0.05695180045710734
-                is_industrial: 0.13622805871997454
-                is_inside_urban_growth_boundary: 0.1032237698695863
-                is_near_arterial: 0.04390270210189025
-                is_near_highway: 0.11151085021454551
-                np.log1p(median_income): 0.050624575378832214
-                np.log1p(empden_zone_sector(15, building_zone_id)): 0.022368898441030346
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.015524298028280913
-                np.log1p(number_of_jobs_per_acre): 0.01951840483268203
-                np.log1p(population_per_acre): 0.0183794554217785
-                np.log1p(unit_price_trunc): 0.10147011122703488
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 0.00770012277180972
-            T-Score:
-                is_commercial: -6.5668409144906965
-                is_industrial: -5.264501700393389
-                is_inside_urban_growth_boundary: 1.7732043233607013
-                is_near_arterial: -5.302918866562469
-                is_near_highway: -0.7367824668115954
-                np.log1p(median_income): 27.457178749626202
-                np.log1p(empden_zone_sector(15, building_zone_id)): 95.01316389289765
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 53.5817072217139
-                np.log1p(number_of_jobs_per_acre): -5.538290617032421
-                np.log1p(population_per_acre): -9.190720633684828
-                np.log1p(unit_price_trunc): -5.723054104521305
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -6.851256587856752
-        fitted: true
-        log_likelihoods:
-            convergence: -9010.914309509157
-            'null': -19157.50797371081
-            ratio: 0.5296405815477396
+    education:
         model_expression: trip_weighted_average_time_hbw_from_home_am_drive_alone
             + is_inside_urban_growth_boundary + is_commercial + is_industrial + is_near_arterial
             + is_near_highway  + np.log1p(median_income) + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone)
             + np.log1p(number_of_jobs_per_acre)  + np.log1p(population_per_acre) +
             np.log1p(empden_zone_sector(15, building_zone_id)) + np.log1p(unit_price_trunc)
         name: 15
-    16:
-        fit_parameters:
-            Coefficient:
-                is_inside_urban_growth_boundary: 1.243596184347425
-                is_near_arterial: -0.38694980467888435
-                is_office: 1.550767730052866
-                np.log1p(median_income): 0.19513832201603698
-                np.log1p(empden_zone_sector(16, building_zone_id)): 1.5339410565705434
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): -0.1434321437673853
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.508446222926575
-                np.log1p(number_of_jobs_per_acre): -0.6234186670543009
-                np.log1p(population_per_acre): -0.13444118308560277
-                np.log1p(unit_price_trunc): 0.06102735435515401
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -0.038328521255550016
-            Std. Error:
-                is_inside_urban_growth_boundary: 0.13563387392170792
-                is_near_arterial: 0.035497933000970906
-                is_office: 0.03487055686673347
-                np.log1p(median_income): 0.10875824170568744
-                np.log1p(empden_zone_sector(16, building_zone_id)): 0.023429529633143428
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): 0.026894964029280894
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.024122980603866313
-                np.log1p(number_of_jobs_per_acre): 0.02544510683488412
-                np.log1p(population_per_acre): 0.016257025390657168
-                np.log1p(unit_price_trunc): 0.0253109640399862
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: 0.009905554869829735
-            T-Score:
-                is_inside_urban_growth_boundary: 9.168772876495936
-                is_near_arterial: -10.900629190671491
-                is_office: 44.472124032303576
-                np.log1p(median_income): 1.7942393969930497
-                np.log1p(empden_zone_sector(16, building_zone_id)): 65.47041620505387
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): -5.333048358466994
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 21.07725538879237
-                np.log1p(number_of_jobs_per_acre): -24.500532503153867
-                np.log1p(population_per_acre): -8.269728308529643
-                np.log1p(unit_price_trunc): 2.411103514616952
-                trip_weighted_average_time_hbw_from_home_am_drive_alone: -3.869396692989985
-        fitted: true
-        log_likelihoods:
-            convergence: -11944.016939601363
-            'null': -19295.663079290418
-            ratio: 0.3809999225981202
+    health:
         model_expression: trip_weighted_average_time_hbw_from_home_am_drive_alone
             + is_inside_urban_growth_boundary + is_near_arterial + is_office  + np.log1p(median_income)
             + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone) + np.log1p(number_of_jobs_per_acre)  +
             np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd) + np.log1p(population_per_acre)
             +  np.log1p(empden_zone_sector(16, building_zone_id)) + np.log1p(unit_price_trunc)
         name: 16
-    17:
-        fit_parameters:
-            Coefficient:
-                is_commercial: 1.2773514906208354
-                is_industrial: 0.4133942361584822
-                is_mixed_use: 0.8678047041254928
-                is_near_arterial: -0.4023406749707891
-                is_office: 0.6975849546248104
-                np.log1p(median_income): 1.7955065939217765
-                np.log1p(empden_zone_sector(17, building_zone_id)): 1.3685713788134666
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): -0.412242237095555
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.357508224686465
-                np.log1p(number_of_jobs_per_acre): -0.44860005608655285
-                np.log1p(unit_price_trunc): 0.047081185132346826
-            Std. Error:
-                is_commercial: 0.039256597978249444
-                is_industrial: 0.0881721517263664
-                is_mixed_use: 0.0865585415922545
-                is_near_arterial: 0.035301110589376676
-                is_office: 0.05184693965673253
-                np.log1p(median_income): 0.12678987653622617
-                np.log1p(empden_zone_sector(17, building_zone_id)): 0.026233162552187914
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): 0.030195972765817473
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 0.020524686329934295
-                np.log1p(number_of_jobs_per_acre): 0.023024213194570146
-                np.log1p(unit_price_trunc): 0.03012869477890778
-            T-Score:
-                is_commercial: 32.53851725329246
-                is_industrial: 4.688489824331502
-                is_mixed_use: 10.025639158910533
-                is_near_arterial: -11.397394253422364
-                is_office: 13.454698758371677
-                np.log1p(median_income): 14.161277248414763
-                np.log1p(empden_zone_sector(17, building_zone_id)): 52.169515440269485
-                np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd): -13.652225755158403
-                np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone): 17.418450101478822
-                np.log1p(number_of_jobs_per_acre): -19.483838700396817
-                np.log1p(unit_price_trunc): 1.5626692585869
-        fitted: true
-        log_likelihoods:
-            convergence: -14966.705083680157
-            'null': -18964.09082589936
-            ratio: 0.2107871017343974
+    other_services:
         model_expression: is_commercial + is_industrial + is_mixed_use  + is_near_arterial
             +  is_office  + np.log1p(median_income) + np.log1p(jobs_within_30_min_tt_hbw_am_drive_alone)
             + np.log1p(number_of_jobs_per_acre)  + np.log1p(generalized_cost_hbw_am_drive_alone_to_bellevue_cbd)
             + np.log1p(empden_zone_sector(17, building_zone_id)) + np.log1p(unit_price_trunc)
         name: 17
 
-fitted: true
+fitted: false
 
 choice_mode: individual
 

@@ -1,0 +1,18 @@
+name: Work-At-Home Choice Model
+
+model_type: binarydiscretechoice
+
+choosers_fit_filters: is_worker == 1
+
+choosers_predict_filters: null
+
+alts_fit_filters:
+
+alts_predict_filters:
+
+interaction_predict_filters: null
+
+choice_column: work_at_home
+
+model_expression: jobs_within_30_min_tt_hbw_am_drive_alone + age + I(1*(persons_under_13 > 0)) + edu + I(1*(employment_status == 2)) + 1
+

@@ -19,40 +19,40 @@ default_config:
     ytransform: np.exp
 
 models:
-    14: # multi-family
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd)) + np.log1p(park_area_wwd) + 
-            subtract_mean(np.log1p(jobs_within_20_min_tt_hbw_am_transit_walk)) + subtract_mean(np.log1p(jobs_within_20_min_tt_hbw_am_drive_alone)) +
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)) + 
+    multi_family:
+        model_expression: np.log1p(land_value) ~ np.log1p(retail_density_wwd) + np.log1p(park_area_wwd) + 
+            np.log1p(jobs_within_20_min_tt_hbw_am_transit_walk) + np.log1p(jobs_within_20_min_tt_hbw_am_drive_alone) +
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) + np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone) + 
             I(avg_building_age > 60) + I(blds_with_valid_age == 0) + np.log1p(avg_building_age) + np.log1p(building_sqft_pcl) +
-            subtract_mean(np.log1p(building_density_wwd)) + np.log1p(parcel_sqft) + number_of_good_public_schools_within_3000_radius +
+            np.log1p(building_density_wwd) + np.log1p(parcel_sqft) + number_of_good_public_schools_within_3000_radius +
             I(distance_to_arterial < 600) + np.log1p(residential_units) + np.log1p(number_of_jobs_per_acre) + np.log1p(income_per_person_wwd) +
-            I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0) + 
-            subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)) + I(developable_capacity == 0) +
+            I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0) + I(is_inside_urban_growth_boundary == 0) + 
+            np.log1p(developable_capacity) * (developable_capacity > 0)) + I(developable_capacity == 0) +
             is_waterfront
         name: 14
-    15: # Condo
+    condo: 
         model_expression: np.log1p(land_value) ~ np.log1p(population_per_acre) + np.log1p(park_area_wwd) + 
-            subtract_mean(np.log1p(jobs_within_20_min_tt_hbw_am_drive_alone)) + subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + 
-            subtract_mean(np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone)) + np.log1p(residential_units) + np.log1p(building_sqft_pcl) + 
+            np.log1p(jobs_within_20_min_tt_hbw_am_drive_alone) + np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) + 
+            np.log1p(trip_weighted_average_time_hbw_from_home_am_drive_alone) + np.log1p(residential_units) + np.log1p(building_sqft_pcl) + 
             np.log1p(parcel_sqft) + I(number_of_good_public_schools_within_3000_radius == 0) + number_of_good_public_schools_within_3000_radius + 
             np.log1p(income_per_person_wwd) + np.log1p(number_of_jobs_per_acre) + np.log1p(total_improvement_value) + I(total_improvement_value <= 0) +
-            subtract_mean(np.log1p(developable_capacity) * (developable_capacity > 0)) + is_waterfront
+            np.log1p(developable_capacity) * (developable_capacity > 0) + is_waterfront
         name: 15
-    24: # single-family
-        model_expression: np.log1p(land_value) ~ subtract_mean(np.log1p(retail_density_wwd)) + np.log1p(park_area_wwd) + np.log1p(median_income) + 
-            subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_walk)) + subtract_mean(np.log1p(jobs_within_20_min_tt_hbw_am_transit_walk)) + 
-            subtract_mean(np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone)) + 
-            subtract_mean(np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd)) + 
+    single_family:
+        model_expression: np.log1p(land_value) ~ np.log1p(retail_density_wwd) + np.log1p(park_area_wwd) + np.log1p(median_income) + 
+            np.log1p(jobs_within_10_min_tt_hbw_am_walk) + np.log1p(jobs_within_20_min_tt_hbw_am_transit_walk) + 
+            np.log1p(jobs_within_10_min_tt_hbw_am_drive_alone) + 
+            np.log1p(generalized_cost_hbw_am_drive_alone_to_cbd) + 
             I(distance_to_arterial < 600) + I(distance_to_highway < 200) + 
             I(avg_building_age > 60) + I(avg_building_age < 10) + avg_building_age + I(blds_with_valid_age == 0) +
             np.log1p(parcel_sqft) + np.log1p(building_sqft_pcl) +
             I(np.log1p(parcel_sqft)*(is_inside_urban_growth_boundary == 0)) + I(is_inside_urban_growth_boundary == 0) +
             I(number_of_good_public_schools_within_3000_radius == 0) +
-            subtract_mean(np.log1p(building_density_wwd)) + 
+            np.log1p(building_density_wwd) + 
             np.log1p(total_improvement_value) + I(total_improvement_value <= 0) +
             avg_school_score + 
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone)) + 
-            subtract_mean(np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone)) +
+            np.log1p(generalized_cost_weighted_access_to_population_hbw_am_drive_alone) + 
+            np.log1p(generalized_cost_weighted_access_to_employment_hbw_am_drive_alone) +
             is_waterfront
         #np.log1p(income_per_person_wwd) + # correlated with median_income
         name: 24

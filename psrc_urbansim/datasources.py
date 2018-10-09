@@ -19,7 +19,20 @@ def year(base_year):
     # outside of a run, return the base/default
     return base_year
 
+@orca.injectable()
+def store_table_names_dict(): 
+    # Dictionary with pairs of orca.table name and the associated name in storage.
+    # Only entries where the names differ.
+    return {'employment_controls': "annual_employment_control_totals",
+            'employment_sector_group_definitions': "employment_adhoc_sector_group_definitions", 
+            'employment_sector_groups': "employment_adhoc_sector_groups",
+            'household_controls': "annual_household_control_totals",
+            'household_relocation_rates': 'annual_household_relocation_rates',
+            'job_relocation_rates': 'annual_job_relocation_rates',
+            'parcel_zoning': 'development_constraints'
+            }
 
+    
 # datasets in alphabetical order
 
 @orca.table('building_sqft_per_job', cache=True)
@@ -41,7 +54,7 @@ def buildings(store):
 @orca.table('buildings_lag1', cache=True)
 def buildings_lag1(store):
     dfname = 'buildings_lag1'
-    if dfname not in store.keys():
+    if dfname not in [x[1:] for x in store.keys()]: 
         dfname = 'buildings'
     return store[dfname]
 
@@ -109,14 +122,28 @@ def household_relocation_rates(store):
 @orca.table('households', cache=True)
 def households(store):
     df = store['households']
+    if not 'previous_building_id' in df.columns:
+        df['previous_building_id'] = df['building_id']
+    if not 'is_inmigrant' in df.columns:
+        df['is_inmigrant'] = 0
     return df
 
 @orca.table('households_lag1', cache=True)
 def households_lag1(store):
     dfname = 'households_lag1'
-    if dfname not in store.keys():
+    if dfname not in [x[1:] for x in store.keys()]: 
         dfname = 'households'
     return store[dfname]
+
+@orca.table('households_for_estimation', cache=True)
+def households_for_estimation(store):
+    dfname = 'households_for_estimation'
+    if dfname not in [x[1:] for x in store.keys()]: 
+        dfname = 'households'
+    df = store[dfname]
+    if 'for_estimation' in df.columns:
+        df = df[df.for_estimation == 1]
+    return df
 
 @orca.table('job_relocation_rates', cache=True)
 def job_relocation_rates(store):
@@ -127,7 +154,19 @@ def job_relocation_rates(store):
 @orca.table('jobs', cache=True)
 def jobs(store):
     df = store['jobs']
-    #df = utils.fill_nas_from_config('jobs', df)
+    # below needed to run urbansim_utilties.lcm_simulate
+    df['number_of_jobs'] = 1
+    df['vacant_jobs'] = 1
+    return df
+
+@orca.table('jobs_for_estimation', cache=True)
+def jobs_for_estimation(store):
+    dfname = 'jobs_for_estimation'
+    if dfname not in [x[1:] for x in store.keys()]: 
+        dfname = 'jobs'
+    df = store[dfname]
+    if 'for_estimation' in df.columns:
+        df = df[df.for_estimation == 1]    
     return df
 
 @orca.table('land_use_types', cache=True)
@@ -156,6 +195,13 @@ def persons(store):
     df = store['persons']
     return df
 
+@orca.table('persons_for_estimation', cache=True)
+def persons(store):
+    df = store['persons_for_estimation']
+    # job_id = -1 is used for workers that have not been assigned a job, so coding non-workers to -2
+    df.job_id = np.where(df.employment_status>0, df.job_id, -2)
+    return df
+
 @orca.table('schools', cache=True)
 def schools(store):
     df = store['schools']
@@ -178,7 +224,7 @@ def tractcity(store):
     return df
 
 @orca.table('travel_data', cache=True)
-def tractcity(store):
+def travel_data(store):
     df = store['travel_data']
     return df
 
@@ -197,12 +243,18 @@ orca.broadcast('buildings', 'jobs', cast_index=True, onto_on='building_id')
 orca.broadcast('fazes', 'zones', cast_index=True, onto_on='faz_id')
 orca.broadcast('gridcells', 'parcels', cast_index=True, onto_on='grid_id')
 orca.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
-orca.broadcast('jobs', 'households', cast_index=True, onto_on='job_id')
+#orca.broadcast('jobs', 'households', cast_index=True, onto_on='job_id')
+orca.broadcast('jobs', 'persons', cast_index=True, onto_on='job_id')
 orca.broadcast('parcels', 'buildings', cast_index=True, onto_on='parcel_id')
 orca.broadcast('parcels', 'schools', cast_index=True, onto_on='parcel_id')
 orca.broadcast('tractcity', 'parcels', cast_index=True, onto_on='tractcity_id')
 orca.broadcast('zones', 'parcels', cast_index=True, onto_on='zone_id')
-
+orca.broadcast('zones', 'persons_for_estimation', cast_index=True, onto_on='household_zone_id')
+orca.broadcast('zones', 'persons', cast_index=True, onto_on='household_zone_id')
+orca.broadcast('buildings', 'households_for_estimation', cast_index=True, onto_on='building_id')
+orca.broadcast('buildings_lag1', 'households_for_estimation', cast_index=True, onto_on='building_id')
+orca.broadcast('households_for_estimation', 'persons_for_estimation', cast_index=True, onto_on='household_id')
+orca.broadcast('jobs', 'households_for_estimation', cast_index=True, onto_on='job_id')
 
 # Assumptions
 

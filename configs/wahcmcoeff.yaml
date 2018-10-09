@@ -1,0 +1,50 @@
+name: Workplace Location Choice Model
+
+model_type: binarydiscretechoice
+
+choosers_fit_filters: is_worker==1
+
+choosers_predict_filters: 
+- employment_status > 0
+- job_id == -1
+
+alts_fit_filters: null
+
+alts_predict_filters: null
+
+interaction_predict_filters: null
+
+choice_column: work_at_home
+
+model_expression: jobs_within_30_min_tt_hbw_am_drive_alone + age + I(1*(persons_under_13
+    > 0)) + edu + I(1*(employment_status ==2)) + 1
+
+fitted: true
+
+log_likelihoods:
+    convergence: -1013.6799401496143
+    'null': -1043.7207992124565
+    ratio: 60.081718125684574
+
+fit_parameters:
+    Coefficient:
+        I(1 * (employment_status == 2)): 0.3742693230223763
+        I(1 * (persons_under_13 > 0)): 0.2143111891006935
+        Intercept: -4.06024070020186
+        age: 0.03620835983681646
+        edu: 0.023217851964759246
+        jobs_within_30_min_tt_hbw_am_drive_alone: 3.662406622009484e-07
+    Std. Error:
+        I(1 * (employment_status == 2)): 0.16414552847865946
+        I(1 * (persons_under_13 > 0)): 0.14896550597286437
+        Intercept: 0.32139795788910425
+        age: 0.0048031668205434
+        edu: 0.0398655813940063
+        jobs_within_30_min_tt_hbw_am_drive_alone: 2.418697771266359e-07
+    T-Score:
+        I(1 * (employment_status == 2)): 2.280106722925657
+        I(1 * (persons_under_13 > 0)): 1.4386631838093613
+        Intercept: -12.633063155935837
+        age: 7.538434784723982
+        edu: 0.5824034456010718
+        jobs_within_30_min_tt_hbw_am_drive_alone: 1.5142059770832614
