@@ -272,14 +272,16 @@ def create_proforma_config(proforma_settings):
 def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, parcel_sales_price_sqft_func, 
                          parcel_is_allowed_func):
 
-    redevelopment_filter = "capacity_opportunity_non_gov"
+    development_filter = "capacity_opportunity_non_gov" # includes empty parcels
     pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
-    if redevelopment_filter is not None:
-        pcl = pcl.loc[parcels[redevelopment_filter] == True]
+    # reduce parcel dataset to those that can be developed
+    if development_filter is not None:
+        pcl = pcl.loc[parcels[development_filter] == True]
     df = orca.DataFrameWrapper("parcels", pcl, copy_col=False)
-    psrcdev.run_feasibility(df, parcel_price_placeholder, parcel_is_allowed_func, cfg="proforma.yaml",
+    # create a feasibility dataset
+    psrcdev.run_feasibility(df, parcel_price_placeholder, parcel_is_allowed_func, cfg = "proforma.yaml",
                                 parcel_custom_callback = parcel_sales_price_sqft_func,
-                                proforma_uses=proforma_settings)
+                                proforma_uses = proforma_settings)
     projects = orca.get_table("feasibility")
     p = projects.local.stack(level=0)
     pp = p.reset_index()

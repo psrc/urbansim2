@@ -61,7 +61,7 @@ def capacity_opportunity_non_gov(parcels):
             parcels.land_use_type_id <> 15
             )*
         (parcels.job_capacity < 500)* # do not turn down buildings with lots of jobs
-        (parcels.improvement_value / parcels.parcel_sqft < 250) # do not turn down expensive mansions
+        (parcels.total_improvement_value / parcels.parcel_sqft < 250) # do not turn down expensive mansions
     )
 
 @orca.column('parcels', 'developable_capacity', cache=True, cache_scope='forever')
