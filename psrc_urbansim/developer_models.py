@@ -4,7 +4,7 @@ import pandas as pd
 import orca
 from developer import sqftproforma, develop
 from urbansim.utils import misc
-from urbansim_parcels.utils import apply_parcel_callbacks, lookup_by_form
+#from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
 
 @orca.injectable("proforma_settings")
 def proforma_settings(land_use_types, building_types, development_templates, development_template_components):
@@ -201,10 +201,46 @@ def run_feasibility(parcels, parcel_price_callback,
     pf = update_sqftproforma(pf, **kwargs)
     sites = (pl.remove_pipelined_sites(parcels) if pipeline
              else parcels.to_frame())  
-    df = apply_parcel_callbacks(sites, parcel_price_callback,
-                                pf, **kwargs)
+    #df = apply_parcel_callbacks(sites, parcel_price_callback,
+    #                            pf, **kwargs)
+    for use in pf.config.uses:
+        # assume we can get the 80th percentile price for new development
+        df[use] = parcel_price_callback(use)    
     orca.add_injectable("pf_config", pf)
-    feasibility = lookup_by_form(df, parcel_use_allowed_callback, pf, **kwargs)
+    #feasibility = lookup_by_form(df, parcel_use_allowed_callback, pf, **kwargs)
+    
+    # convert from cost to yearly rent
+    if residential_to_yearly:
+        df["residential"] *= pf.config.cap_rate
+
+    print "Describe of the yearly rent by use"
+    print df[pf.config.uses].describe()
+
+    d = {}
+    forms = forms_to_test or pf.config.forms
+    for form in forms:
+        print "Computing feasibility for form %s" % form
+        allowed = parcel_use_allowed_callback(form).loc[df.index]
+
+        newdf = df[allowed]
+        if simple_zoning:
+            if form == "residential":
+                # these are new computed in the effective max_dua method
+                newdf["max_far"] = pd.Series()
+                newdf["max_height"] = pd.Series()
+            else:
+                # these are new computed in the effective max_far method
+                newdf["max_dua"] = pd.Series()
+                newdf["max_height"] = pd.Series()
+
+        d[form] = pf.lookup(form, newdf, only_built=only_built,
+                            pass_through=pass_through)
+        if residential_to_yearly and "residential" in pass_through:
+            d[form]["residential"] /= pf.config.cap_rate
+
+    far_predictions = pd.concat(d.values(), keys=d.keys(), axis=1)
+
+    
     orca.add_table('feasibility', feasibility)
     
     

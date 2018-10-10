@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import orca
 from urbansim.utils import misc
-import urbansim_parcels.utils
+import urbansim_defaults.utils
 
 #####################
 # buildings VARIABLES (in alphabetic order)

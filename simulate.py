@@ -1,5 +1,5 @@
 import os
-import urbansim_parcels.models
+#import urbansim_defaults.models
 import psrc_urbansim.models
 import psrc_urbansim.workplace_models
 import psrc_urbansim.developer_models

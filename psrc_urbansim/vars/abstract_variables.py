@@ -3,7 +3,7 @@ import numpy as np
 import scipy.ndimage as ndi
 import orca
 from urbansim.utils import misc
-import urbansim_parcels.utils
+import urbansim_defaults.utils
 
 
 def travel_data_2d(travel_data_column, fill=0):
