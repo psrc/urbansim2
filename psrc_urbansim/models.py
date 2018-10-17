@@ -282,17 +282,17 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
     psrcdev.run_feasibility(df, parcel_price_placeholder, parcel_is_allowed_func, cfg = "proforma.yaml",
                                 parcel_custom_callback = parcel_sales_price_sqft_func,
                                 proforma_uses = proforma_settings)
-    projects = orca.get_table("feasibility")
-    p = projects.local.stack(level=0)
-    pp = p.reset_index()
-    pp.rename(columns = {'level_1':'form'}, inplace=True)
-    pp.to_csv("proforma_projects.csv")
+    #projects = orca.get_table("feasibility")
+    #p = projects.local.stack(level=0)
+    #pp = p.reset_index()
+    #pp.rename(columns = {'level_1':'form'}, inplace=True)
+    #pp.to_csv("proforma_projects.csv")
     return
 
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year, target_vacancy):
     target_units = psrcdev.compute_target_units(target_vacancy)
-    new_buildings = utils.run_developer(None,
+    new_buildings = psrcutils.run_developer(None,
                         households,
                         buildings,
                         "residential_units",
