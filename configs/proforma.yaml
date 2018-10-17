@@ -152,11 +152,13 @@ max_retail_height: 2.0
 
 max_industrial_height: 2.0
 
+proposals_to_keep: 10
+
 only_built: true
 
 parcel_filter: null
 
-residential_to_yearly: true
+residential_to_yearly: false
 
 pass_through: []
 
