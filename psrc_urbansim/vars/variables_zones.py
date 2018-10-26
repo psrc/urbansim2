@@ -24,6 +24,11 @@ def area(zones, parcels):
 def avg_school_score(zones, fazes):
     return misc.reindex(fazes.avg_school_score, zones.faz_id)
 
+@orca.column('zones', 'building_sqft', cache=True, cache_scope='iteration')
+def building_sqft(zones, buildings):
+    return buildings.sqft_per_unit.groupby(buildings.zone_id).sum().\
+           reindex(zones.index).fillna(0)
+	
 @orca.column('zones', 'generalized_cost_hbw_am_drive_alone_to_bellevue_cbd')
 def generalized_cost_hbw_am_drive_alone_to_bellevue_cbd(zones, travel_data):
     """Generalized cost for travel to the Bellevue CBD. It is the minimum of costs for travels to zones that have bellevue_cbd=1.
@@ -105,6 +110,11 @@ def median_parcel_sqft(zones, parcels):
     s = parcels.parcel_sqft.groupby(parcels.zone_id).quantile()
     return s.reindex(zones.index).fillna(s.quantile())
 
+@orca.column('zones', 'nonres_sqft', cache=True, cache_scope='iteration')
+def nonres_sqft(zones, buildings):
+    return buildings.non_residential_sqft.groupby(buildings.zone_id).sum().\
+           reindex(zones.index).fillna(0)
+	
 @orca.column('zones', 'number_of_households', cache=True, cache_scope='iteration')
 def number_of_households(zones, households):
     return households.persons.groupby(households.zone_id).size().\
@@ -128,6 +138,11 @@ def population(zones, households):
 def population_per_acre(zones):
     return (zones.population/zones.acres).replace(np.inf,0).fillna(0)
 
+@orca.column('zones', 'residential_units', cache=True, cache_scope='iteration')
+def residetial_units(zones, buildings):
+    return buildings.residential_units.groupby(buildings.zone_id).sum().\
+           reindex(zones.index).fillna(0)
+	
 def trip_weighted_average_logsum_hbw_am_income_category(zones, travel_data, income_category):
     return abstract_trip_weighted_average_from_home(travel_data["logsum_hbw_am_income_%s" % income_category], 
                                                     travel_data["am_pk_period_drive_alone_vehicle_trips"],

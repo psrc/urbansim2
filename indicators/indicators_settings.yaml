@@ -9,4 +9,15 @@ indicators:
         
     number_of_jobs:
         dataset: [zones, fazes]
-        
+
+    building_sqft:
+        dataset: [zones, fazes]
+
+    nonres_sqft:
+        dataset: [zones, fazes]
+
+    residential_units:
+        dataset: [zones, fazes]
+
+    population:
+        dataset: [zones, fazes]

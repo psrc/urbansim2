@@ -193,7 +193,7 @@ def vacant_residential_units(buildings, households):
     return buildings.residential_units.sub(
         households.building_id.value_counts(), fill_value=0)
 
-@orca.column('buildings', 'zone_id', cache=True)
+@orca.column('buildings', 'zone_id', cache=True, cache_scope='iteration')
 def zone_id(buildings, parcels):
     return misc.reindex(parcels.zone_id, buildings.parcel_id)
 

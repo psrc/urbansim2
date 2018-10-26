@@ -17,7 +17,17 @@ def avg_school_score(fazes, schools):
     valid_idx = schools.total_score > 0
     res = ndi.mean(schools.total_score.values[valid_idx.values], labels=schools.faz_id.values[valid_idx.values], index=fazes.index)
     return pd.Series(res, index=fazes.index).fillna(0)
-    
+ 
+@orca.column('fazes', 'building_sqft', cache=True, cache_scope='iteration')
+def building_sqft(fazes, buildings):
+    return buildings.sqft_per_unit.groupby(buildings.faz_id).sum().\
+           reindex(fazes.index).fillna(0)
+
+@orca.column('fazes', 'nonres_sqft', cache=True, cache_scope='iteration')
+def nonres_sqft(fazes, buildings):
+    return buildings.non_residential_sqft.groupby(buildings.faz_id).sum().\
+           reindex(fazes.index).fillna(0)
+ 
 @orca.column('fazes', 'number_of_households', cache=True, cache_scope='iteration')
 def number_of_households(fazes, households):
     return households.persons.groupby(households.faz_id).size().\
@@ -26,4 +36,14 @@ def number_of_households(fazes, households):
 @orca.column('fazes', 'number_of_jobs', cache=True, cache_scope='iteration')
 def number_of_jobs(fazes, jobs):
     return jobs.sector_id.groupby(jobs.faz_id).size().\
+           reindex(fazes.index).fillna(0)
+		   
+@orca.column('fazes', 'population', cache=True, cache_scope='iteration')
+def population(fazes, households):
+    return households.persons.groupby(households.faz_id).sum().\
+           reindex(fazes.index).fillna(0)
+		   
+@orca.column('fazes', 'residential_units', cache=True, cache_scope='iteration')
+def residetial_units(fazes, buildings):
+    return buildings.residential_units.groupby(buildings.faz_id).sum().\
            reindex(fazes.index).fillna(0)
