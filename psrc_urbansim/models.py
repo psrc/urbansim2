@@ -292,7 +292,7 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
 @orca.step('residential_developer')
 def residential_developer(feasibility, households, buildings, parcels, year, target_vacancy):
     target_units = psrcdev.compute_target_units(target_vacancy)
-    new_buildings = psrcutils.run_developer(None,
+    new_buildings = psrcdev.run_developer(None,
                         households,
                         buildings,
                         "residential_units",
@@ -311,7 +311,7 @@ def residential_developer(feasibility, households, buildings, parcels, year, tar
 @orca.step('non_residential_developer')
 def non_residential_developer(feasibility, jobs, buildings, parcels, year, target_vacancy):
     target_units = psrcdev.compute_target_units(target_vacancy)
-    new_buildings = psrcutils.run_developer(None,
+    new_buildings = psrcdev.run_developer(None,
                         jobs.local[jobs.home_based_status == 0], # count only non-home-based jobs
                         buildings,
                         "job_spaces",
