@@ -2,7 +2,8 @@ import pandas as pd
 import orca
 import numpy as np
 from urbansim.utils import misc
-from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_number_unplaced
+from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_number_unplaced, _remove_developed_buildings
+from developer import develop
 import os
 
 def change_store(store_name):
@@ -18,7 +19,7 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
                   remove_developed_buildings=True,
                   unplace_agents=['households', 'jobs'],
                   num_units_to_build=None, profit_to_prob_func=None,
-                  custom_selection_func=None, pipeline=False):
+                  custom_selection_func=None, pipeline=False, keep_suboptimal=True):
     """
     Run the developer model to pick and build buildings
 
@@ -80,6 +81,9 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
         build (i.e. df.index.values)
     pipeline : bool
         Passed to add_buildings
+    keep_suboptimal: optional, int
+        Whether or not to retain all proposals in the feasibility table
+        instead of dropping sub-optimal forms and proposals.
 
 
     Returns
@@ -97,7 +101,8 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     dev = develop.Developer.from_yaml(feasibility.to_frame(), forms,
                                       target_units, parcel_size,
                                       ave_unit_size, current_units,
-                                      year, str_or_buffer=cfg)
+                                      year, str_or_buffer=cfg, 
+                                      keep_suboptimal=keep_suboptimal)
 
     print("{:,} feasible buildings before running developer".format(
         len(dev.feasibility)))
@@ -117,3 +122,114 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     # This is a change from previous behavior, which return the newly merged
     # "all buildings" table
     return new_buildings
+
+def add_buildings(feasibility, buildings, new_buildings,
+                  form_to_btype_callback, add_more_columns_callback,
+                  supply_fname, remove_developed_buildings, unplace_agents,
+                  pipeline=False):
+    """
+    Parameters
+    ----------
+    feasibility : DataFrame
+        Results from SqFtProForma lookup() method
+    buildings : DataFrameWrapper
+        Wrapper for current buildings table
+    new_buildings : DataFrame
+        DataFrame of selected buildings to build or add to pipeline
+    form_to_btype_callback : func
+        Callback function to assign forms to building types
+    add_more_columns_callback : func
+        Callback function to add columns to new_buildings table; this is
+        useful for making sure new_buildings table has all required columns
+        from the buildings table
+    supply_fname : str
+        Name of supply column for this type (e.g. units or job spaces)
+    remove_developed_buildings : bool
+        Remove all buildings on the parcels which are being developed on
+    unplace_agents : list of strings
+        For all tables in the list, will look for field building_id and set
+        it to -1 for buildings which are removed - only executed if
+        remove_developed_buildings is true
+    pipeline : bool
+        If True, will add new buildings to dev_sites table and pipeline rather
+        than directly to buildings table
+
+    Returns
+    -------
+    new_buildings : DataFrame
+    """
+
+    if form_to_btype_callback is not None:
+        new_buildings["building_type_id"] = new_buildings.apply(
+            form_to_btype_callback, axis=1)
+
+    # This is where year_built gets assigned
+    if add_more_columns_callback is not None:
+        new_buildings = add_more_columns_callback(new_buildings)
+
+    print("Adding {:,} buildings with {:,} {}".format(
+        len(new_buildings),
+        int(new_buildings[supply_fname].sum()),
+        supply_fname))
+
+    print("{:,} feasible buildings after running developer".format(
+        len(feasibility)))
+
+    building_columns = buildings.local_columns + ['construction_time']
+    old_buildings = buildings.to_frame(building_columns)
+    new_buildings = new_buildings[building_columns]
+
+    if remove_developed_buildings:
+        old_buildings = _remove_developed_buildings(
+            old_buildings, new_buildings, unplace_agents)
+
+    if pipeline:
+        # Overwrite year_built
+        current_year = orca.get_injectable('year')
+        new_buildings['year_built'] = ((new_buildings.construction_time // 12)
+                                       + current_year)
+        new_buildings.drop('construction_time', axis=1, inplace=True)
+        pl.add_sites_orca('pipeline', 'dev_sites', new_buildings, 'parcel_id')
+    else:
+        new_buildings.drop('construction_time', axis=1, inplace=True)
+        all_buildings = merge_buildings(old_buildings, new_buildings)
+        orca.add_table("buildings", all_buildings)
+
+    return new_buildings
+
+def merge_buildings(old_df, new_df, return_index=False):
+    """
+    Merge two dataframes of buildings.  The old dataframe is
+    usually the buildings dataset and the new dataframe is a modified
+    (by the user) version of what is returned by the pick method.
+
+    Parameters
+    ----------
+    old_df : DataFrame
+        Current set of buildings
+    new_df : DataFrame
+        New buildings to add, usually comes from this module
+    return_index : bool
+        If return_index is true, this method will return the new
+        index of new_df (which changes in order to create a unique
+        index after the merge)
+
+    Returns
+    -------
+    df : DataFrame
+        Combined DataFrame of buildings, makes sure indexes don't overlap
+    index : pd.Index
+        If and only if return_index is True, return the new index for the
+        new_df DataFrame (which changes in order to create a unique index
+        after the merge)
+    """
+    maxind = np.max(old_df.index.values)
+    new_df = new_df.reset_index(drop=True)
+    new_df.index = new_df.index + maxind + 1
+    concat_df = pd.concat([old_df, new_df], verify_integrity=True)
+    concat_df.index.name = 'building_id'
+
+    if return_index:
+        return concat_df, new_df.index
+
+    return concat_df

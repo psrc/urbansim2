@@ -302,14 +302,16 @@ def residential_developer(feasibility, households, buildings, parcels, year, tar
                         parcels.residential_units,
                         'res_developer.yaml',
                         year=year,
-                        num_units_to_build = target_units,
-                        #target_vacancy=target_vacancy,
-                        #target_vacancy=.15,
+                        # Here we sum up the target units but eventually we want to have
+                        # a framework in place that distinguishes between the building types
+                        num_units_to_build = target_units['single_family_residential'] + target_units['multi_family_residential'] + target_units['condo_residential'],
+                        #num_units_to_build = target_units,
                         add_more_columns_callback=add_extra_columns)
     
 @orca.step('non_residential_developer')
 def non_residential_developer(feasibility, jobs, buildings, parcels, year, target_vacancy):
-    new_buildings = utils.run_developer(None,
+    target_units = psrcdev.compute_target_units(target_vacancy)
+    new_buildings = psrcutils.run_developer(None,
                         jobs.local[jobs.home_based_status == 0], # count only non-home-based jobs
                         buildings,
                         "job_spaces",
@@ -319,7 +321,8 @@ def non_residential_developer(feasibility, jobs, buildings, parcels, year, targe
                         parcels.total_job_spaces,
                         'nonres_developer.yaml',
                         year=year,
-                        target_vacancy=.15,
+                        num_units_to_build = target_units['industrial'] + target_units['office'] + target_units['warehousing'] + target_units['tcu'] + target_units['commercial'],
+                        #num_units_to_build = target_units,
                         add_more_columns_callback=add_extra_columns)
 
 
