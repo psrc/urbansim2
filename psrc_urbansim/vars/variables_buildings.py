@@ -45,7 +45,7 @@ def employment_density_wwd(buildings, parcels):
 def employment_retail_wwd(buildings, parcels):
     return misc.reindex(parcels.employment_retail_wwd, buildings.parcel_id)
 
-@orca.column('buildings', 'faz_id', cache=True)
+@orca.column('buildings', 'faz_id', cache=True, cache_scope='iteration')
 def faz_id(buildings, zones):
     return misc.reindex(zones.faz_id, buildings.zone_id)
 

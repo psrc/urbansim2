@@ -1,7 +1,7 @@
-store: simresult20170228.h5
+store: simresult20180814.h5
 
 base_year: 2014
-years: [2014, 2015]
+years: [2014, 2015, 2016]
 
 indicators:
     number_of_households:
