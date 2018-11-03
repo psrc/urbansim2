@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import orca
 from developer import sqftproforma, develop
+import developer.utils as devutils
 from urbansim.utils import misc
 from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_number_unplaced, _remove_developed_buildings
 
@@ -65,6 +66,57 @@ def parcel_is_allowed_func(form):
         result[pcls] = result[pcls] + 1
     return (result == is_res_bt.index.size)
 
+
+@orca.injectable('proposal_selection', autocall=False)
+def proposal_selection(self, df, p, targets):
+    """
+    Passed to custom_selection_func in Developer.pick().
+    """
+    chunksize = self.config.get("chunk_size", 100)
+    pf = orca.get_injectable("pf_config")
+    uses = pf.uses[pf.residential_uses == self.residential]
+    all_choice_idx = pd.Series([], dtype = "int32")
+    orig_df = df.copy()
+    # remove proposals for which target vacancy is already met
+    proposals_to_remove = filter_by_vacancy(df, uses, targets)
+    if proposals_to_remove.size > 0:
+        df = df.drop(proposals_to_remove)
+        p = p.reindex(df.index)
+        p = p / p.sum()
+        
+    while len(df) > 0:        
+        # sample by chunks
+        choice_idx = pd.Series(weighted_random_choice_multiparcel_by_count(df, p, count = chunksize))
+                    #targets['single_family_residential'] + targets['multi_family_residential'] + targets['condo_residential'])
+        all_choice_idx = pd.concat([all_choice_idx, choice_idx])
+        proposals_to_remove = pd.concat([pd.Series(filter_by_vacancy(orig_df, uses, targets, all_choice_idx)), choice_idx])
+        proposals_to_remove = proposals_to_remove[proposals_to_remove.isin(df.index)]
+        if proposals_to_remove.size > 0:
+            df = df.drop(proposals_to_remove)
+            p = p.reindex(df.index)
+            p = p / p.sum()
+            
+    return all_choice_idx
+
+def filter_by_vacancy(df, uses, targets, choice_idx = None):
+    fdf = orca.get_injectable("pf_config").forms_df
+    vacancy_met = pd.Series([], dtype = "int32")
+    for use in uses:
+        btdistr = fdf[use][df.form]
+        if btdistr.sum() == 0:
+            continue
+        btdistr.index = df.index 
+        if (choice_idx is None and targets[use] == 0) or (choice_idx is not None and target_vacancy_met(df.loc[choice_idx], targets[use], fdf[use])):
+            vacancy_met = pd.concat([vacancy_met, btdistr.index[btdistr > 0].to_series()])
+    return vacancy_met.unique()
+        
+def target_vacancy_met(choices, target, forms_df):    
+    btdistr = forms_df[choices.form]
+    btdistr.index = choices.index
+    units = btdistr*choices.net_units
+    return units.sum() >= target   
+
+
 def update_sqftproforma(default_settings, proforma_uses, **kwargs):
     local_settings = {}
     blduses = proforma_uses[["building_type_id", "building_type_name", "is_residential"]].drop_duplicates()
@@ -96,7 +148,9 @@ def update_sqftproforma(default_settings, proforma_uses, **kwargs):
             new_btype_id[form] = blduses.building_type_id.values[blduses.building_type_name.values == bts[0]][0]
         else: # mixed use
             new_btype_id[form] = 10 # TODO: refine mixed use building types
+            
     local_settings["forms"] = forms
+    local_settings["forms_df"] = pd.DataFrame(forms, index = local_settings["uses"]).transpose()
     local_settings["form_glut"] = form_glut
     local_settings["new_btype_id"] = new_btype_id
     local_settings["forms_to_test"] = None
@@ -363,7 +417,9 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
                                       ave_unit_size, current_units,
                                       year, str_or_buffer=cfg, 
                                       keep_suboptimal=keep_suboptimal)
-
+    # keep developer config
+    dev.config = devutils.yaml_to_dict(yaml_str = None, str_or_buffer=cfg)
+    
     print("{:,} feasible buildings before running developer".format(
         len(dev.feasibility)))
 
@@ -493,3 +549,97 @@ def merge_buildings(old_df, new_df, return_index=False):
         return concat_df, new_df.index
 
     return concat_df
+
+
+def weighted_random_choice_by_count(df, p, target_units = None, count = None):
+    """
+    Proposal selection using weighted random choice. 
+    It can be restricted by number of proposals to select.
+
+    Parameters
+    ----------
+    df : DataFrame
+        Proposals to select from
+    p : Series
+        Weights for each proposal
+    target_units: int (optional)
+        Number of units to build
+    count: int (optional)
+        Number of proposals to select. Only used if target_units is None.
+
+    Returns
+    -------
+    build_idx : ndarray
+        Index of buildings selected for development
+
+    """
+    # We don't know how many developments we will need, as they
+    # differ in net_units. If all developments have net_units of 1
+    # than we need target_units of them. So we choose the smaller
+    # of available developments and target_units.
+    if target_units is not None:
+        num_to_sample = int(min(len(df.index), target_units))
+    else:
+        num_to_sample = count
+    choices = np.random.choice(df.index.values,
+                               size=num_to_sample,
+                               replace=False, p=p)
+    if target_units is None:
+        return choices
+    tot_units = df.net_units.loc[choices].values.cumsum()
+    ind = int(np.searchsorted(tot_units, target_units,
+                              side="left")) + 1
+    return choices[:ind]
+
+
+def weighted_random_choice_multiparcel_by_count(df, p, target_units = None, count = None):
+    """
+    Proposal selection using weighted random choice in the context of multiple
+    proposals per parcel.
+
+    Parameters
+    ----------
+    df : DataFrame
+        Proposals to select from
+    p : Series
+        Weights for each proposal
+    target_units: int
+        Number of units to build
+
+    Returns
+    -------
+    build_idx : ndarray
+        Index of buildings selected for development
+
+    """
+    choice_idx = weighted_random_choice_by_count(df, p, target_units, count)
+    choices = df.loc[choice_idx]
+    new_target = None
+    new_count = None
+    while True:
+        # If multiple proposals sampled for a given parcel, keep only one
+        choice_counts = choices.parcel_id.value_counts()
+        chosen_multiple = choice_counts[choice_counts > 1].index.values
+        single_choices = choices[~choices.parcel_id.isin(chosen_multiple)]
+        duplicate_choices = choices[choices.parcel_id.isin(chosen_multiple)]
+        keep_choice = duplicate_choices.parcel_id.drop_duplicates(keep='first')
+        dup_choices_to_keep = duplicate_choices.loc[keep_choice.index]
+        choices = pd.concat([single_choices, dup_choices_to_keep])
+
+        if choices.net_units.sum() >= target_units:
+            break
+
+        df = df[~df.parcel_id.isin(choices.parcel_id)]
+        if len(df) == 0:
+            break
+
+        p = p.reindex(df.index)
+        p = p / p.sum()
+        if target_units is not None:
+            new_target = target_units - choices.net_units.sum()
+        else:
+            new_count = count - choices.shape[0]
+        next_choice_idx = weighted_random_choice_by_count(df, p, new_target, new_count)
+        next_choices = df.loc[next_choice_idx]
+        choices = pd.concat([choices, next_choices])
+    return choices.index.values

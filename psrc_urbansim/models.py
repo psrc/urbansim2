@@ -290,7 +290,7 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
     return
 
 @orca.step('residential_developer')
-def residential_developer(feasibility, households, buildings, parcels, year, target_vacancy):
+def residential_developer(feasibility, households, buildings, parcels, year, target_vacancy, proposal_selection):
     target_units = psrcdev.compute_target_units(target_vacancy)
     new_buildings = psrcdev.run_developer(None,
                         households,
@@ -304,12 +304,15 @@ def residential_developer(feasibility, households, buildings, parcels, year, tar
                         year=year,
                         # Here we sum up the target units but eventually we want to have
                         # a framework in place that distinguishes between the building types
-                        num_units_to_build = target_units['single_family_residential'] + target_units['multi_family_residential'] + target_units['condo_residential'],
-                        #num_units_to_build = target_units,
-                        add_more_columns_callback=add_extra_columns)
+                        #num_units_to_build = target_units['single_family_residential'] + target_units['multi_family_residential'] + target_units['condo_residential'],
+                        num_units_to_build = target_units,
+                        add_more_columns_callback=add_extra_columns,
+                        custom_selection_func = proposal_selection#,
+                        #custom_selection_func = None
+                        )
     
 @orca.step('non_residential_developer')
-def non_residential_developer(feasibility, jobs, buildings, parcels, year, target_vacancy):
+def non_residential_developer(feasibility, jobs, buildings, parcels, year, target_vacancy, proposal_selection):
     target_units = psrcdev.compute_target_units(target_vacancy)
     new_buildings = psrcdev.run_developer(None,
                         jobs.local[jobs.home_based_status == 0], # count only non-home-based jobs
@@ -323,7 +326,8 @@ def non_residential_developer(feasibility, jobs, buildings, parcels, year, targe
                         year=year,
                         num_units_to_build = target_units['industrial'] + target_units['office'] + target_units['warehousing'] + target_units['tcu'] + target_units['commercial'],
                         #num_units_to_build = target_units,
-                        add_more_columns_callback=add_extra_columns)
+                        add_more_columns_callback=add_extra_columns,
+                        custom_selection_func = proposal_selection)
 
 
 
