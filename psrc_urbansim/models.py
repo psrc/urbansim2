@@ -324,9 +324,9 @@ def non_residential_developer(feasibility, jobs, buildings, parcels, year, targe
                         parcels.total_job_spaces,
                         'nonres_developer.yaml',
                         year=year,
-                        num_units_to_build = target_units['industrial'] + target_units['office'] + target_units['warehousing'] + target_units['tcu'] + target_units['commercial'],
-                        #num_units_to_build = target_units,
-                        add_more_columns_callback=add_extra_columns,
+                        #num_units_to_build = target_units['industrial'] + target_units['office'] + target_units['warehousing'] + target_units['tcu'] + target_units['commercial'],
+                        num_units_to_build = target_units,
+                        add_more_columns_callback = add_extra_columns,
                         custom_selection_func = proposal_selection)
 
 

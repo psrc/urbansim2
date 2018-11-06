@@ -74,7 +74,7 @@ def proposal_selection(self, df, p, targets):
     """
     chunksize = self.config.get("chunk_size", 100)
     pf = orca.get_injectable("pf_config")
-    uses = pf.uses[pf.residential_uses == self.residential]
+    uses = pf.uses[(pf.residential_uses == self.residential).values]
     all_choice_idx = pd.Series([], dtype = "int32")
     orig_df = df.copy()
     # remove proposals for which target vacancy is already met
