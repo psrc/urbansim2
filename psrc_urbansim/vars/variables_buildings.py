@@ -23,7 +23,7 @@ def avg_price_per_unit_in_zone(buildings, zones):
 def building_sqft(buildings):
     results = np.zeros(buildings.local.shape[0],dtype=np.int32)
     where_res = np.where(buildings.residential_units > 0)[0]
-    results[where_res] = buildings.residential_units.iloc[where_res] * buildings.sqft_per_unit.iloc[where_res]
+    results[where_res] = buildings.residential_units.iloc[where_res] * buildings.sqft_per_unit_imputed.iloc[where_res]
     where_nonres = np.where(buildings.non_residential_sqft > 0)[0]
     results[where_nonres] = results[where_nonres] + buildings.non_residential_sqft.iloc[where_nonres]
     return pd.Series(results, index=buildings.index)
@@ -157,6 +157,20 @@ def sqft_per_job(buildings, building_sqft_per_job):
     series2 = pd.DataFrame({'zone_id': buildings.zone_id, 'building_type_id': buildings.building_type_id}, index=buildings.index)
     df = pd.merge(series2, series1, left_on=['zone_id', 'building_type_id'], right_index=True, how="left")   
     return df.building_sqft_per_job
+
+@orca.column('buildings', 'sqft_per_unit_imputed', cache=True, cache_scope='iteration')
+def sqft_per_unit_imputed(buildings):
+    # Imputes sqft_per_unit if missing:
+    # residential: use 1000 for SF and 500 for MF
+    # non-res: use 1 (because the unit is sqft)
+    is_mf = (buildings.is_residential == 1).values & (buildings.building_type_id <> 19) & (buildings.residential_units > 0).values & (buildings.sqft_per_unit == 0).values
+    is_sf = (buildings.building_type_id == 19).values & (buildings.residential_units > 0).values & (buildings.sqft_per_unit == 0).values
+    non_res = (buildings.is_residential == 0).values & (buildings.non_residential_sqft > 0).values & (buildings.sqft_per_unit == 0).values
+    results = buildings.sqft_per_unit.copy()
+    results[is_mf] = results[is_mf].replace(0, 500)
+    results[is_sf] = results[is_sf].replace(0, 1000)
+    results[non_res] = results[non_res].replace(0, 1)
+    return results
 
 @orca.column('buildings', 'tractcity_id', cache=True)
 def tractcity_id(buildings, parcels):

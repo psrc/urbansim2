@@ -14,9 +14,12 @@ def acres_wwd(parcels):
 
 @orca.column('parcels', 'ave_unit_size', cache=True, cache_scope='iteration')
 def ave_unit_size(parcels, buildings):
+    # Median building sqft per residential unit over zones
+    # Values for parcels in zones with no residential buildings are imputed 
+    # using the regional median.
     reg_median = buildings.building_sqft_per_unit.median()
     return buildings.building_sqft_per_unit.groupby(buildings.zone_id).median().\
-           reindex(parcels.index).fillna(reg_median)
+           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
 
 @orca.column('parcels', 'average_income', cache=True, cache_scope='iteration')
 def average_income(parcels, households):
