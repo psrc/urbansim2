@@ -330,6 +330,28 @@ def non_residential_developer(feasibility, jobs, buildings, parcels, year, targe
                         custom_selection_func = proposal_selection)
 
 
+@orca.step('generic_developer')
+def generic_developer(feasibility, buildings, parcels, year, target_vacancy, proposal_selection):
+    target_units = psrcdev.compute_target_units(target_vacancy)
+    new_buildings = psrcdev.run_developer(forms = None,
+                        agents = None,
+                        buildings = buildings,
+                        supply_fname = None,
+                        feasibility = feasibility,
+                        parcel_size = parcels.parcel_size,
+                        ave_unit_size = {"single_family_residential": "ave_unit_size_sf", 
+                                         "multi_family_residential": "ave_unit_size_mf",
+                                         "condo_residential": "ave_unit_size_mf"},
+                        current_units = ["residential_units", "total_job_spaces"] ,
+                        cfg = 'res_developer.yaml',
+                        year = year,
+                        # Here we sum up the target units but eventually we want to have
+                        # a framework in place that distinguishes between the building types
+                        num_units_to_build = target_units,
+                        add_more_columns_callback = add_extra_columns,
+                        custom_selection_func = proposal_selection#,
+                        #custom_selection_func = None
+                        )
 
 def random_type(form):
     form_to_btype = orca.get_injectable("form_to_btype")

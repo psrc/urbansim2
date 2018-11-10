@@ -98,6 +98,7 @@ def proposal_selection(self, df, p, targets):
             
     return all_choice_idx
 
+
 def filter_by_vacancy(df, uses, targets, choice_idx = None):
     fdf = orca.get_injectable("pf_config").forms_df
     vacancy_met = pd.Series([], dtype = "int32")
@@ -168,62 +169,6 @@ def update_sqftproforma_reference(pf):
             pf.reference_dict[(name, config)]['ave_cost_sqft'][pf.fars > pf.max_industrial_height] = np.nan
     return pf      
     
-    
-def run_proforma_feasibility(df, pf, price_per_sqft_func, parcel_is_allowed_func, redevelopment_filter=None
-                    #residential_to_yearly=True
-):
-    """
-    Execute development feasibility on all parcels
-
-    Parameters
-    ----------
-    df : DataFrame 
-        Data frame with the parcel data needed by the pro-forma model
-    pf: sqftproforma
-        sqftproforma object containing the model configuration
-    price_per_sqft_func : function
-        A callback which takes each use of the pro forma and returns a series
-        with index as parcel_id and value as yearly_rent
-    parcel_use_allowed_callback : function
-        A callback which takes each form of the pro forma and returns a series
-        with index as parcel_id and value and boolean whether the form
-        is allowed on the parcel
-    residential_to_yearly : boolean (default true)
-        Whether to use the cap rate to convert the residential price from total
-        sales price per sqft to rent per sqft
-
-    Returns
-    -------
-    Adds a table called feasibility to the sim object (returns nothing)
-    """
-
-    # add prices for each use
-    for use in pf.config.uses:
-        df[use] = price_per_sqft_func(use=use, config=pf.config)
-
-    # convert from cost to yearly rent
-#    if residential_to_yearly:
-#        df["residential"] *= pf.config.cap_rate
-
-    print "Describe of the yearly rent by use"
-    print df[pf.config.uses].describe()
-
-    d = {}
-    residential_forms = []
-    non_residential_forms = []
-    for form, btdistr in pf.config.forms.iteritems():
-        print "Computing feasibility for form %s" % form
-        d[form] = pf.lookup(form, df[parcel_is_allowed_func(form, btdistr, pf.config.form_glut[form], pf.config, redevelopment_filter)])
-        d[form]['building_type_id'] = pf.config.new_btype_id[form]
-        if (pf.config.residential_uses.values[btdistr > 0] == 1).all():
-            residential_forms.append(form)
-        else:
-            non_residential_forms.append(form)
-
-    far_predictions = pd.concat(d.values(), keys=d.keys(), axis=1)
-    far_predictions.residential_forms = residential_forms
-    far_predictions.non_residential_forms = non_residential_forms
-    orca.add_table("feasibility", far_predictions)
 
 
 def run_feasibility(parcels, parcel_price_callback,
@@ -293,15 +238,23 @@ def run_feasibility(parcels, parcel_price_callback,
 
     # Collect results     
     if pf.proposals_to_keep > 1:
+        # feasibility is in long format
         form_feas = []
         for form_name in d.keys():
             df_feas_form = d[form_name]
             df_feas_form['form'] = form_name
             form_feas.append(df_feas_form)
         
-        feasibility = pd.concat(form_feas)
-        feasibility.index.name = 'parcel_id'        
+        feasibility = pd.concat(form_feas, sort=False)
+        feasibility.index.name = 'parcel_id'
+        # create a dataset with disaggregated sqft by building type
+        feas_bt = pd.merge(feasibility.loc[:, ["form", "residential_sqft", "non_residential_sqft"]], pf.forms_df, left_on = "form", right_index = True)
+        feas_bt.set_index(['form'], append = True, inplace = True)
+        feas_bt[pf.uses[pf.residential_uses.values == 1]] = feas_bt[pf.uses[pf.residential_uses.values == 1]].multiply(feas_bt.residential_sqft, axis = "index")
+        feas_bt[pf.uses[pf.residential_uses.values == 0]] = feas_bt[pf.uses[pf.residential_uses.values == 0]].multiply(feas_bt.non_residential_sqft, axis = "index")
+        orca.add_table('feasibility_bt', feas_bt)
     else:
+        # feasibility is in wide format
         feasibility = pd.concat(d.values(), keys = d.keys(), axis=1)        
            
     orca.add_table('feasibility', feasibility)
@@ -411,8 +364,9 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
                     or compute_units_to_build(len(agents),
                                               buildings[supply_fname].sum(),
                                               target_vacancy))
-
-    dev = develop.Developer.from_yaml(feasibility.to_frame(), forms,
+    dev = develop.Developer.from_yaml(
+    #dev = PSRCDeveloper.from_yaml(
+                                      feasibility.to_frame(), forms,
                                       target_units, parcel_size,
                                       ave_unit_size, current_units,
                                       year, str_or_buffer=cfg, 
@@ -643,3 +597,82 @@ def weighted_random_choice_multiparcel_by_count(df, p, target_units = None, coun
         next_choices = df.loc[next_choice_idx]
         choices = pd.concat([choices, next_choices])
     return choices.index.values
+
+
+class PSRCDeveloper(develop.Developer):
+    """
+    Child of the UDST developer class. 
+    The purpose is mostly to write our own methods in order to overwrite some default behavior.
+    """
+    
+    def __init__(self, feasibility, forms, target_units, parcel_size,
+                 ave_unit_size, current_units, *args, **kwargs):
+        develop.Developer.__init__(self, feasibility, forms, target_units, parcel_size, 
+                         ave_unit_size, current_units,  *args, **kwargs)
+        pcl = orca.get_table("parcels")
+        self.current_units_res = pcl[current_units[0]]
+        self.current_units_nonres = pcl[current_units[1]]
+        
+    def _calculate_net_units(self, df):
+        """
+        Helper method to pick(). Calculates the net_units column,
+        and removes buildings that have net_units of 0 or less.
+
+        Parameters
+        ----------
+        df : DataFrame
+            DataFrame of buildings from _remove_infeasible_buildings()
+
+        Returns
+        -------
+        df : DataFrame
+        """
+        if len(df) == 0 or df.empty:
+            return df
+        #TODO: for each proposal compute residential units (from self.ave_unit_size) and 
+        #      job_spaces using feasibility_bt & convert to a common currency
+        #if self.residential:
+        #df['net_units_res'] = df.residential_units - df.current_units_res
+        #else:
+        #df['net_units_nonres'] = df.job_spaces - df.current_units_nonres
+        #TODO: convert to a common currency
+        #df['net_units'] = 
+        return df[df.net_units > 0] 
+    
+    def _remove_infeasible_buildings(self, df):
+        """
+        Helper method to pick(). Removes buildings from the DataFrame if:
+            - max_profit_far is 0 or less
+            - parcel_size is larger than max_parcel_size
+
+        Also calculates useful DataFrame columns from object attributes
+        for later calculations.
+
+        Parameters
+        ----------
+        df : DataFrame
+            DataFrame of buildings from _get_dataframe_of_buildings()
+
+        Returns
+        -------
+        df : DataFrame
+        """
+        if len(df) == 0 or df.empty:
+            return df
+
+        df = df[df.max_profit_far > 0]
+        #self.ave_unit_size[
+        #    self.ave_unit_size < self.min_unit_size
+        #] = self.min_unit_size
+        #df.loc[:, 'ave_unit_size'] = self.ave_unit_size
+        df.loc[:, 'parcel_size'] = self.parcel_size
+        df.loc[:, 'current_units_res'] = self.current_units_res
+        df.loc[:, 'current_units_nonres'] = self.current_units_nonres
+        df = df[df.parcel_size < self.max_parcel_size]
+
+        #df['residential_units'] = (df.residential_sqft /
+        #                           df.ave_unit_size).round()
+        #df['job_spaces'] = (df.non_residential_sqft /
+        #                    self.bldg_sqft_per_job).round()
+
+        return df    

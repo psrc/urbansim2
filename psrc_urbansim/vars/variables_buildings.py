@@ -57,6 +57,10 @@ def has_valid_age_built(buildings, settings):
 def is_commercial(buildings):
     return (buildings.building_type_name == 'commercial').astype("int16")
 
+@orca.column('buildings', 'is_condo', cache=True, cache_scope='iteration')
+def is_condo(buildings):
+    return (buildings.building_type_name == 'condo_residential').astype("int16")
+
 @orca.column('buildings', 'is_governmental', cache=True, cache_scope='iteration')
 def is_governmental(buildings, building_types):
     return (misc.reindex(building_types.generic_building_type_description, buildings.building_type_id) == 'government').astype("int16")
@@ -80,6 +84,10 @@ def is_office(buildings):
 @orca.column('buildings', 'is_residential', cache=True, cache_scope='iteration')
 def is_residential(buildings, building_types):
     return (misc.reindex(building_types.is_residential, buildings.building_type_id) == 1).astype("bool8")
+
+@orca.column('buildings', 'is_singlefamily', cache=True, cache_scope='iteration')
+def is_singlefamily(buildings):
+    return (buildings.building_type_name == 'single_family_residential').astype("int16")
 
 @orca.column('buildings', 'is_tcu', cache=True, cache_scope='iteration')
 def is_tcu(buildings):

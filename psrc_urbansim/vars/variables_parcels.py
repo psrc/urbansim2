@@ -21,6 +21,36 @@ def ave_unit_size(parcels, buildings):
     return buildings.building_sqft_per_unit.groupby(buildings.zone_id).median().\
            reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
 
+@orca.column('parcels', 'ave_unit_size_sf', cache=True, cache_scope='iteration')
+def ave_unit_size_sf(parcels, buildings):
+    # Median building sqft per single-family residential unit over zones
+    # Values for parcels in zones with no residential buildings are imputed 
+    # using the regional median.
+    idx = np.where(buildings.is_singlefamily == 1)[0]
+    reg_median = buildings.building_sqft_per_unit.iloc[idx].median()
+    return buildings.building_sqft_per_unit.iloc[idx].groupby(buildings.zone_id.iloc[idx]).median().\
+           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+
+@orca.column('parcels', 'ave_unit_size_mf', cache=True, cache_scope='iteration')
+def ave_unit_size_mf(parcels, buildings):
+    # Median building sqft per multi-family residential unit over zones
+    # Values for parcels in zones with no residential buildings are imputed 
+    # using the regional median.
+    idx = np.where(buildings.is_multifamily == 1)[0]
+    reg_median = buildings.building_sqft_per_unit.iloc[idx].median()
+    return buildings.building_sqft_per_unit.iloc[idx].groupby(buildings.zone_id.iloc[idx]).median().\
+           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+
+@orca.column('parcels', 'ave_unit_size_condo', cache=True, cache_scope='iteration')
+def ave_unit_size_condo(parcels, buildings):
+    # Median building sqft per multi-family residential unit over zones
+    # Values for parcels in zones with no residential buildings are imputed 
+    # using the regional median.
+    idx = np.where(buildings.is_condo == 1)[0]
+    reg_median = buildings.building_sqft_per_unit.iloc[idx].median()
+    return buildings.building_sqft_per_unit.iloc[idx].groupby(buildings.zone_id.iloc[idx]).median().\
+           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+
 @orca.column('parcels', 'average_income', cache=True, cache_scope='iteration')
 def average_income(parcels, households):
     return households.income.groupby(households.parcel_id).mean().\
