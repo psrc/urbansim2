@@ -13,6 +13,7 @@ import pandas as pd
 from psrc_urbansim.mod.allocation import AgentAllocationModel
 import urbansim.developer as dev
 import developer_models as psrcdev
+import sqftproforma
 from urbansim.utils import misc, yamlio
 import os
 from psrc_urbansim.vars.variables_interactions import network_distance_from_home_to_work
@@ -279,7 +280,7 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
         pcl = pcl.loc[parcels[development_filter] == True]
     df = orca.DataFrameWrapper("parcels", pcl, copy_col=False)
     # create a feasibility dataset
-    psrcdev.run_feasibility(df, parcel_price_placeholder, parcel_is_allowed_func, cfg = "proforma.yaml",
+    sqftproforma.run_feasibility(df, parcel_price_placeholder, parcel_is_allowed_func, cfg = "proforma.yaml",
                                 parcel_custom_callback = parcel_sales_price_sqft_func,
                                 proforma_uses = proforma_settings)
     #projects = orca.get_table("feasibility")
