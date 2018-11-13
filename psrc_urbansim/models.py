@@ -274,7 +274,8 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
                          parcel_is_allowed_func):
 
     development_filter = "capacity_opportunity_non_gov" # includes empty parcels
-    pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
+    pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost',
+                                                    'ave_unit_size_sf', 'ave_unit_size_mf', 'ave_unit_size_condo'])
     # reduce parcel dataset to those that can be developed
     if development_filter is not None:
         pcl = pcl.loc[parcels[development_filter] == True]

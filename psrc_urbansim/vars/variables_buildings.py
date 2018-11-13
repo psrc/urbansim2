@@ -168,16 +168,16 @@ def sqft_per_job(buildings, building_sqft_per_job):
 
 @orca.column('buildings', 'sqft_per_unit_imputed', cache=True, cache_scope='iteration')
 def sqft_per_unit_imputed(buildings):
-    # Imputes sqft_per_unit if missing:
-    # residential: use 1000 for SF and 500 for MF
-    # non-res: use 1 (because the unit is sqft)
-    is_mf = (buildings.is_residential == 1).values & (buildings.building_type_id <> 19) & (buildings.residential_units > 0).values & (buildings.sqft_per_unit == 0).values
-    is_sf = (buildings.building_type_id == 19).values & (buildings.residential_units > 0).values & (buildings.sqft_per_unit == 0).values
-    non_res = (buildings.is_residential == 0).values & (buildings.non_residential_sqft > 0).values & (buildings.sqft_per_unit == 0).values
+    # Imputes sqft_per_unit for residential buildings if missing, using regional median split by type
+    is_mf = (buildings.is_multifamily == 1) & (buildings.residential_units > 0)
+    is_sf = (buildings.is_singlefamily == 1) & (buildings.residential_units > 0)
+    is_condo = (buildings.is_condo == 1) & (buildings.residential_units > 0)
+    is_other_res = (buildings.is_residential == 1) & (buildings.residential_units > 0) & (buildings.is_multifamily == 0) & (buildings.is_singlefamily == 0) & (buildings.is_condo == 0)
     results = buildings.sqft_per_unit.copy()
-    results[is_mf] = results[is_mf].replace(0, 500)
-    results[is_sf] = results[is_sf].replace(0, 1000)
-    results[non_res] = results[non_res].replace(0, 1)
+    results[is_mf] = results[is_mf].replace(0, buildings.sqft_per_unit[is_mf].median())
+    results[is_sf] = results[is_sf].replace(0, buildings.sqft_per_unit[is_sf].median())
+    results[is_condo] = results[is_condo].replace(0, buildings.sqft_per_unit[is_condo].median())
+    results[is_other_res] = results[is_other_res].replace(0, buildings.sqft_per_unit[is_other_res].median())
     return results
 
 @orca.column('buildings', 'tractcity_id', cache=True)

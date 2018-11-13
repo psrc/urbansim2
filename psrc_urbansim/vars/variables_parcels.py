@@ -15,41 +15,22 @@ def acres_wwd(parcels):
 @orca.column('parcels', 'ave_unit_size', cache=True, cache_scope='iteration')
 def ave_unit_size(parcels, buildings):
     # Median building sqft per residential unit over zones
-    # Values for parcels in zones with no residential buildings are imputed 
-    # using the regional median.
-    reg_median = buildings.building_sqft_per_unit.median()
-    return buildings.building_sqft_per_unit.groupby(buildings.zone_id).median().\
-           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+    return get_ave_unit_size_by_zone(buildings.is_residential == 1, buildings, parcels)
 
 @orca.column('parcels', 'ave_unit_size_sf', cache=True, cache_scope='iteration')
 def ave_unit_size_sf(parcels, buildings):
     # Median building sqft per single-family residential unit over zones
-    # Values for parcels in zones with no residential buildings are imputed 
-    # using the regional median.
-    idx = np.where(buildings.is_singlefamily == 1)[0]
-    reg_median = buildings.building_sqft_per_unit.iloc[idx].median()
-    return buildings.building_sqft_per_unit.iloc[idx].groupby(buildings.zone_id.iloc[idx]).median().\
-           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+    return get_ave_unit_size_by_zone(buildings.is_singlefamily == 1, buildings, parcels)
 
 @orca.column('parcels', 'ave_unit_size_mf', cache=True, cache_scope='iteration')
 def ave_unit_size_mf(parcels, buildings):
     # Median building sqft per multi-family residential unit over zones
-    # Values for parcels in zones with no residential buildings are imputed 
-    # using the regional median.
-    idx = np.where(buildings.is_multifamily == 1)[0]
-    reg_median = buildings.building_sqft_per_unit.iloc[idx].median()
-    return buildings.building_sqft_per_unit.iloc[idx].groupby(buildings.zone_id.iloc[idx]).median().\
-           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+    return get_ave_unit_size_by_zone(buildings.is_multifamily == 1, buildings, parcels)
 
 @orca.column('parcels', 'ave_unit_size_condo', cache=True, cache_scope='iteration')
 def ave_unit_size_condo(parcels, buildings):
-    # Median building sqft per multi-family residential unit over zones
-    # Values for parcels in zones with no residential buildings are imputed 
-    # using the regional median.
-    idx = np.where(buildings.is_condo == 1)[0]
-    reg_median = buildings.building_sqft_per_unit.iloc[idx].median()
-    return buildings.building_sqft_per_unit.iloc[idx].groupby(buildings.zone_id.iloc[idx]).median().\
-           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+    # Median building sqft per condo residential unit over zones
+    return get_ave_unit_size_by_zone(buildings.is_condo == 1, buildings, parcels)
 
 @orca.column('parcels', 'average_income', cache=True, cache_scope='iteration')
 def average_income(parcels, households):
@@ -304,3 +285,13 @@ def unit_price_trunc(parcels):
     price[price > 1500] = 1500
     return price
 
+# Functions
+def get_ave_unit_size_by_zone(is_in, buildings, parcels):
+    # Median building sqft per residential unit over zones
+    # is_in is a logical Series giving the filter for subsetting the buildings
+    # Values for parcels in zones with no residential buildings are imputed 
+    # using the regional median.
+    bsu = buildings.building_sqft_per_unit[is_in].replace(0, np.nan) # so that zeros are not counted
+    reg_median = bsu.median()
+    return buildings.building_sqft_per_unit[is_in].groupby(buildings.zone_id[is_in]).median().\
+           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
