@@ -11,7 +11,7 @@ the second argument being the name of the output file, and the final argument be
 For exmaple, to convert estimation cache on modelrv8, do:
 
 ```
-python estimation_cache_to_hdf5.py //MODELSRV8/d$/opusgit/urbansim_data/data/psrc_parcel/base_year_2014_inputs/urbansim2_estimation_cache/2014 psrc_estimation_data.h5 --is-estimation
+python cache_to_hdf5.py //MODELSRV8/d$/opusgit/urbansim_data/data/psrc_parcel/base_year_2014_inputs/urbansim2_estimation_cache/2014 psrc_estimation_data.h5 --is-estimation
 ```
 
 To check what was put into the hdf5 file, you can run 
