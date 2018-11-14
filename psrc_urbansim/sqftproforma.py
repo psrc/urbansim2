@@ -102,6 +102,7 @@ def update_sqftproforma(default_settings, proforma_uses, **kwargs):
     local_settings["form_glut"] = form_glut
     local_settings["new_btype_id"] = new_btype_id
     local_settings["forms_to_test"] = None
+    local_settings['percent_of_max_profit'] = orca.settings['percent_of_max_profit']
     pf = default_settings
     for attr in local_settings.keys():
         setattr(pf, attr, local_settings[attr])
@@ -193,6 +194,11 @@ def run_feasibility(parcels, parcel_price_callback,
             form_feas.append(df_feas_form)
         
         feasibility = pd.concat(form_feas, sort=False)
+        if pf.percent_of_max_profit > 0:
+            feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'form'])['max_profit'].transform(max)
+            feasibility['ratio'] = feasibility.max_profit/feasibility.max_profit_parcel
+            feasibility = feasibility[feasibility.ratio >= pf.percent_of_max_profit]
+            feasibility.drop(['max_profit_parcel', 'ratio'], axis=1, inplace = True)
         feasibility.index.name = 'parcel_id'
         # create a dataset with disaggregated sqft by building type
         feas_bt = pd.merge(feasibility.loc[:, ["form", "residential_sqft", "non_residential_sqft"]], pf.forms_df, left_on = "form", right_index = True)
