@@ -274,8 +274,7 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
                          parcel_is_allowed_func):
 
     development_filter = "capacity_opportunity_non_gov" # includes empty parcels
-    pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost',
-                                                    'ave_unit_size_sf', 'ave_unit_size_mf', 'ave_unit_size_condo'])
+    pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
     # reduce parcel dataset to those that can be developed
     if development_filter is not None:
         pcl = pcl.loc[parcels[development_filter] == True]
@@ -333,7 +332,7 @@ def non_residential_developer(feasibility, jobs, buildings, parcels, year, targe
 
 
 @orca.step('generic_developer')
-def generic_developer(feasibility, buildings, parcels, year, target_vacancy, proposal_selection):
+def generic_developer(feasibility, buildings, parcels, year, target_vacancy, proposal_selection, building_sqft_per_job):
     target_units = psrcdev.compute_target_units(target_vacancy)
     new_buildings = psrcdev.run_developer(forms = None,
                         agents = None,
@@ -341,9 +340,9 @@ def generic_developer(feasibility, buildings, parcels, year, target_vacancy, pro
                         supply_fname = None,
                         feasibility = feasibility,
                         parcel_size = parcels.parcel_size,
-                        ave_unit_size = {"single_family_residential": "ave_unit_size_sf", 
-                                         "multi_family_residential": "ave_unit_size_mf",
-                                         "condo_residential": "ave_unit_size_mf"},
+                        ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
+                                         "multi_family_residential": parcels.ave_unit_size_mf,
+                                         "condo_residential": parcels.ave_unit_size_condo},
                         current_units = ["residential_units", "total_job_spaces"] ,
                         cfg = 'res_developer.yaml',
                         year = year,
@@ -351,8 +350,9 @@ def generic_developer(feasibility, buildings, parcels, year, target_vacancy, pro
                         # a framework in place that distinguishes between the building types
                         num_units_to_build = target_units,
                         add_more_columns_callback = add_extra_columns,
-                        custom_selection_func = proposal_selection#,
+                        custom_selection_func = proposal_selection,
                         #custom_selection_func = None
+                        building_sqft_per_job = building_sqft_per_job
                         )
 
 def random_type(form):

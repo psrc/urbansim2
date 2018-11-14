@@ -86,7 +86,8 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
                   remove_developed_buildings=True,
                   unplace_agents=['households', 'jobs'],
                   num_units_to_build=None, profit_to_prob_func=None,
-                  custom_selection_func=None, pipeline=False, keep_suboptimal=True):
+                  custom_selection_func=None, pipeline=False, keep_suboptimal=True,
+                  building_sqft_per_job = None):
     """
     Run the developer model to pick and build buildings
 
@@ -177,6 +178,9 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     print("{:,} feasible buildings before running developer".format(
         len(dev.feasibility)))
 
+    dev.feasibility_bt = orca.get_table("feasibility_bt").local
+    #dev._calculate_units_from_sqft(building_sqft_per_job)
+    
     new_buildings = dev.pick(profit_to_prob_func, custom_selection_func)
     orca.add_table("feasibility", dev.feasibility)
 
@@ -412,6 +416,38 @@ class PSRCDeveloper(develop.Developer):
         pcl = orca.get_table("parcels")
         self.current_units_res = pcl[current_units[0]]
         self.current_units_nonres = pcl[current_units[1]]
+        pfc = orca.get_injectable("pf_config")
+        self.building_types = pd.concat([pd.Series(pfc.uses, index = pfc.residential_uses.index).rename("name"), pfc.residential_uses], axis = 1)
+        
+    def _calculate_units_from_sqft(self, bldg_sqft_per_job = None):
+        # Convert sqft into residential units and job_spaces. 
+        # It is done based on building types of the proposals
+        # In case of jobs, it uses the building_sqft_per_job table.
+        
+        units = self.feasibility_bt.copy()
+        
+        # compute residential units by building type
+        for bt in self.building_types.name[self.building_types.is_residential == 1]:
+            units.loc[:, bt] = units.loc[:, bt]/self.ave_unit_size[bt]
+        units.loc[:, "residential_units"] = units.loc[:, self.building_types.name[self.building_types.is_residential == 1].values.tolist()].sum(axis = 1)
+        self.feasibility.loc[:, "residential_units"] = units.loc[:, "residential_units"].values
+        
+        # compute job_spaces by building type
+        if bldg_sqft_per_job is not None:
+            pcl = orca.get_table("parcels")
+            series1 = bldg_sqft_per_job.building_sqft_per_job.to_frame()
+            series2 = pd.merge(self.feasibility, pd.DataFrame(pcl.zone_id), left_index=True, right_index=True)
+          
+        for bt in self.building_types.name[self.building_types.is_residential == 0].values:
+            if bldg_sqft_per_job is None:
+                denom = self.bldg_sqft_per_job
+            else:
+                series2.loc[:, "building_type_id"] = self.building_types[self.building_types.name == bt].index
+                denom = pd.merge(series2, series1, left_on=['zone_id', 'building_type_id'], right_index=True, how="left").building_sqft_per_job
+            units.loc[:, bt] = units.loc[:, bt]/denom.values
+        units.loc[:, "job_spaces"] = units.loc[:, self.building_types.name[self.building_types.is_residential == 0].values.tolist()].sum(axis = 1)
+        self.feasibility.loc[:, "job_spaces"] = units.loc[:, "job_spaces"].values
+        self.feasibility_bt_units = units
         
     def _calculate_net_units(self, df):
         """
@@ -429,15 +465,13 @@ class PSRCDeveloper(develop.Developer):
         """
         if len(df) == 0 or df.empty:
             return df
-        #TODO: for each proposal compute residential units (from self.ave_unit_size) and 
-        #      job_spaces using feasibility_bt & convert to a common currency
-        #if self.residential:
-        #df['net_units_res'] = df.residential_units - df.current_units_res
-        #else:
-        #df['net_units_nonres'] = df.job_spaces - df.current_units_nonres
-        #TODO: convert to a common currency
-        #df['net_units'] = 
-        return df[df.net_units > 0] 
+        
+        df.loc[:, 'net_units_res'] = df.residential_units - df.current_units_res
+        df.loc[:, 'net_units_nonres'] = df.job_spaces - df.current_units_nonres
+        # This is needed for some outputs
+        df.loc[:, 'net_units'] = df.loc[:, 'net_units_res'].values + df.loc[:, 'net_units_nonres'].values
+        
+        return df[(df.net_units_res > 0) | (df.net_units_nonres > 0)]
     
     def _remove_infeasible_buildings(self, df):
         """
@@ -464,7 +498,7 @@ class PSRCDeveloper(develop.Developer):
         #self.ave_unit_size[
         #    self.ave_unit_size < self.min_unit_size
         #] = self.min_unit_size
-        #df.loc[:, 'ave_unit_size'] = self.ave_unit_size
+        #df.loc[:, 'ave_unit_size_sf'] = self.ave_unit_size["single_family_residential"]
         df.loc[:, 'parcel_size'] = self.parcel_size
         df.loc[:, 'current_units_res'] = self.current_units_res
         df.loc[:, 'current_units_nonres'] = self.current_units_nonres
