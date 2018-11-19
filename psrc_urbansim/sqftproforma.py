@@ -200,8 +200,10 @@ def run_feasibility(parcels, parcel_price_callback,
             feasibility = feasibility[feasibility.ratio >= pf.percent_of_max_profit]
             feasibility.drop(['max_profit_parcel', 'ratio'], axis=1, inplace = True)
         feasibility.index.name = 'parcel_id'
+        # add attribute that enumerates proposals (can be used as a unique index)
+        feasibility["feasibility_id"] = np.arange(1, len(feasibility)+1, dtype = "int32")
         # create a dataset with disaggregated sqft by building type
-        feas_bt = pd.merge(feasibility.loc[:, ["form", "residential_sqft", "non_residential_sqft"]], pf.forms_df, left_on = "form", right_index = True)
+        feas_bt = pd.merge(feasibility.loc[:, ["form", "feasibility_id", "residential_sqft", "non_residential_sqft"]], pf.forms_df, left_on = "form", right_index = True)
         feas_bt.set_index(['form'], append = True, inplace = True)
         feas_bt[pf.uses[pf.residential_uses.values == 1]] = feas_bt[pf.uses[pf.residential_uses.values == 1]].multiply(feas_bt.residential_sqft, axis = "index")
         feas_bt[pf.uses[pf.residential_uses.values == 0]] = feas_bt[pf.uses[pf.residential_uses.values == 0]].multiply(feas_bt.non_residential_sqft, axis = "index")
