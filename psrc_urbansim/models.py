@@ -343,8 +343,8 @@ def generic_developer(feasibility, buildings, parcels, year, target_vacancy, pro
                         ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
                                          "multi_family_residential": parcels.ave_unit_size_mf,
                                          "condo_residential": parcels.ave_unit_size_condo},
-                        current_units = ["residential_units", "total_job_spaces"] ,
                         cfg = 'res_developer.yaml',
+                        #current_units = ["residential_units", "total_job_spaces"] ,
                         year = year,
                         # Here we sum up the target units but eventually we want to have
                         # a framework in place that distinguishes between the building types

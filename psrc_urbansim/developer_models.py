@@ -80,7 +80,7 @@ def compute_target_units(vacancy_rate):
     return target_units
     
 def run_developer(forms, agents, buildings, supply_fname, feasibility,
-                  parcel_size, ave_unit_size, current_units, cfg, year=None,
+                  parcel_size, ave_unit_size, cfg, current_units = ["units", "job_spaces"], year=None,
                   target_vacancy=0.1, form_to_btype_callback=None,
                   add_more_columns_callback=None,
                   remove_developed_buildings=True,
@@ -165,8 +165,8 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
                     or compute_units_to_build(len(agents),
                                               buildings[supply_fname].sum(),
                                               target_vacancy))
-    dev = develop.Developer.from_yaml(
-    #dev = PSRCDeveloper.from_yaml(
+    #dev = develop.Developer.from_yaml(
+    dev = PSRCDeveloper.from_yaml(
                                       feasibility.to_frame(), forms,
                                       target_units, parcel_size,
                                       ave_unit_size, current_units,
@@ -179,7 +179,8 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
         len(dev.feasibility)))
 
     dev.feasibility_bt = orca.get_table("feasibility_bt").local
-    #dev._calculate_units_from_sqft(building_sqft_per_job)
+    dev._calculate_units_from_sqft(building_sqft_per_job)
+    dev._calculate_current_units(current_units)
     
     new_buildings = dev.pick(profit_to_prob_func, custom_selection_func)
     orca.add_table("feasibility", dev.feasibility)
@@ -413,11 +414,35 @@ class PSRCDeveloper(develop.Developer):
                  ave_unit_size, current_units, *args, **kwargs):
         develop.Developer.__init__(self, feasibility, forms, target_units, parcel_size, 
                          ave_unit_size, current_units,  *args, **kwargs)
+        
+        #self.current_units_res = pcl[current_units[0]]
+        #self.current_units_nonres = pcl[current_units[1]]
+        self.pf_config = orca.get_injectable("pf_config")
+        self.building_types = pd.concat([pd.Series(self.pf_config.uses, index = self.pf_config.residential_uses.index).rename("name"), 
+                                         self.pf_config.residential_uses], axis = 1)
+        # compute current units by building type
         pcl = orca.get_table("parcels")
-        self.current_units_res = pcl[current_units[0]]
-        self.current_units_nonres = pcl[current_units[1]]
-        pfc = orca.get_injectable("pf_config")
-        self.building_types = pd.concat([pd.Series(pfc.uses, index = pfc.residential_uses.index).rename("name"), pfc.residential_uses], axis = 1)
+        feas_bt = pd.merge(feasibility.loc[:, ["form", "feasibility_id"]], self.pf_config.forms_df, left_on = "form", right_index = True)
+        self.current_units = {}
+        for bt in self.building_types.index:
+            if self.building_types.is_residential.ix[bt] == 1:
+                unitsname = current_units[0]
+            else:
+                unitsname = current_units[1]
+            btname = self.building_types.name.ix[bt]
+            self.current_units[btname] = pcl["%s_%s" % (btname, unitsname)]
+        
+    def _calculate_current_units(self, current_units_attribute):
+        # compute current units by building type (only BT of the corresponding form are considered)
+        pcl = orca.get_table("parcels")
+        self.current_units = pd.merge(self.feasibility.loc[:, ["form", "feasibility_id"]], self.pf_config.forms_df > 0, left_on = "form", right_index = True)
+        for bt in self.building_types.index:
+            if self.building_types.is_residential.ix[bt] == 1:
+                unitsname = current_units_attribute[0]
+            else:
+                unitsname = current_units_attribute[1]
+            btname = self.building_types.name.ix[bt]
+            self.current_units[btname] = self.current_units[btname].values * pcl["%s_%s" % (btname, unitsname)].ix[self.current_units[btname].index].values
         
     def _calculate_units_from_sqft(self, bldg_sqft_per_job = None):
         # Convert sqft into residential units and job_spaces. 
@@ -500,8 +525,8 @@ class PSRCDeveloper(develop.Developer):
         #] = self.min_unit_size
         #df.loc[:, 'ave_unit_size_sf'] = self.ave_unit_size["single_family_residential"]
         df.loc[:, 'parcel_size'] = self.parcel_size
-        df.loc[:, 'current_units_res'] = self.current_units_res
-        df.loc[:, 'current_units_nonres'] = self.current_units_nonres
+        #df.loc[:, 'current_units_res'] = self.current_units_res
+        #df.loc[:, 'current_units_nonres'] = self.current_units_nonres
         df = df[df.parcel_size < self.max_parcel_size]
 
         #df['residential_units'] = (df.residential_sqft /

@@ -78,6 +78,14 @@ def capacity_opportunity_non_gov(parcels):
         (parcels.total_improvement_value / parcels.parcel_sqft < 250) # do not turn down expensive mansions
     )
 
+@orca.column('parcels', 'commercial_job_spaces', cache=True, cache_scope='iteration')
+def commercial_job_spaces(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "commercial", buildings, parcels, units_attribute = "job_spaces")
+
+@orca.column('parcels', 'condo_residential_units', cache=True, cache_scope='iteration')
+def condo_residential_units(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "condo_residential", buildings, parcels)
+
 @orca.column('parcels', 'developable_capacity', cache=True, cache_scope='forever')
 def developable_capacity(parcels):
     return np.maximum(parcels.max_developable_capacity - parcels.building_sqft_pcl, 0)
@@ -105,6 +113,10 @@ def existing_units(parcels):
 @orca.column('parcels', 'faz_id', cache=True)
 def faz_id(parcels, zones):
     return misc.reindex(zones.faz_id, parcels.zone_id)
+
+@orca.column('parcels', 'industrial_job_spaces', cache=True, cache_scope='iteration')
+def industrial_job_spaces(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "industrial", buildings, parcels, units_attribute = "job_spaces")
 
 @orca.column('parcels', 'income_per_person_wwd', cache=True, cache_scope='iteration')
 def income_per_person_wwd(parcels, gridcells, settings):
@@ -160,6 +172,10 @@ def max_far(parcels, parcel_zoning):
 def max_height(parcels, parcel_zoning):
     return parcel_zoning.local.max_height.groupby(level="parcel_id").min().reindex(parcels.index)
 
+@orca.column('parcels', 'multi_family_residential_units', cache=True, cache_scope='iteration')
+def multi_family_residential_units(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "multi_family_residential", buildings, parcels)
+
 @orca.column('parcels', 'nonres_building_sqft', cache=True, cache_scope='iteration')
 def nonres_building_sqft(parcels, buildings):
     return (buildings.building_sqft * (~buildings.is_residential)).groupby(buildings.parcel_id).sum().\
@@ -210,6 +226,10 @@ def number_of_retail_jobs(parcels, jobs):
     return jobs.is_in_sector_group_retail.groupby(jobs.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
 
+@orca.column('parcels', 'office_job_spaces', cache=True, cache_scope='iteration')
+def office_job_spaces(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "office", buildings, parcels, units_attribute = "job_spaces")
+
 @orca.column('parcels', 'parcel_size', cache=True, cache_scope='forever')
 def parcel_size(parcels):
     return parcels.parcel_sqft
@@ -251,6 +271,14 @@ def residential_units(parcels, buildings):
 def retail_density_wwd(parcels):
     return (parcels.employment_retail_wwd / parcels.acres_wwd).replace(np.inf, 0).fillna(0)
 
+@orca.column('parcels', 'single_family_residential_units', cache=True, cache_scope='iteration')
+def single_family_residential_units(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "single_family_residential", buildings, parcels)
+
+@orca.column('parcels', 'tcu_job_spaces', cache=True, cache_scope='iteration')
+def tcu_job_spaces(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "tcu", buildings, parcels, units_attribute = "job_spaces")
+
 @orca.column('parcels', 'total_income', cache=True, cache_scope='iteration')
 def total_income(parcels, households):
     return households.income.groupby(households.parcel_id).sum().\
@@ -285,6 +313,10 @@ def unit_price_trunc(parcels):
     price[price > 1500] = 1500
     return price
 
+@orca.column('parcels', 'warehousing_job_spaces', cache=True, cache_scope='iteration')
+def warehousing_job_spaces(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "warehousing", buildings, parcels, units_attribute = "job_spaces")
+
 # Functions
 def get_ave_unit_size_by_zone(is_in, buildings, parcels):
     # Median building sqft per residential unit over zones
@@ -295,3 +327,7 @@ def get_ave_unit_size_by_zone(is_in, buildings, parcels):
     reg_median = bsu.median()
     return buildings.building_sqft_per_unit[is_in].groupby(buildings.zone_id[is_in]).median().\
            reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+
+def get_units_by_type(is_type, buildings, parcels, units_attribute = "residential_units"):
+    return buildings[units_attribute][is_type].groupby(buildings.parcel_id[is_type]).sum().\
+           reindex(parcels.index).fillna(0)    

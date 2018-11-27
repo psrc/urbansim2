@@ -36,7 +36,7 @@ orca.run([
 #    "add_lag1_tables",
     #"create_proforma_config", # dont need anymore?
     "proforma_feasibility",
-    #"generic_developer",
+    "generic_developer",
     "residential_developer",      # residential proforma model
     "non_residential_developer",  # non-residential proforma model
     #"wahcm_estimate",
