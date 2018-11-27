@@ -5,19 +5,19 @@ years: [2014, 2015, 2016]
 
 indicators:
     number_of_households:
-        dataset: [zones, fazes]
+        dataset: [zones, fazes, cities, alldata]
         
     number_of_jobs:
-        dataset: [zones, fazes]
+        dataset: [zones, fazes, cities, alldata]
 
     building_sqft:
-        dataset: [zones, fazes]
+        dataset: [zones, fazes, cities]
 
     nonres_sqft:
-        dataset: [zones, fazes]
+        dataset: [zones, fazes, cities]
 
     residential_units:
-        dataset: [zones, fazes]
+        dataset: [zones, fazes, cities, alldata]
 
     population:
-        dataset: [zones, fazes]
+        dataset: [zones, fazes, cities, alldata]

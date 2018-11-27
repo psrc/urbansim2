@@ -37,6 +37,10 @@ def building_sqft_per_unit(buildings):
 def building_type_name(buildings, building_types):
     return misc.reindex(building_types.building_type_name, buildings.building_type_id)
 
+@orca.column('buildings', 'city_id', cache=True, cache_scope='iteration')
+def city_id(buildings, parcels):
+    return misc.reindex(parcels.city_id, buildings.parcel_id)
+	
 @orca.column('buildings', 'employment_density_wwd', cache=True, cache_scope='step')
 def employment_density_wwd(buildings, parcels):
     return misc.reindex(parcels.employment_density_wwd, buildings.parcel_id)
@@ -150,6 +154,19 @@ def number_of_retail_jobs(buildings, jobs):
 def price_per_unit(buildings):
     """Price per sqft"""
     return buildings.unit_price * buildings.building_sqft_per_unit
+
+# @orca.column('buildings', 'total_residential_units', cache=True, cache_scope='iteration')
+# def total_residential_units(buildings):
+    # df = pd.DataFrame.from_dict({'residential_units': buildings.residential_units.sum(),
+    # 'alldata_id': [1]})
+    # df = df.set_index('alldata_id')
+    # return df.residential_units
+	
+@orca.column('buildings', 'total_residential_units', cache=True, cache_scope='iteration')
+def total_residential_units(buildings):
+    df = buildings
+    df['alldata_id'] = 1
+    return df.residential_units.groupby(df.alldata_id).sum()
 
 @orca.column('buildings', 'sqft_per_job', cache=True, cache_scope='iteration')
 def sqft_per_job(buildings, building_sqft_per_job):

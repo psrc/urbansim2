@@ -16,6 +16,10 @@ def is_in_sector_group(group_name, jobs, employment_sectors, employment_sector_g
     res.index = jobs.index
     return res
 
+@orca.column('jobs', 'city_id', cache=True)
+def city_id(jobs, parcels):
+    return misc.reindex(parcels.city_id, jobs.parcel_id)	
+
 @orca.column('jobs', 'district_id', cache=True)
 def faz_id(jobs, zones):
     return misc.reindex(zones.district_id, jobs.job_zone_id)
@@ -40,6 +44,18 @@ def is_in_sector_group_retail(jobs, employment_sectors, employment_sector_groups
 def is_in_sector_group_retail(jobs, employment_sectors, employment_sector_groups, employment_sector_group_definitions):
     return is_in_sector_group("edu", jobs, employment_sectors, employment_sector_groups, employment_sector_group_definitions)
 
+# @orca.column('jobs', 'total_number_of_jobs', cache=True, cache_scope='iteration')
+# def total_number_of_jobs(jobs):
+    # df = pd.DataFrame.from_dict({'jobs': jobs.number_of_jobs.sum(),'alldata_id': [1]})
+    # df = df.set_index('alldata_id')
+    # return df.jobs
+	
+@orca.column('jobs', 'total_number_of_jobs', cache=True, cache_scope='iteration')
+def total_number_of_jobs(jobs):
+    df = jobs
+    df['alldata_id'] = 1
+    return df.number_of_jobs.groupby(df.alldata_id).sum()
+	
 @orca.column('jobs', 'parcel_id', cache=True, cache_scope='step')
 def parcel_id(jobs, buildings):
     return misc.reindex(buildings.parcel_id, jobs.building_id)
