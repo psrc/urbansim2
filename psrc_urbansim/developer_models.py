@@ -17,11 +17,10 @@ def proposal_selection(self, df, p, targets):
     """
     chunksize = self.config.get("chunk_size", 100)
     pf = self.pf_config
-    uses = pf.uses[(pf.residential_uses == self.residential).values]
     all_choice_idx = pd.Series([], dtype = "int32")
     orig_df = df.copy()
     # remove proposals for which target vacancy is already met
-    proposals_to_remove = filter_by_vacancy(df, uses, targets)
+    proposals_to_remove = filter_by_vacancy(df, pf.uses, targets)
     if proposals_to_remove.size > 0:
         df = df.drop(proposals_to_remove)
         p = p.reindex(df.index)
@@ -32,7 +31,7 @@ def proposal_selection(self, df, p, targets):
         choice_idx = pd.Series(weighted_random_choice_multiparcel_by_count(df, p, count = chunksize))
                     #targets['single_family_residential'] + targets['multi_family_residential'] + targets['condo_residential'])
         all_choice_idx = pd.concat([all_choice_idx, choice_idx])
-        proposals_to_remove = pd.concat([pd.Series(filter_by_vacancy(orig_df, uses, targets, all_choice_idx)), choice_idx])
+        proposals_to_remove = pd.concat([pd.Series(filter_by_vacancy(orig_df, pf.uses, targets, all_choice_idx)), choice_idx])
         proposals_to_remove = proposals_to_remove[proposals_to_remove.isin(df.index)]
         if proposals_to_remove.size > 0:
             df = df.drop(proposals_to_remove)
@@ -43,7 +42,7 @@ def proposal_selection(self, df, p, targets):
 
 
 def filter_by_vacancy(df, uses, targets, choice_idx = None):
-    fdf = self.pf_config.forms_df
+    fdf = orca.get_injectable("pf_config").forms_df
     vacancy_met = pd.Series([], dtype = "int32")
     for use in uses:
         btdistr = fdf[use][df.form]
@@ -58,6 +57,8 @@ def target_vacancy_met(choices, target, forms_df):
     # TODO: this function works with total net_units. 
     # Need to be changed to take into account net units by building type stored in 
     # self.net_units
+    # Most likely need to reindex df by feasibility_id in order to match self.net_units by index
+    # (that should be done in the proposal_selection function)
     btdistr = forms_df[choices.form]
     btdistr.index = choices.index
     units = btdistr*choices.net_units
