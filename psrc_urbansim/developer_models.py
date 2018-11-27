@@ -16,7 +16,7 @@ def proposal_selection(self, df, p, targets):
     Passed to custom_selection_func in Developer.pick().
     """
     chunksize = self.config.get("chunk_size", 100)
-    pf = orca.get_injectable("pf_config")
+    pf = self.pf_config
     uses = pf.uses[(pf.residential_uses == self.residential).values]
     all_choice_idx = pd.Series([], dtype = "int32")
     orig_df = df.copy()
@@ -43,7 +43,7 @@ def proposal_selection(self, df, p, targets):
 
 
 def filter_by_vacancy(df, uses, targets, choice_idx = None):
-    fdf = orca.get_injectable("pf_config").forms_df
+    fdf = self.pf_config.forms_df
     vacancy_met = pd.Series([], dtype = "int32")
     for use in uses:
         btdistr = fdf[use][df.form]
@@ -54,7 +54,10 @@ def filter_by_vacancy(df, uses, targets, choice_idx = None):
             vacancy_met = pd.concat([vacancy_met, btdistr.index[btdistr > 0].to_series()])
     return vacancy_met.unique()
         
-def target_vacancy_met(choices, target, forms_df):    
+def target_vacancy_met(choices, target, forms_df):
+    # TODO: this function works with total net_units. 
+    # Need to be changed to take into account net units by building type stored in 
+    # self.net_units
     btdistr = forms_df[choices.form]
     btdistr.index = choices.index
     units = btdistr*choices.net_units
