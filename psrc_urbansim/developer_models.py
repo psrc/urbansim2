@@ -443,6 +443,7 @@ class PSRCDeveloper(develop.Developer):
                 unitsname = current_units_attribute[1]
             btname = self.building_types.name.ix[bt]
             self.current_units[btname] = self.current_units[btname].values * pcl["%s_%s" % (btname, unitsname)].ix[self.current_units[btname].index].values
+        self.current_units.set_index("feasibility_id", inplace = True)
         
     def _calculate_units_from_sqft(self, bldg_sqft_per_job = None):
         # Convert sqft into residential units and job_spaces. 
@@ -472,11 +473,11 @@ class PSRCDeveloper(develop.Developer):
             units.loc[:, bt] = units.loc[:, bt]/denom.values
         units.loc[:, "job_spaces"] = units.loc[:, self.building_types.name[self.building_types.is_residential == 0].values.tolist()].sum(axis = 1)
         self.feasibility.loc[:, "job_spaces"] = units.loc[:, "job_spaces"].values
-        self.feasibility_bt_units = units
+        self.feasibility_bt_units = units.set_index("feasibility_id")
         
     def _calculate_net_units(self, df):
         """
-        Helper method to pick(). Calculates the net_units column,
+        Helper method to pick(). Calculates the net_units by building type,
         and removes buildings that have net_units of 0 or less.
 
         Parameters
@@ -491,17 +492,16 @@ class PSRCDeveloper(develop.Developer):
         if len(df) == 0 or df.empty:
             return df
         
-        # TODO: compute net units by building type and filter out the positive ones.
-        # The proposal units for building type bt (DU or job spaces) are stored in self.feasibility_bt_units[bt]
-        # So it will be something like this: self.feasibility_bt_units[bt] - self.current_units[bt]
-        # for each building type bt
-        # But these datasets need to be filtered to match forms in df (possibly by indexing by feasibility_id?)
-        df.loc[:, 'net_units_res'] = df.residential_units - df.current_units_res
-        df.loc[:, 'net_units_nonres'] = df.job_spaces - df.current_units_nonres
-        # This is needed for some outputs
-        df.loc[:, 'net_units'] = df.loc[:, 'net_units_res'].values + df.loc[:, 'net_units_nonres'].values
-        
-        return df[(df.net_units_res > 0) | (df.net_units_nonres > 0)]
+        self.net_units = self.feasibility_bt_units[self.building_types.name.values] - self.current_units[self.building_types.name.values]
+        # need to index by feasibility_id
+        df["parcel_id"] = df.index
+        dfc = df.set_index("feasibility_id", drop = False)
+        dfc['net_units_res'] = self.net_units[self.building_types.name[self.building_types.is_residential == 1]].sum(axis = 1)
+        dfc['net_units_nonres'] = self.net_units[self.building_types.name[self.building_types.is_residential == 0]].sum(axis = 1)
+        # This is needed for some outputs (but does not make sense as we're adding DUs and job spaces)
+        dfc['net_units'] = self.net_units.sum(axis = 1)
+        return dfc[(dfc.net_units_res > 0) | (dfc.net_units_nonres > 0)].set_index("parcel_id")
+
     
     def _remove_infeasible_buildings(self, df):
         """
