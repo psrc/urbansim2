@@ -491,6 +491,11 @@ class PSRCDeveloper(develop.Developer):
         if len(df) == 0 or df.empty:
             return df
         
+        # TODO: compute net units by building type and filter out the positive ones.
+        # The proposal units for building type bt (DU or job spaces) are stored in self.feasibility_bt_units[bt]
+        # So it will be something like this: self.feasibility_bt_units[bt] - self.current_units[bt]
+        # for each building type bt
+        # But these datasets need to be filtered to match forms in df (possibly by indexing by feasibility_id?)
         df.loc[:, 'net_units_res'] = df.residential_units - df.current_units_res
         df.loc[:, 'net_units_nonres'] = df.job_spaces - df.current_units_nonres
         # This is needed for some outputs
