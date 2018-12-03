@@ -11,58 +11,59 @@ from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_n
 
 
 @orca.injectable('proposal_selection', autocall=False)
-def proposal_selection(self, df, p, targets):
+def proposal_selection(self, proposals, p, targets):
     """
     Passed to custom_selection_func in Developer.pick().
     """
     chunksize = self.config.get("chunk_size", 100)
     pf = self.pf_config
-    all_choice_idx = pd.Series([], dtype = "int32")
+    all_choices = pd.Series([], dtype = "int32")
+    
+    # working proposal dataset - to be reduced in each iteration
+    df = proposals.copy()
+    
+    # Set index of proposals and p to feasibility_id 
+    # to match self.net_units
+    df.set_index("feasibility_id", inplace = True, drop = False)
+    p.index = df.index
+    
+    # Keep a full proposal dataset for checking the vacancy 
+    # in each iteration step.
     orig_df = df.copy()
+    
     # remove proposals for which target vacancy is already met
-    proposals_to_remove = filter_by_vacancy(df, pf.uses, targets)
+    proposals_to_remove = filter_by_vacancy(orig_df, pf.uses, targets, net_units = self.net_units)
     if proposals_to_remove.size > 0:
         df = df.drop(proposals_to_remove)
-        p = p.reindex(df.index)
+        p = p.drop(proposals_to_remove)
         p = p / p.sum()
         
     while len(df) > 0:        
-        # sample by chunks
+        # Sample by chunks and check vacancy after each step
         choice_idx = pd.Series(weighted_random_choice_multiparcel_by_count(df, p, count = chunksize))
-                    #targets['single_family_residential'] + targets['multi_family_residential'] + targets['condo_residential'])
-        all_choice_idx = pd.concat([all_choice_idx, choice_idx])
-        proposals_to_remove = pd.concat([pd.Series(filter_by_vacancy(orig_df, pf.uses, targets, all_choice_idx)), choice_idx])
+        all_choices = pd.concat([all_choices, choice_idx])
+        proposals_to_remove = pd.concat([pd.Series(filter_by_vacancy(orig_df, pf.uses, targets, net_units = self.net_units, 
+                                                                     choices = all_choices)), choice_idx])
         proposals_to_remove = proposals_to_remove[proposals_to_remove.isin(df.index)]
         if proposals_to_remove.size > 0:
             df = df.drop(proposals_to_remove)
-            p = p.reindex(df.index)
+            p = p.drop(proposals_to_remove)
             p = p / p.sum()
             
-    return all_choice_idx
+    return proposals.index[proposals.feasibility_id.isin(all_choices)]
 
 
-def filter_by_vacancy(df, uses, targets, choice_idx = None):
-    fdf = orca.get_injectable("pf_config").forms_df
+def filter_by_vacancy(df, uses, targets, net_units, choices = None):
+    # Iterate over building types and check net_units vs. targets. 
+    # Return feasibility_id of proposals that should be switched off.
     vacancy_met = pd.Series([], dtype = "int32")
     for use in uses:
-        btdistr = fdf[use][df.form]
-        if btdistr.sum() == 0:
+        units = net_units[use].reindex(df.index)
+        if units.sum() == 0:
             continue
-        btdistr.index = df.index 
-        if (choice_idx is None and targets[use] == 0) or (choice_idx is not None and target_vacancy_met(df.loc[choice_idx], targets[use], fdf[use])):
-            vacancy_met = pd.concat([vacancy_met, btdistr.index[btdistr > 0].to_series()])
+        if (choices is None and targets[use] == 0) or (choices is not None and units.loc[choices].sum() >= targets[use]):
+            vacancy_met = pd.concat([vacancy_met, units.index[units > 0].to_series()])
     return vacancy_met.unique()
-        
-def target_vacancy_met(choices, target, forms_df):
-    # TODO: this function works with total net_units. 
-    # Need to be changed to take into account net units by building type stored in 
-    # self.net_units
-    # Most likely need to reindex df by feasibility_id in order to match self.net_units by index
-    # (that should be done in the proposal_selection function)
-    btdistr = forms_df[choices.form]
-    btdistr.index = choices.index
-    units = btdistr*choices.net_units
-    return units.sum() >= target   
 
     
 def compute_target_units(vacancy_rate):
@@ -340,11 +341,12 @@ def weighted_random_choice_by_count(df, p, target_units = None, count = None):
     # differ in net_units. If all developments have net_units of 1
     # than we need target_units of them. So we choose the smaller
     # of available developments and target_units.
+    
     if target_units is not None:
         num_to_sample = int(min(len(df.index), target_units))
     else:
         num_to_sample = count
-    choices = np.random.choice(df.index.values,
+    choices = np.random.choice(df.index,
                                size=num_to_sample,
                                replace=False, p=p)
     if target_units is None:
@@ -358,12 +360,12 @@ def weighted_random_choice_by_count(df, p, target_units = None, count = None):
 def weighted_random_choice_multiparcel_by_count(df, p, target_units = None, count = None):
     """
     Proposal selection using weighted random choice in the context of multiple
-    proposals per parcel.
+    proposals per parcel. 
 
     Parameters
     ----------
     df : DataFrame
-        Proposals to select from
+        Proposals to select from. It has an unique index which is not necessarily parcel_id
     p : Series
         Weights for each proposal
     target_units: int
@@ -389,7 +391,7 @@ def weighted_random_choice_multiparcel_by_count(df, p, target_units = None, coun
         dup_choices_to_keep = duplicate_choices.loc[keep_choice.index]
         choices = pd.concat([single_choices, dup_choices_to_keep])
 
-        if choices.net_units.sum() >= target_units:
+        if target_units is None or choices.net_units.sum() >= target_units:
             break
 
         df = df[~df.parcel_id.isin(choices.parcel_id)]
