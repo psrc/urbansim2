@@ -247,10 +247,14 @@ def add_buildings(feasibility, buildings, new_buildings,
     if add_more_columns_callback is not None:
         new_buildings = add_more_columns_callback(new_buildings)
 
-    print("Adding {:,} buildings with {:,} {}".format(
-        len(new_buildings),
-        int(new_buildings[supply_fname].sum()),
-        supply_fname))
+    if supply_fname is not None:
+        if not isinstance(supply_fname, list):
+            supply_fname = [supply_fname]
+        for fname in supply_fname:
+            print("Adding {:,} buildings with {:,} {}".format(
+                len(new_buildings[new_buildings[fname] > 0]),
+                int(new_buildings[fname].sum()),
+                fname))
 
     print("{:,} feasible buildings after running developer".format(
         len(feasibility)))

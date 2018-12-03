@@ -337,7 +337,7 @@ def generic_developer(feasibility, buildings, parcels, year, target_vacancy, pro
     new_buildings = psrcdev.run_developer(forms = None,
                         agents = None,
                         buildings = buildings,
-                        supply_fname = None,
+                        supply_fname = ["residential_units", "job_spaces"],
                         feasibility = feasibility,
                         parcel_size = parcels.parcel_size,
                         ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
