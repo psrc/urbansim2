@@ -205,7 +205,7 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
                                                dev.building_types, dev.pf_config.forms_df)
     
     # Join old and new buildings
-    new_buildings = add_buildings(buildings, new_buildings,
+    new_buildings = add_buildings(buildings, disaggr_buildings,
                                   form_to_btype_callback,
                                   add_more_columns_callback,
                                   supply_fname, remove_developed_buildings,
@@ -214,32 +214,64 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     return new_buildings
 
 def disaggregate_buildings(buildings, bt_units, building_types, forms):
-    # convert units to long format
+    # Takes a dataset of selected proposals (buildings) which can have multiple building types in one row,
+    # and disaggregates it into one record per building type.
+    # The bt_units dataset contains proposed units by building type for each feasibility_id.
+    
+    # convert proposed units to long format
     longdf = bt_units.reset_index().melt(id_vars = ["feasibility_id"], var_name = "building_type_name", 
                                  value_name = "units").set_index(["feasibility_id", "building_type_name"])
     longdf = longdf[longdf.units > 0]
+    
+    # Now we have one record per building type. Merge the other proposal columns into it.
     dbuildings = longdf.merge(buildings, how = "left", left_index = True, right_index = True)
+    
+    # Some attributes need to be split. It depend if building is residential or not.
+    # Compute ratios of total residential and total nonresidential units.
     frms = forms.copy()
     res_types = building_types.name[building_types.is_residential == 1]
     nonres_types = building_types.name[building_types.is_residential == 0]
     frms.loc[:, "res_ratio"] = forms[res_types].sum(axis = 1)
     frms.loc[:, "nonres_ratio"] = 1 - frms.res_ratio
+    ratio = pd.DataFrame({"ratio": np.zeros(len(dbuildings), dtype = "float32"),
+                          "total_ratio" : np.zeros(len(dbuildings), dtype = "float32"),
+                          "feasibility_id": dbuildings.index.get_level_values("feasibility_id"),
+                          "building_type_name": dbuildings.index.get_level_values("building_type_name"),
+                          "form": dbuildings.form})
+    ratio.set_index(["feasibility_id", "building_type_name", "form"], inplace = True)
+    idx_obj = pd.IndexSlice
+    # Iterate over building types and fill in the ratios
     for use in building_types.name:
-        if use in res_types:
+        if use in res_types.values:
             ratio_name = "res_ratio"
         else:
             ratio_name = "nonres_ratio"
-        btdistr = frms.loc[dbuildings.form, [use, ratio_name]]
-        ratio = btdistr[use] / btdistr[ratio_name]
+        subblds = dbuildings.xs(use, level = "building_type_name")
+        if len(subblds) == 0: 
+            continue
+        btdistr = frms.loc[subblds.form, [use, ratio_name]]
+        btdistr.index = subblds.index
+        idx = idx_obj[btdistr.index.values, use, subblds.form]
+        ratio.loc[idx, "ratio"] = btdistr[use].values
+        ratio.loc[idx, "total_ratio"] = btdistr[ratio_name].values
         
-        # split attributes that are specifically either res or non-res
-        for attr in ["residential_sqft", "non_residential_sqft"]:
-            dbuildings[attr]  = dbuildings[attr] * ratio
+    ratio.index = ratio.index.droplevel("form")
+    
+    # split attributes that are specifically either res or non-res
+    for attr in ["residential_sqft", "non_residential_sqft"]:
+        dbuildings[attr]  = dbuildings[attr] * (ratio.ratio / ratio.total_ratio).fillna(0)
             
-        # split attributes that are common for res and non-res
-        for attr in ["building_sqft", "building_cost", "stories"]:
-            dbuildings[attr]  = dbuildings[attr] * btdistr[use]
+    # split attributes that are common for res and non-res
+    for attr in ["building_sqft", "building_cost", "stories"]:
+        dbuildings[attr]  = dbuildings[attr] * ratio.ratio
 
+    # assign building_type_id
+    bts = building_types.reset_index().set_index("name").rename_axis("building_type_name")
+    dbuildings["building_type_id"] = bts.loc[dbuildings.index.get_level_values("building_type_name")].building_type_id.values
+    
+    # drop the building_type_name index
+    dbuildings.index = dbuildings.index.droplevel("building_type_name")
+    
     return dbuildings
     
 
