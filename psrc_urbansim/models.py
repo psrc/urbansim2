@@ -334,7 +334,7 @@ def non_residential_developer(feasibility, jobs, buildings, parcels, year, targe
 @orca.step('generic_developer')
 def generic_developer(feasibility, buildings, parcels, year, target_vacancy, proposal_selection, building_sqft_per_job):
     target_units = psrcdev.compute_target_units(target_vacancy)
-    new_buildings = psrcdev.run_developer(forms = None,
+    new_buildings = psrcdev.run_developer(forms = [],
                         agents = None,
                         buildings = buildings,
                         supply_fname = ["residential_units", "job_spaces"],

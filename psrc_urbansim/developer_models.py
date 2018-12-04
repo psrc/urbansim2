@@ -42,8 +42,13 @@ def proposal_selection(self, proposals, p, targets):
         # Sample by chunks and check vacancy after each step
         choice_idx = pd.Series(weighted_random_choice_multiparcel_by_count(df, p, count = chunksize))
         all_choices = pd.concat([all_choices, choice_idx])
-        proposals_to_remove = pd.concat([pd.Series(filter_by_vacancy(orig_df, pf.uses, targets, net_units = self.net_units, 
-                                                                     choices = all_choices)), choice_idx])
+        # remove proposals that:
+        proposals_to_remove = pd.concat([pd.Series( # 1) satisfy target vacancy 
+                                            filter_by_vacancy(orig_df, pf.uses, targets, 
+                                                              net_units = self.net_units, choices = all_choices)), 
+                                         choice_idx, # 2) were sampled
+                                         df.index[df.parcel_id.isin(df.parcel_id[choice_idx])].to_series() # 3) are on parcels for which proposals were sampled
+                                         ])
         proposals_to_remove = proposals_to_remove[proposals_to_remove.isin(df.index)]
         if proposals_to_remove.size > 0:
             df = df.drop(proposals_to_remove)
@@ -192,18 +197,53 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
 
     if new_buildings is None or len(new_buildings) == 0:
         return
-
-    new_buildings = add_buildings(dev.feasibility, buildings, new_buildings,
+    
+    # Disaggragate buildings into one building per building type
+    new_buildings.set_index("feasibility_id", drop = False, inplace = True)
+    dev.feasibility_bt_units = dev.feasibility_bt_units.reindex(new_buildings.index)
+    disaggr_buildings = disaggregate_buildings(new_buildings, dev.feasibility_bt_units[dev.pf_config.uses], 
+                                               dev.building_types, dev.pf_config.forms_df)
+    
+    # Join old and new buildings
+    new_buildings = add_buildings(buildings, new_buildings,
                                   form_to_btype_callback,
                                   add_more_columns_callback,
                                   supply_fname, remove_developed_buildings,
                                   unplace_agents, pipeline)
 
-    # This is a change from previous behavior, which return the newly merged
-    # "all buildings" table
     return new_buildings
 
-def add_buildings(feasibility, buildings, new_buildings,
+def disaggregate_buildings(buildings, bt_units, building_types, forms):
+    # convert units to long format
+    longdf = bt_units.reset_index().melt(id_vars = ["feasibility_id"], var_name = "building_type_name", 
+                                 value_name = "units").set_index(["feasibility_id", "building_type_name"])
+    longdf = longdf[longdf.units > 0]
+    dbuildings = longdf.merge(buildings, how = "left", left_index = True, right_index = True)
+    frms = forms.copy()
+    res_types = building_types.name[building_types.is_residential == 1]
+    nonres_types = building_types.name[building_types.is_residential == 0]
+    frms.loc[:, "res_ratio"] = forms[res_types].sum(axis = 1)
+    frms.loc[:, "nonres_ratio"] = 1 - frms.res_ratio
+    for use in building_types.name:
+        if use in res_types:
+            ratio_name = "res_ratio"
+        else:
+            ratio_name = "nonres_ratio"
+        btdistr = frms.loc[dbuildings.form, [use, ratio_name]]
+        ratio = btdistr[use] / btdistr[ratio_name]
+        
+        # split attributes that are specifically either res or non-res
+        for attr in ["residential_sqft", "non_residential_sqft"]:
+            dbuildings[attr]  = dbuildings[attr] * ratio
+            
+        # split attributes that are common for res and non-res
+        for attr in ["building_sqft", "building_cost", "stories"]:
+            dbuildings[attr]  = dbuildings[attr] * btdistr[use]
+
+    return dbuildings
+    
+
+def add_buildings(buildings, new_buildings,
                   form_to_btype_callback, add_more_columns_callback,
                   supply_fname, remove_developed_buildings, unplace_agents,
                   pipeline=False):
@@ -256,8 +296,8 @@ def add_buildings(feasibility, buildings, new_buildings,
                 int(new_buildings[fname].sum()),
                 fname))
 
-    print("{:,} feasible buildings after running developer".format(
-        len(feasibility)))
+#    print("{:,} feasible buildings after running developer".format(
+#        len(feasibility)))
 
     building_columns = buildings.local_columns + ['construction_time']
     old_buildings = buildings.to_frame(building_columns)
