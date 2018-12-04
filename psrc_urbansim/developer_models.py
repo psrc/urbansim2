@@ -262,12 +262,21 @@ def disaggregate_buildings(buildings, bt_units, building_types, forms):
         dbuildings[attr]  = dbuildings[attr] * (ratio.ratio / ratio.total_ratio).fillna(0)
             
     # split attributes that are common for res and non-res
-    for attr in ["building_sqft", "building_cost", "stories"]:
+    for attr in ["building_sqft", "building_cost", "building_revenue"]:
         dbuildings[attr]  = dbuildings[attr] * ratio.ratio
 
     # assign building_type_id
     bts = building_types.reset_index().set_index("name").rename_axis("building_type_name")
     dbuildings["building_type_id"] = bts.loc[dbuildings.index.get_level_values("building_type_name")].building_type_id.values
+    dbuildings["is_residential"] = bts.loc[dbuildings.index.get_level_values("building_type_name")].is_residential.values
+    
+    # assign residential units and job_spaces
+    dbuildings.loc[dbuildings.is_residential == 1, "residential_units"] = np.maximum(dbuildings.loc[dbuildings.is_residential == 1, "units"].round(), 1)
+    dbuildings.loc[dbuildings.is_residential == 0, "job_spaces"] = np.maximum(dbuildings.loc[dbuildings.is_residential == 0, "units"].round(), 1)
+    
+    # assign sqft_per_unit
+    dbuildings.loc[:, "sqft_per_unit"] = 1
+    dbuildings.loc[dbuildings.is_residential == 1, "sqft_per_unit"] = dbuildings.building_sqft / dbuildings.residential_units
     
     # drop the building_type_name index
     dbuildings.index = dbuildings.index.droplevel("building_type_name")
@@ -315,9 +324,14 @@ def add_buildings(buildings, new_buildings,
         new_buildings["building_type_id"] = new_buildings.apply(
             form_to_btype_callback, axis=1)
 
-    # This is where year_built gets assigned
+    # correspondence of some the building columns to the proforma attributes
+    new_cols = {'job_capacity': new_buildings.job_spaces,
+                'land_area': new_buildings.building_sqft / new_buildings.stories, 
+                'improvement_value': new_buildings.building_revenue,
+                'sqft_per_unit': new_buildings.sqft_per_unit
+                }
     if add_more_columns_callback is not None:
-        new_buildings = add_more_columns_callback(new_buildings)
+        new_buildings = add_more_columns_callback(new_buildings, new_cols)
 
     if supply_fname is not None:
         if not isinstance(supply_fname, list):

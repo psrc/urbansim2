@@ -360,10 +360,12 @@ def random_type(form):
     return random.choice(form_to_btype[form])
 
 
-def add_extra_columns(df):
+def add_extra_columns(df, new_cols = {}):
     bldgs = orca.get_table('buildings')
     for col in bldgs.local_columns:
-        if col not in df.columns:
+        if col in new_cols.keys():
+            df[col] = new_cols[col]
+        elif col not in df.columns:
             df[col] = 0
     return df
 
