@@ -324,11 +324,11 @@ def add_buildings(buildings, new_buildings,
         new_buildings["building_type_id"] = new_buildings.apply(
             form_to_btype_callback, axis=1)
 
-    # correspondence of some the building columns to the proforma attributes
+    # Correspondence of some the building columns to the proforma attributes
+    # They only need to be defined if the names differ.
     new_cols = {'job_capacity': new_buildings.job_spaces,
                 'land_area': new_buildings.building_sqft / new_buildings.stories, 
-                'improvement_value': new_buildings.building_revenue,
-                'sqft_per_unit': new_buildings.sqft_per_unit
+                'improvement_value': new_buildings.building_revenue
                 }
     if add_more_columns_callback is not None:
         new_buildings = add_more_columns_callback(new_buildings, new_cols)
