@@ -33,18 +33,17 @@ def proforma_settings(land_use_types, building_types, development_templates, dev
 
 # Empty function. Series indexed by parcel_id
 @orca.injectable("parcel_price_placeholder", autocall=False)
-def parcel_price_placeholder(use):
+def parcel_price_placeholder(use, **kwargs):
     return orca.get_table('parcels').land_value
 
 # Return price per sqft for given use (building type). Series indexed by parcel_id
 @orca.injectable("parcel_sales_price_sqft_func", autocall=False)
-def parcel_sales_price_sqft_func(pcl, config):
+def parcel_sales_price_sqft_func(use, config):
+    pcl = orca.get_table('parcels')
     # Temporarily use the expected sales price model coefficients
-    for use in config.uses:
-        coef_const = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "constant")].estimate
-        coef = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate
-        pcl[use] = np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)
-    return pcl
+    coef_const = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "constant")].estimate
+    coef = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate
+    return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)
 
 @orca.injectable("parcel_is_allowed_func", autocall=False)
 def parcel_is_allowed_func(form):
@@ -160,7 +159,7 @@ def run_feasibility(parcels, parcel_price_callback,
     # compute price for each use
     df = sites
     for use in pf.uses:        
-        df[use] = parcel_price_callback(use)
+        df[use] = parcel_price_callback(use, pf)
             
     #feasibility = lookup_by_form(df, parcel_use_allowed_callback, pf, **kwargs)
     

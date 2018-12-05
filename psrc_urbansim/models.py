@@ -280,7 +280,9 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
         pcl = pcl.loc[parcels[development_filter] == True]
     df = orca.DataFrameWrapper("parcels", pcl, copy_col=False)
     # create a feasibility dataset
-    sqftproforma.run_feasibility(df, parcel_price_placeholder, parcel_is_allowed_func, cfg = "proforma.yaml",
+    sqftproforma.run_feasibility(df, parcel_sales_price_sqft_func,
+                                 #parcel_price_placeholder, 
+                                 parcel_is_allowed_func, cfg = "proforma.yaml",
                                 parcel_custom_callback = parcel_sales_price_sqft_func,
                                 proforma_uses = proforma_settings)
     #projects = orca.get_table("feasibility")
