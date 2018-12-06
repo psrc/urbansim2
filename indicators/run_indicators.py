@@ -13,18 +13,6 @@ ind_table_list = []
 
 # Define injectables
 
-@orca.injectable()
-def alldata_ds_dictionary():
-    return {'number_of_households': "households",
-            'number_of_jobs': "jobs",
-            'residential_units': "buildings",
-            'population': "households"}
-
-@orca.injectable()
-def alldata_ind_dictionary():
-    return{'number_of_jobs': "total_number_of_jobs",
-            'residential_units': "total_residential_units"}
-
 # replace this by passing yaml file name as argument
 @orca.injectable()
 def settings_file():
@@ -37,28 +25,15 @@ def settings(settings_file):
     
 
 @orca.step()
-def compute_indicators(settings, iter_var, alldata_ds_dictionary, alldata_ind_dictionary):
+def compute_indicators(settings, iter_var):
     # loop over indicators and datasets from settings and store into file
     for ind, value in settings['indicators'].iteritems():
         for ds in value['dataset']:
-            if ds == "alldata":
-                ds_tablename = '%s_%s_%s' % (ds, ind, str(iter_var))
-                print ds_tablename
-                print alldata_ds_dictionary[ind]
-                if ind in alldata_ind_dictionary:
-                    df = orca.get_table(alldata_ds_dictionary[ind])[alldata_ind_dictionary[ind]]
-                    print 'ds is %s, the table called is %s, and ind is %s' % (ds, alldata_ds_dictionary[ind], alldata_ind_dictionary[ind])
-                    print orca.get_table(alldata_ds_dictionary[ind])[alldata_ind_dictionary[ind]].to_frame().head()
-                else:
-                    df = orca.get_table(alldata_ds_dictionary[ind])[ind]
-                    print 'ds is %s, the table called is %s, and ind is %s' % (ds, alldata_ds_dictionary[ind], ind)
-                    print orca.get_table(alldata_ds_dictionary[ind])[ind].to_frame().head()
-            else:
-                ds_tablename = '%s_%s_%s' % (ds, ind, str(iter_var))
-                print '%s_%s_%s' % (ds, ind, str(iter_var))
-                df = orca.get_table(ds)[ind]
-                print 'ds is %s and ind is %s' % (ds, ind)
-                print orca.get_table(ds)[ind].to_frame().head()
+            ds_tablename = '%s_%s_%s' % (ds, ind, str(iter_var))
+            print '%s_%s_%s' % (ds, ind, str(iter_var))
+            df = orca.get_table(ds)[ind]
+            print 'ds is %s and ind is %s' % (ds, ind)
+            print orca.get_table(ds)[ind].to_frame().head()
             orca.add_table(ds_tablename, df)
             ind_table_list.append(ds_tablename)
     orca.clear_cache()      

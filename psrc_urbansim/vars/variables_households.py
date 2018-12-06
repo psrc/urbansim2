@@ -48,28 +48,10 @@ def income_category(households, settings):
 def is_residence_mf(households, buildings):
     return misc.reindex(buildings.multifamily_generic_type, households.building_id).fillna(-1)
 
-@orca.column('households', 'number_of_households', cache=True, cache_scope='iteration')
-def number_of_households(households):
-    print 'in variables_households.py, in number_of_households function'
-    df = pd.DataFrame.from_dict({'households': households.persons.size,
-    'alldata_id': [1]})
-    df = df.set_index('alldata_id')
-    print df
-    return df.households
-	
 @orca.column('households', 'parcel_id', cache=True)
 def parcel_id(households, buildings):
     return misc.reindex(buildings.parcel_id, households.building_id)
 
-@orca.column('households', 'population', cache=True, cache_scope='iteration')
-def number_of_households(households):
-    print 'in variables_households.py, in number_of_households function'
-    df = pd.DataFrame.from_dict({'households': households.persons.sum(),
-    'alldata_id': [1]})
-    df = df.set_index('alldata_id')
-    print df
-    return df.households
-	
 @orca.column('households', 'residence_large_area', cache=True)
 def residence_large_area(households, buildings):
     return misc.reindex(buildings.large_area_id, households.building_id).fillna(-1)

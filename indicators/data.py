@@ -109,12 +109,13 @@ def travel_data(store, year, base_year):
 def gridcells(store, year, base_year):
     return find_table_in_store('gridcells', store, year, base_year)
 
-@orca.table('alldata', cache=True, cache_scope='iteration')
-def alldata(store, year, base_year):
-    print 'dummy alldata table function that returns gridcells table'
-    return find_table_in_store('gridcells', store, year, base_year)
-
 @orca.table('cities', cache=True, cache_scope='iteration')
 def cities(store, year, base_year):
     df_parcels = find_table_in_store('parcels', store, year, base_year)
     return df_parcels.groupby(df_parcels.city_id).first()
+
+@orca.table('alldata', cache=True)
+def alldata():
+    df = pd.DataFrame.from_dict({'alldata_id': [1]})
+    df = df.set_index('alldata_id')
+    return df

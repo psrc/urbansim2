@@ -162,19 +162,6 @@ def sqft_per_job(buildings, building_sqft_per_job):
     df = pd.merge(series2, series1, left_on=['zone_id', 'building_type_id'], right_index=True, how="left")   
     return df.building_sqft_per_job
 
-# @orca.column('buildings', 'total_residential_units', cache=True, cache_scope='iteration')
-# def total_residential_units(buildings):
-    # df = pd.DataFrame.from_dict({'residential_units': buildings.residential_units.sum(),
-    # 'alldata_id': [1]})
-    # df = df.set_index('alldata_id')
-    # return df.residential_units
-	
-@orca.column('buildings', 'total_residential_units', cache=True, cache_scope='iteration')
-def total_residential_units(buildings):
-    df = buildings
-    df['alldata_id'] = 1
-    return df.residential_units.groupby(df.alldata_id).sum()
-
 @orca.column('buildings', 'tractcity_id', cache=True)
 def tractcity_id(buildings, parcels):
     return misc.reindex(parcels.tractcity_id, buildings.parcel_id)
