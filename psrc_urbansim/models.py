@@ -292,49 +292,8 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
     #pp.to_csv("proforma_projects.csv")
     return
 
-@orca.step('residential_developer')
-def residential_developer(feasibility, households, buildings, parcels, year, target_vacancy, proposal_selection):
-    target_units = psrcdev.compute_target_units(target_vacancy)
-    new_buildings = psrcdev.run_developer(None,
-                        households,
-                        buildings,
-                        "residential_units",
-                        feasibility,
-                        parcels.parcel_size,
-                        parcels.ave_unit_size,
-                        parcels.residential_units,
-                        'res_developer.yaml',
-                        year=year,
-                        # Here we sum up the target units but eventually we want to have
-                        # a framework in place that distinguishes between the building types
-                        #num_units_to_build = target_units['single_family_residential'] + target_units['multi_family_residential'] + target_units['condo_residential'],
-                        num_units_to_build = target_units,
-                        add_more_columns_callback=add_extra_columns,
-                        custom_selection_func = proposal_selection#,
-                        #custom_selection_func = None
-                        )
-    
-@orca.step('non_residential_developer')
-def non_residential_developer(feasibility, jobs, buildings, parcels, year, target_vacancy, proposal_selection):
-    target_units = psrcdev.compute_target_units(target_vacancy)
-    new_buildings = psrcdev.run_developer(None,
-                        jobs.local[jobs.home_based_status == 0], # count only non-home-based jobs
-                        buildings,
-                        "job_spaces",
-                        feasibility,
-                        parcels.parcel_size,
-                        parcels.ave_unit_size,
-                        parcels.total_job_spaces,
-                        'nonres_developer.yaml',
-                        year=year,
-                        #num_units_to_build = target_units['industrial'] + target_units['office'] + target_units['warehousing'] + target_units['tcu'] + target_units['commercial'],
-                        num_units_to_build = target_units,
-                        add_more_columns_callback = add_extra_columns,
-                        custom_selection_func = proposal_selection)
-
-
-@orca.step('generic_developer')
-def generic_developer(feasibility, buildings, parcels, year, target_vacancy, proposal_selection, building_sqft_per_job):
+@orca.step('developer_picker')
+def developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection, building_sqft_per_job):
     target_units = psrcdev.compute_target_units(target_vacancy)
     new_buildings = psrcdev.run_developer(forms = [],
                         agents = None,
@@ -345,15 +304,11 @@ def generic_developer(feasibility, buildings, parcels, year, target_vacancy, pro
                         ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
                                          "multi_family_residential": parcels.ave_unit_size_mf,
                                          "condo_residential": parcels.ave_unit_size_condo},
-                        cfg = 'res_developer.yaml',
-                        #current_units = ["residential_units", "total_job_spaces"] ,
+                        cfg = 'developer.yaml',
                         year = year,
-                        # Here we sum up the target units but eventually we want to have
-                        # a framework in place that distinguishes between the building types
                         num_units_to_build = target_units,
                         add_more_columns_callback = add_extra_columns,
                         custom_selection_func = proposal_selection,
-                        #custom_selection_func = None
                         building_sqft_per_job = building_sqft_per_job
                         )
 

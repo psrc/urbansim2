@@ -6,4 +6,4 @@ max_parcel_size: 2000000
 
 drop_after_build: True
 
-residential: False
+residential: None
