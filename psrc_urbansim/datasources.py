@@ -177,12 +177,17 @@ def land_use_types(store):
 @orca.table('parcel_zoning', cache=True)
 def parcel_zoning(store, development_constraints, parcels, zoning_heights):
     constr = development_constraints.local.drop_duplicates()
-    # connect to parcels
+    # merge constraints with parcels
     pcl = pd.DataFrame(parcels['plan_type_id'])
     pcl['parcel_id'] = pcl.index
     constr['constraint_id'] = constr.index
     zoning = pd.merge(pcl, constr, how='left', on=['plan_type_id'])
+    # merge with zoning_heights
     zoning = pd.merge(zoning, zoning_heights.local, how='left', left_on=['plan_type_id'], right_index=True)
+    # replace NaNs with 0 for records not found in zoning_heights (e.g. plan_type_id 1000)
+    for col in zoning_heights.columns:
+        zoning[col] = np.nan_to_num(zoning[col])
+    # index is a composition of three attributes
     return zoning.set_index(['parcel_id','generic_land_use_type_id', 'constraint_type'])
 
 @orca.table('parcels', cache=True)

@@ -1,0 +1,221 @@
+parcel_sizes:
+- 10000.0
+
+fars:
+- 0.1
+- 0.25
+- 0.5
+- 0.75
+- 1.0
+- 1.5
+- 1.8
+- 2.0
+- 2.25
+- 2.5
+- 2.75
+- 3.0
+- 3.25
+- 3.5
+- 3.75
+- 4.0
+- 4.5
+- 5.0
+- 5.5
+- 6.0
+- 6.5
+- 7.0
+- 9.0
+- 11.0
+
+uses:
+- single_family_residential
+- condo_residential
+- multi_family_residential
+- commercial
+- office
+- industrial
+- warehousing
+- tcu
+
+residential_uses:
+- true
+- true
+- true
+- false
+- false
+- false
+- false
+- false
+
+forms: # gets overwritten
+    industrial:
+        industrial: 1.0
+    mixedoffice:
+        office: 0.7
+        multi_family_residential: 0.3
+    mixedresidential:
+        multi_family_residential: 0.9
+        commercial: 0.1
+    office:
+        office: 1.0
+    residential:
+        single_family_residential: 1.0
+    retail:
+        commercial: 1.0
+
+profit_factor: 1.1
+
+building_efficiency: 0.7
+
+parcel_coverage: 0.8
+
+cap_rate: 0.04
+
+parking_rates:
+    single_family_residential: 1.
+    condo_residential: 0.75
+    multi_family_residential: 1.
+    commercial: 2.
+    office: 0.75
+    industrial: 0.5
+    warehousing: 0.5
+    tcu: 0.5
+
+sqft_per_rate: 1000.0
+
+parking_configs:
+- surface
+- deck
+- underground
+
+costs:
+    single_family_residential: 
+    - 107.68
+    - 118.46
+    - 130.31
+    - 143.34
+    condo_residential:
+    - 96.92
+    - 106.61
+    - 117.28
+    - 129
+    multi_family_residential:
+    - 94.63
+    - 119.69
+    - 129.92
+    - 142.91
+    commercial:
+    - 126.6
+    - 139.26
+    - 153.18
+    - 168.5
+    office:
+    - 135.04
+    - 132.99
+    - 169.82
+    - 186.8
+    industrial:
+    - 74.34
+    - 81.77
+    - 89.98
+    - 98.94
+    warehousing:
+    - 74.34
+    - 81.77
+    - 89.98
+    - 98.94
+    tcu:
+    - 74.34
+    - 81.77
+    - 89.98
+    - 98.94
+
+heights_for_costs:
+- 15
+- 55
+- 120
+- .inf
+
+parking_sqft_d:
+    deck: 128
+    surface: 163
+    underground: 114
+
+parking_cost_d:
+    deck: 90
+    surface: 70
+    underground: 100
+
+height_per_story: 12.0
+
+max_retail_height: 2.0
+
+max_industrial_height: 2.0
+
+proposals_to_keep: 10
+
+only_built: true
+
+parcel_filter: null
+
+residential_to_yearly: false
+
+pass_through: []
+
+simple_zoning: false
+
+construction_months:
+    single_family_residential:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    multi_family_residential:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    condo_residential:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    commercial:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    office:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    industrial:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    warehousing:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+    tcu:
+    - 12.0
+    - 14.0
+    - 18.0
+    - 24.0
+
+construction_sqft_for_months:
+- 10000
+- 20000
+- 50000
+- .inf
+
+loan_to_cost_ratio: 0.7
+
+drawdown_factor: 0.6
+
+interest_rate: 0.05
+
+loan_fees: 0.02

@@ -5,6 +5,7 @@ from urbansim.utils import misc
 import urbansim_defaults.utils
 from psrc_urbansim.vars.variables_interactions import avg_network_distance_from_home_to_work
 from psrc_urbansim.vars.variables_interactions import max_network_distance_from_home_to_work
+
 #####################
 # HOUSEHOLDS VARIABLES (in alphabetic order)
 #####################

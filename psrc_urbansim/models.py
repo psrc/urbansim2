@@ -13,8 +13,9 @@ import pandas as pd
 from psrc_urbansim.mod.allocation import AgentAllocationModel
 import urbansim.developer as dev
 import developer_models as psrcdev
+import sqftproforma
+from urbansim.utils import misc, yamlio
 import os
-from urbansim.utils import misc
 from psrc_urbansim.vars.variables_interactions import network_distance_from_home_to_work
 
 
@@ -261,71 +262,67 @@ def governmental_jobs_scaling(jobs, buildings, year):
     print "Number of unplaced governmental jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()
     orca.add_table(jobs.name, jobs.local)
 
-
+@orca.step('create_proforma_config')
+def create_proforma_config(proforma_settings):
+    yaml_file = misc.config("proforma_user.yaml")
+    user_cfg = yamlio.yaml_to_dict(str_or_buffer=yaml_file)
+    config = psrcdev.update_sqftproforma(user_cfg, proforma_settings)
+    yamlio.convert_to_yaml(config, "proforma.yaml")
+    
 @orca.step('proforma_feasibility')
-def proforma_feasibility(parcels, proforma_settings, price_per_sqft_func,
+def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, parcel_sales_price_sqft_func, 
                          parcel_is_allowed_func):
 
-    # default model settings
-    pf = dev.sqftproforma.SqFtProForma()
-    # update with psrc-specific settings
-    pf.config = psrcdev.update_sqftproforma(pf.config, proforma_settings)
-    pf._generate_lookup()
-    pf = psrcdev.update_generate_lookup(pf)
+    development_filter = "capacity_opportunity_non_gov" # includes empty parcels
+    pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
+    # reduce parcel dataset to those that can be developed
+    if development_filter is not None:
+        pcl = pcl.loc[parcels[development_filter] == True]
+    df = orca.DataFrameWrapper("parcels", pcl, copy_col=False)
+    # create a feasibility dataset
+    sqftproforma.run_feasibility(df, parcel_sales_price_sqft_func,
+                                 #parcel_price_placeholder, 
+                                 parcel_is_allowed_func, cfg = "proforma.yaml",
+                                parcel_custom_callback = parcel_sales_price_sqft_func,
+                                proforma_uses = proforma_settings)
+    #projects = orca.get_table("feasibility")
+    #p = projects.local.stack(level=0)
+    #pp = p.reset_index()
+    #pp.rename(columns = {'level_1':'form'}, inplace=True)
+    #pp.to_csv("proforma_projects.csv")
+    return
 
-    df = parcels.to_frame(parcels.local_columns +
-                          ['max_far', 'max_dua', 'max_height',
-                           'ave_unit_size', 'parcel_size', 'land_cost'])
-    return psrcdev.run_proforma_feasibility(df, pf, price_per_sqft_func,
-                                            parcel_is_allowed_func,
-                                            redevelopment_filter="capacity_opportunity_non_gov")
-
-
-@orca.step('residential_developer')
-def residential_developer(feasibility, households, buildings, parcels, year):
-    utils.run_developer(feasibility.local.residential_forms,
-                        #None,
-                        households,
-                        buildings,
-                        "residential_units",
-                        parcels.parcel_size,
-                        parcels.ave_unit_size,
-                        parcels.residential_units,
-                        feasibility,
-                        year=year,
-                        target_vacancy=.15,
-                        #form_to_btype_callback=random_type,
-                        add_more_columns_callback=add_extra_columns,
-                        bldg_sqft_per_job=400.0)
-
-
-@orca.step('non_residential_developer')
-def non_residential_developer(feasibility, jobs, buildings, parcels, year):
-    utils.run_developer(None,
-                        jobs.local[jobs.home_based_status == 0],  # count only non-home-based jobs
-                        buildings,
-                        "job_spaces",
-                        parcels.parcel_size,
-                        parcels.ave_unit_size,
-                        parcels.total_job_spaces,
-                        feasibility,
-                        year=year,
-                        target_vacancy=.15,
-                        #form_to_btype_callback=random_type,
-                        add_more_columns_callback=add_extra_columns,
-                        residential=False,
-                        bldg_sqft_per_job=400.0)
-
+@orca.step('developer_picker')
+def developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection, building_sqft_per_job):
+    target_units = psrcdev.compute_target_units(target_vacancy)
+    new_buildings = psrcdev.run_developer(forms = [],
+                        agents = None,
+                        buildings = buildings,
+                        supply_fname = ["residential_units", "job_spaces"],
+                        feasibility = feasibility,
+                        parcel_size = parcels.parcel_size,
+                        ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
+                                         "multi_family_residential": parcels.ave_unit_size_mf,
+                                         "condo_residential": parcels.ave_unit_size_condo},
+                        cfg = 'developer.yaml',
+                        year = year,
+                        num_units_to_build = target_units,
+                        add_more_columns_callback = add_extra_columns,
+                        custom_selection_func = proposal_selection,
+                        building_sqft_per_job = building_sqft_per_job
+                        )
 
 def random_type(form):
     form_to_btype = orca.get_injectable("form_to_btype")
     return random.choice(form_to_btype[form])
 
 
-def add_extra_columns(df):
+def add_extra_columns(df, new_cols = {}):
     bldgs = orca.get_table('buildings')
     for col in bldgs.local_columns:
-        if col not in df.columns:
+        if col in new_cols.keys():
+            df[col] = new_cols[col]
+        elif col not in df.columns:
             df[col] = 0
     return df
 

@@ -24,7 +24,7 @@ Activate this environment every time you restart the prompt and want to work wit
 activate urbansim2
 ```
 
-(In a bash shell, type "source activate urbansim2".)
+To achieve the same thing in a bash shell, type "source activate urbansim2" or "conda activate urbansim2". To deactivate type "conda deactivate".
 
 In addition to Anaconda Python, three other packages (zbox, prettytable and pylogit) are needed. Install using the following pip commands:
    

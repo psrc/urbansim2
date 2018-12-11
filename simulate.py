@@ -1,4 +1,5 @@
 import os
+#import urbansim_defaults.models
 import psrc_urbansim.models
 import psrc_urbansim.workplace_models
 import psrc_urbansim.developer_models
@@ -15,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "simresult20180814.h5"
+     return "simresult20181008.h5"
 
 # remove results file if exists
 outfile = simfile()
@@ -33,17 +34,15 @@ def tables_in_base_year():
 
 orca.run([
 #    "add_lag1_tables",
-    #"proforma_feasibility",
-    #"residential_developer",      # residential proforma model
-    #"non_residential_developer",  # non-residential proforma model
+    "proforma_feasibility",
+    "developer_picker",
     #"wahcm_estimate",
     #"delete_invalid_households_persons",
     #"base_year_wplcm_simulate",
     "update_household_previous_building_id",
     "update_buildings_lag1",
-    #"repmres_simulate",          # residential REPM
-    #"repmnr_simulate",
-            # non-residential REPM
+    "repmres_simulate",          # residential REPM
+    "repmnr_simulate",          # non-residential REPM           
     "households_transition",     # households transition
     "households_relocation",     # households relocation model
     "hlcm_simulate",

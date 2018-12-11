@@ -3,7 +3,7 @@ import numpy as np
 import orca
 from urbansim.utils import misc
 import urbansim_defaults.utils
-#import urbansim_defaults.datasources
+
 #####################
 # buildings VARIABLES (in alphabetic order)
 #####################
@@ -23,7 +23,7 @@ def avg_price_per_unit_in_zone(buildings, zones):
 def building_sqft(buildings):
     results = np.zeros(buildings.local.shape[0],dtype=np.int32)
     where_res = np.where(buildings.residential_units > 0)[0]
-    results[where_res] = buildings.residential_units.iloc[where_res] * buildings.sqft_per_unit.iloc[where_res]
+    results[where_res] = buildings.residential_units.iloc[where_res] * buildings.sqft_per_unit_imputed.iloc[where_res]
     where_nonres = np.where(buildings.non_residential_sqft > 0)[0]
     results[where_nonres] = results[where_nonres] + buildings.non_residential_sqft.iloc[where_nonres]
     return pd.Series(results, index=buildings.index)
@@ -61,6 +61,10 @@ def has_valid_age_built(buildings, settings):
 def is_commercial(buildings):
     return (buildings.building_type_name == 'commercial').astype("int16")
 
+@orca.column('buildings', 'is_condo', cache=True, cache_scope='iteration')
+def is_condo(buildings):
+    return (buildings.building_type_name == 'condo_residential').astype("int16")
+
 @orca.column('buildings', 'is_governmental', cache=True, cache_scope='iteration')
 def is_governmental(buildings, building_types):
     return (misc.reindex(building_types.generic_building_type_description, buildings.building_type_id) == 'government').astype("int16")
@@ -84,6 +88,10 @@ def is_office(buildings):
 @orca.column('buildings', 'is_residential', cache=True, cache_scope='iteration')
 def is_residential(buildings, building_types):
     return (misc.reindex(building_types.is_residential, buildings.building_type_id) == 1).astype("bool8")
+
+@orca.column('buildings', 'is_singlefamily', cache=True, cache_scope='iteration')
+def is_singlefamily(buildings):
+    return (buildings.building_type_name == 'single_family_residential').astype("int16")
 
 @orca.column('buildings', 'is_tcu', cache=True, cache_scope='iteration')
 def is_tcu(buildings):
@@ -161,6 +169,20 @@ def sqft_per_job(buildings, building_sqft_per_job):
     series2 = pd.DataFrame({'zone_id': buildings.zone_id, 'building_type_id': buildings.building_type_id}, index=buildings.index)
     df = pd.merge(series2, series1, left_on=['zone_id', 'building_type_id'], right_index=True, how="left")   
     return df.building_sqft_per_job
+
+@orca.column('buildings', 'sqft_per_unit_imputed', cache=True, cache_scope='iteration')
+def sqft_per_unit_imputed(buildings):
+    # Imputes sqft_per_unit for residential buildings if missing, using regional median split by type
+    is_mf = (buildings.is_multifamily == 1) & (buildings.residential_units > 0)
+    is_sf = (buildings.is_singlefamily == 1) & (buildings.residential_units > 0)
+    is_condo = (buildings.is_condo == 1) & (buildings.residential_units > 0)
+    is_other_res = (buildings.is_residential == 1) & (buildings.residential_units > 0) & (buildings.is_multifamily == 0) & (buildings.is_singlefamily == 0) & (buildings.is_condo == 0)
+    results = buildings.sqft_per_unit.copy()
+    results[is_mf] = results[is_mf].replace(0, buildings.sqft_per_unit[is_mf].median())
+    results[is_sf] = results[is_sf].replace(0, buildings.sqft_per_unit[is_sf].median())
+    results[is_condo] = results[is_condo].replace(0, buildings.sqft_per_unit[is_condo].median())
+    results[is_other_res] = results[is_other_res].replace(0, buildings.sqft_per_unit[is_other_res].median())
+    return results
 
 @orca.column('buildings', 'tractcity_id', cache=True)
 def tractcity_id(buildings, parcels):

@@ -14,9 +14,23 @@ def acres_wwd(parcels):
 
 @orca.column('parcels', 'ave_unit_size', cache=True, cache_scope='iteration')
 def ave_unit_size(parcels, buildings):
-    reg_median = buildings.building_sqft_per_unit.median()
-    return buildings.building_sqft_per_unit.groupby(buildings.zone_id).median().\
-           reindex(parcels.index).fillna(reg_median)
+    # Median building sqft per residential unit over zones
+    return get_ave_unit_size_by_zone(buildings.is_residential == 1, buildings, parcels)
+
+@orca.column('parcels', 'ave_unit_size_sf', cache=True, cache_scope='iteration')
+def ave_unit_size_sf(parcels, buildings):
+    # Median building sqft per single-family residential unit over zones
+    return get_ave_unit_size_by_zone(buildings.is_singlefamily == 1, buildings, parcels)
+
+@orca.column('parcels', 'ave_unit_size_mf', cache=True, cache_scope='iteration')
+def ave_unit_size_mf(parcels, buildings):
+    # Median building sqft per multi-family residential unit over zones
+    return get_ave_unit_size_by_zone(buildings.is_multifamily == 1, buildings, parcels)
+
+@orca.column('parcels', 'ave_unit_size_condo', cache=True, cache_scope='iteration')
+def ave_unit_size_condo(parcels, buildings):
+    # Median building sqft per condo residential unit over zones
+    return get_ave_unit_size_by_zone(buildings.is_condo == 1, buildings, parcels)
 
 @orca.column('parcels', 'average_income', cache=True, cache_scope='iteration')
 def average_income(parcels, households):
@@ -53,16 +67,24 @@ def capacity_opportunity_non_gov(parcels):
     # use as a redevelopment filter
     return np.logical_or(parcels.building_sqft_pcl == 0, # if no buildings on parcels return True
         # OR the following chain of ANDs
-        (parcels.max_developable_capacity/parcels.building_sqft_pcl > 3)* # parcel is not utilized
-        (parcels.number_of_governmental_buildings == 0)* # no governmental buildings
-        (parcels.avg_building_age >= 20)* # buildings older than 20 years
+        (parcels.max_developable_capacity/parcels.building_sqft_pcl > 3)& # parcel is not utilized
+        (parcels.number_of_governmental_buildings == 0)& # no governmental buildings
+        (parcels.avg_building_age >= 10)& # buildings older than 20 years
         np.logical_or( # if condo, the utilization should have a higher bar (it's more difficult to get all condo owners to agree)
             parcels.max_developable_capacity / parcels.building_sqft_pcl > 6, 
             parcels.land_use_type_id <> 15
-            )*
-        (parcels.job_capacity < 500)* # do not turn down buildings with lots of jobs
-        (parcels.improvement_value / parcels.parcel_sqft < 250) # do not turn down expensive mansions
+            )&
+        (parcels.job_capacity < 500)& # do not turn down buildings with lots of jobs
+        (parcels.total_improvement_value / parcels.parcel_sqft < 250) # do not turn down expensive mansions
     )
+
+@orca.column('parcels', 'commercial_job_spaces', cache=True, cache_scope='iteration')
+def commercial_job_spaces(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "commercial", buildings, parcels, units_attribute = "job_spaces")
+
+@orca.column('parcels', 'condo_residential_units', cache=True, cache_scope='iteration')
+def condo_residential_units(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "condo_residential", buildings, parcels)
 
 @orca.column('parcels', 'developable_capacity', cache=True, cache_scope='forever')
 def developable_capacity(parcels):
@@ -91,6 +113,10 @@ def existing_units(parcels):
 @orca.column('parcels', 'faz_id', cache=True)
 def faz_id(parcels, zones):
     return misc.reindex(zones.faz_id, parcels.zone_id)
+
+@orca.column('parcels', 'industrial_job_spaces', cache=True, cache_scope='iteration')
+def industrial_job_spaces(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "industrial", buildings, parcels, units_attribute = "job_spaces")
 
 @orca.column('parcels', 'income_per_person_wwd', cache=True, cache_scope='iteration')
 def income_per_person_wwd(parcels, gridcells, settings):
@@ -146,6 +172,10 @@ def max_far(parcels, parcel_zoning):
 def max_height(parcels, parcel_zoning):
     return parcel_zoning.local.max_height.groupby(level="parcel_id").min().reindex(parcels.index)
 
+@orca.column('parcels', 'multi_family_residential_units', cache=True, cache_scope='iteration')
+def multi_family_residential_units(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "multi_family_residential", buildings, parcels)
+
 @orca.column('parcels', 'nonres_building_sqft', cache=True, cache_scope='iteration')
 def nonres_building_sqft(parcels, buildings):
     return (buildings.building_sqft * (~buildings.is_residential)).groupby(buildings.parcel_id).sum().\
@@ -196,6 +226,10 @@ def number_of_retail_jobs(parcels, jobs):
     return jobs.is_in_sector_group_retail.groupby(jobs.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
 
+@orca.column('parcels', 'office_job_spaces', cache=True, cache_scope='iteration')
+def office_job_spaces(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "office", buildings, parcels, units_attribute = "job_spaces")
+
 @orca.column('parcels', 'parcel_size', cache=True, cache_scope='forever')
 def parcel_size(parcels):
     return parcels.parcel_sqft
@@ -237,6 +271,14 @@ def residential_units(parcels, buildings):
 def retail_density_wwd(parcels):
     return (parcels.employment_retail_wwd / parcels.acres_wwd).replace(np.inf, 0).fillna(0)
 
+@orca.column('parcels', 'single_family_residential_units', cache=True, cache_scope='iteration')
+def single_family_residential_units(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "single_family_residential", buildings, parcels)
+
+@orca.column('parcels', 'tcu_job_spaces', cache=True, cache_scope='iteration')
+def tcu_job_spaces(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "tcu", buildings, parcels, units_attribute = "job_spaces")
+
 @orca.column('parcels', 'total_income', cache=True, cache_scope='iteration')
 def total_income(parcels, households):
     return households.income.groupby(households.parcel_id).sum().\
@@ -271,3 +313,21 @@ def unit_price_trunc(parcels):
     price[price > 1500] = 1500
     return price
 
+@orca.column('parcels', 'warehousing_job_spaces', cache=True, cache_scope='iteration')
+def warehousing_job_spaces(parcels, buildings):
+    return get_units_by_type(buildings.building_type_name == "warehousing", buildings, parcels, units_attribute = "job_spaces")
+
+# Functions
+def get_ave_unit_size_by_zone(is_in, buildings, parcels):
+    # Median building sqft per residential unit over zones
+    # is_in is a logical Series giving the filter for subsetting the buildings
+    # Values for parcels in zones with no residential buildings are imputed 
+    # using the regional median.
+    bsu = buildings.building_sqft_per_unit[is_in].replace(0, np.nan) # so that zeros are not counted
+    reg_median = bsu.median()
+    return buildings.building_sqft_per_unit[is_in].groupby(buildings.zone_id[is_in]).median().\
+           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+
+def get_units_by_type(is_type, buildings, parcels, units_attribute = "residential_units"):
+    return buildings[units_attribute][is_type].groupby(buildings.parcel_id[is_type]).sum().\
+           reindex(parcels.index).fillna(0)    
