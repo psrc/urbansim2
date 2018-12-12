@@ -20,5 +20,3 @@ income_breaks: [34000, 64000, 102000]
 near_arterial_threshold: 300
 
 abs_min_year_built: 1800
-
-percent_of_max_profit: .65

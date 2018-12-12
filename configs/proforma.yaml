@@ -1,5 +1,6 @@
 parcel_sizes:
 - 10000.0
+#- 20000
 
 fars:
 - 0.1
@@ -27,7 +28,7 @@ fars:
 - 9.0
 - 11.0
 
-uses:
+uses: # have to match building type names in building_types
 - single_family_residential
 - condo_residential
 - multi_family_residential
@@ -37,7 +38,7 @@ uses:
 - warehousing
 - tcu
 
-residential_uses:
+residential_uses: # gets overwritten
 - true
 - true
 - true
@@ -152,8 +153,6 @@ max_retail_height: 2.0
 
 max_industrial_height: 2.0
 
-proposals_to_keep: 10
-
 only_built: true
 
 parcel_filter: null
@@ -219,3 +218,8 @@ drawdown_factor: 0.6
 interest_rate: 0.05
 
 loan_fees: 0.02
+
+# settings that influence how many proposals are kept per parcel
+# (maximum number and percent max deviation from the maximum)
+proposals_to_keep: 10
+percent_of_max_profit: 65 
