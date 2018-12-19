@@ -13,6 +13,7 @@ import pandas as pd
 from psrc_urbansim.mod.allocation import AgentAllocationModel
 import urbansim.developer as dev
 import developer_models as psrcdev
+import dcm_weighted_sampling as psrc_dcm
 import sqftproforma
 from urbansim.utils import misc, yamlio
 import os
@@ -97,6 +98,62 @@ def hlcm_simulate(households, buildings, persons, settings):
     return res
 
 
+
+@orca.step('hlcm_simulate_sample2')
+def hlcm_simulate_sample2(households, buildings, persons, settings):
+    movers = households.to_frame()
+    movers = movers[movers.building_id == -1]
+    relocated = movers[movers.is_inmigrant < 1]
+    #households.update_col('residence_large_area2', pd.Series(households.residence_large_area, households.index))
+    #buildings.update_col('large_area_id2', pd.Series(buildings.large_area_id, buildings.index))
+
+    #households.update_col("residence_large_area2", pd.Series(np.where(households.residence_large_area2 == -1, 99, households.residence_large_area2), households.index)
+    households.update_col("residence_large_area2", pd.Series(np.where(households.residence_large_area == -1.0, 99, households.residence_large_area), households.index))
+    
+    #buildings.update_col("large_area_id2",
+    #                            pd.Series(np.where(buildings.large_area_id == -1, 99, buildings.large_area_id), buildings.index))
+
+    for large_area in households.residence_large_area2.unique():
+        if large_area > -2:
+            households.update_col("predict_filter",
+                                   pd.Series(np.where(np.logical_and
+                                             (households.building_id == -1,
+                                              households.residence_large_area2 == large_area), 1,
+                                               0),
+                                             index=households.index))
+   
+            samples = sample(buildings, large_area, households.predict_filter.sum() * 4)
+            buildings.update_col("sample_filter_" + str(int(large_area)), samples)
+
+    #res = utils.lcm_simulate("hlcmcoef.yaml", households, buildings,
+    #                         None, "building_id", "residential_units",
+    #                         "vacant_residential_units", cast=True)
+
+    #res = utils.lcm_simulate2("hlcmcoef.yaml", households, 'predict_filter', buildings, 'sample_filter',
+    #                         None, "building_id", "residential_units",
+    #                         "vacant_residential_units", cast=True)
+
+    
+    res = psrc_dcm.lcm_simulate_sample("hlcmcoef_sample.yaml", households, 'residence_large_area2', buildings,
+                             None, "building_id", "residential_units",
+                             "vacant_residential_units", cast=True)
+    orca.clear_cache()
+
+@orca.step('hlcm_simulate_sample')
+def hlcm_simulate_sample(households, buildings, persons, settings):
+
+    res = psrc_dcm.lcm_simulate_sample("hlcmcoef.yaml", households, 'prev_residence_large_area_id', buildings,
+                             None, "building_id", "residential_units",
+                             "vacant_residential_units", cast=True)
+    orca.clear_cache()
+
+@orca.step('hlcm_estimate_sample')
+def hlcm_estimate_sample(households_for_estimation, buildings, persons, settings):
+
+    res = psrc_dcm.lcm_estimate_sample("hlcm.yaml", households_for_estimation, 'prev_residence_large_area_id',
+                              "building_id", buildings, None,
+                              out_cfg="hlcmcoef.yaml")
+    orca.clear_cache()
 # WPLCM
 @orca.step('wplcm_estimate')
 def wplcm_estimate(persons_for_estimation, jobs):
@@ -132,7 +189,6 @@ def households_relocation(households, household_relocation_rates):
     households.update_col_from_series("building_id",
                                       pd.Series(-1, index=movers), cast=True)
     print "%s households are unplaced in total." % ((households.local["building_id"] <= 0).sum())
-
 
 @orca.step('jobs_relocation')
 def jobs_relocation(jobs, job_relocation_rates):
@@ -203,6 +259,13 @@ def households_transition(households, household_controls,
                                       pd.Series(np.where
                                                 (~households.index.isin
                                                  (orig_hh_index), 1, 0),
+                                                index=households.index),
+                                      cast=True)
+
+    households.update_col_from_series("previous_building_id",
+                                      pd.Series(np.where
+                                                (~households.index.isin
+                                                 (orig_hh_index), -1, households.previous_building_id),
                                                 index=households.index),
                                       cast=True)
 
