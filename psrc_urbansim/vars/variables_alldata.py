@@ -23,8 +23,6 @@ def number_of_households(alldata, households):
     print 'in variables_alldata.py, in number_of_households function'
     return  pd.Series(households.persons.sum(), index = alldata.index)
 
-
-
 @orca.column('alldata', 'residential_units', cache=True, cache_scope='iteration')
 def residetial_units(alldata, buildings):
     print 'in variables_alldata.py, residential_units function'

@@ -23,11 +23,17 @@ def building_sqft(fazes, buildings):
     return buildings.sqft_per_unit.groupby(buildings.faz_id).sum().\
            reindex(fazes.index).fillna(0)
 
+@orca.column('fazes', 'DU_SF_19', cache=True, cache_scope='iteration')
+def DU_SF_19(fazes, buildings):
+   print 'In DU_SF_19'
+   return buildings.query('building_type_id == 19').residential_units.\
+          groupby((buildings.faz_id).sum().reindex(fazes.index).fillna(0)
+
 @orca.column('fazes', 'nonres_sqft', cache=True, cache_scope='iteration')
 def nonres_sqft(fazes, buildings):
     return buildings.non_residential_sqft.groupby(buildings.faz_id).sum().\
            reindex(fazes.index).fillna(0)
- 
+
 @orca.column('fazes', 'number_of_households', cache=True, cache_scope='iteration')
 def number_of_households(fazes, households):
     return households.persons.groupby(households.faz_id).size().\

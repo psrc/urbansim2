@@ -21,3 +21,33 @@ indicators:
 
     population:
         dataset: [zones, fazes, cities, alldata]
+		
+dataset_tables:
+    DU_and_HH_by_bld_type_by_faz_by_year:
+	    dataset: [fazes]
+
+	persons_by_5year_age_groups:
+	    dataset: [alldata]
+
+	persons_by_age_groups_of_interest:
+	    dataset: [alldata]
+
+	regional_total_hhs_by_30_60_90_in_14dollars_groups:
+	    dataset: [alldata]
+
+	pptyp:
+	    dataset: [alldata]
+
+	pwtyp:
+	    dataset: [alldata]
+
+	regional_total_hhs_by_new_14incomegroups:
+		dataset: [alldata]
+
+	employment_by_aggr_sector:
+		dataset: [zones, city]
+
+	eoy_vacancy_by_building_type:
+		dataset: [counties]
+    
+	    

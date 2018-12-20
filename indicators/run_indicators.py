@@ -11,6 +11,20 @@ import data
 # List of Indicator tables created during each iteration
 ind_table_list = []
 
+
+def DU_and_HH_by_bld_type_by_faz_by_year(ds, ind, settings, iter_var):
+    # This will create the DU_and_HH_by_bld_type_by_faz_by_year dataset table
+    # for the current year (iter_var).  It will query each column and create
+    # the final output csv file.
+    print 'Printing from DU_and_HH_by_bld_type_by_faz_by_year()'
+    
+    column_list = ['DU_SF_19']#, 'DU_MF_12', 'DU_CO_4', 'DU_MH_11', 'DU_Total', /
+                   #'HH_SF_19', 'HH_MF_12', 'HH_CO_4', 'HH_MH_11', 'HH_Total']
+    for column in column_list:
+        #df = orca.get_table(ds)[column]
+        print orca.get_table(ds)[column].to_frame().head()
+    
+    
 # Define injectables
 
 # replace this by passing yaml file name as argument
@@ -39,8 +53,18 @@ def compute_indicators(settings, iter_var):
     orca.clear_cache()      
              
 
+@orca.step()
+def compute_datasets(settings, iter_var):
+    # Loops over dataset_tables and datasets from settings and store into file
+    for ind, value in settings['dataset_tables'].iteritems():
+        for ds in value['dataset']:
+            print 'ds is %s and ind is %s' % (ds, ind)
+            func = ind + "(ds, ind, settings, iter_var)"
+            eval(func)
+            
+
 # Compute indicators
-orca.run(['compute_indicators'], iter_vars=settings(settings_file())['years'])
+orca.run(['compute_indicators', 'compute_datasets'], iter_vars=settings(settings_file())['years'])
 
 # Create CSV files
 def create_csv_files():
