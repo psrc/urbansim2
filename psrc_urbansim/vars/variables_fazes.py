@@ -27,7 +27,7 @@ def building_sqft(fazes, buildings):
 def DU_SF_19(fazes, buildings):
    print 'In DU_SF_19'
    return buildings.query('building_type_id == 19').residential_units.\
-          groupby((buildings.faz_id).sum().reindex(fazes.index).fillna(0)
+          groupby(buildings.faz_id).sum().reindex(fazes.index).fillna(0)
 
 @orca.column('fazes', 'nonres_sqft', cache=True, cache_scope='iteration')
 def nonres_sqft(fazes, buildings):
