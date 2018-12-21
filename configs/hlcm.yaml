@@ -4,7 +4,7 @@ model_type: segmented_discretechoice
 
 segmentation_col: is_inmigrant
 
-choosers_fit_filters: [building_id > 0, for_estimation == 1]
+choosers_fit_filters: [building_id > 0, for_estimation == 1, previous_building_id <> 0]
 
 choosers_predict_filters: null
 
