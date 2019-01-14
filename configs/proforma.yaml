@@ -3,6 +3,7 @@ parcel_sizes:
 #- 20000
 
 fars:
+- 0.05
 - 0.1
 - 0.25
 - 0.5
@@ -66,7 +67,7 @@ forms: # gets overwritten
 
 profit_factor: 1.1
 
-building_efficiency: 0.7
+building_efficiency: 1 # original 0.7 but our zoning accounts for coverage
 
 parcel_coverage: 0.8
 

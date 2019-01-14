@@ -150,8 +150,8 @@ def run_feasibility(parcels, parcel_price_callback,
     cfg = misc.config(cfg)
     
     # Create default SqFtProForma
-    pf = (sqftproforma.SqFtProForma.from_yaml(str_or_buffer=cfg)
-          if cfg else sqftproforma.SqFtProForma.from_defaults())
+    pf = (PSRCSqFtProForma.from_yaml(str_or_buffer=cfg)
+          if cfg else PSRCSqFtProForma.from_defaults())
     # Update default values using templates and store
     pf = update_sqftproforma(pf, cfg, **kwargs)
     orca.add_injectable("pf_config", pf)
@@ -218,3 +218,58 @@ def run_feasibility(parcels, parcel_price_callback,
            
     orca.add_table('feasibility', feasibility)
     return feasibility
+
+class PSRCSqFtProForma(sqftproforma.SqFtProForma):
+    
+    def _min_max_fars(self, df, resratio):
+        """
+        This updates the parent method - we do not want to minimize between far 
+        from dua and far.
+        Parameters
+        ----------
+        df : DataFrame
+            DataFrame of developable sites/parcels passed to lookup() method
+        resratio : numeric
+            Residential ratio for this form
+
+        Returns
+        -------
+        Series
+        """    
+        
+        if 'max_dua' in df.columns and resratio > 0:
+            # if max_dua is in the data frame, ave_unit_size must also be there
+            assert 'ave_unit_size' in df.columns
+
+            df['max_far_from_dua'] = (
+                # this is the max_dua times the parcel size in acres, which
+                # gives the number of units that are allowable on the parcel
+                df.max_dua * (df.parcel_size / 43560) *
+
+                # times by the average unit size which gives the square footage
+                # of those units
+                df.ave_unit_size /
+
+                # divided by the building efficiency which is a
+                # factor that indicates that the actual units are not the whole
+                # FAR of the building
+                self.building_efficiency /
+
+                # divided by the resratio which is a  factor that indicates
+                # that the actual units are not the only use of the building
+                resratio /
+
+                # divided by the parcel size again in order to get FAR.
+                # I recognize that parcel_size actually
+                # cancels here as it should, but the calc was hard to get right
+                # and it's just so much more transparent to have it in there
+                # twice
+                df.parcel_size)
+            # sum of max_far and max_far_from_dua capped at max_far_from_heights
+            df['max_far_total'] = df.max_far + df.max_far_from_dua
+            return df[['max_far_total', 'max_far_from_heights']].min(axis=1)
+        else:
+            # if max_far is given than take that otherwise max_far_from_heights
+            df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_heights, df.max_far)
+            return df['max_far_total']
+        
