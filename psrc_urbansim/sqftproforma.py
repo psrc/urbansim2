@@ -66,6 +66,7 @@ def parcel_is_allowed_func(form):
         result[pcls] = result[pcls] + 1
     return (result == is_res_bt.index.size)
 
+
 def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):    
     # extract uses 
     blduses = proforma_uses[["building_type_id", "building_type_name", "is_residential"]].drop_duplicates()
@@ -160,7 +161,8 @@ def run_feasibility(parcels, parcel_price_callback,
              else parcels.to_frame(parcels.local_columns))
     #df = apply_parcel_callbacks(sites, parcel_price_callback,
     #                            pf, **kwargs)
-
+    
+    
     # compute price for each use
     df = sites
     for use in pf.uses:        
@@ -267,7 +269,8 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
                 df.parcel_size)
             # sum of max_far and max_far_from_dua capped at max_far_from_heights
             df['max_far_total'] = df.max_far + df.max_far_from_dua
-            return df[['max_far_total', 'max_far_from_heights']].min(axis=1)
+            #return df[['max_far_total', 'max_far_from_heights']].min(axis=1)
+            return df[['max_far', 'max_far_from_dua', 'max_far_from_heights']].min(axis=1)
         else:
             # if max_far is given than take that otherwise max_far_from_heights
             df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_heights, df.max_far)
