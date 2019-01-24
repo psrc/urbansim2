@@ -10,7 +10,7 @@ from developer.utils import yaml_to_dict
 #from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
 
 @orca.injectable("proforma_settings")
-def proforma_settings(land_use_types, building_types, development_templates, development_template_components):
+def proforma_settings(land_use_types, building_types, development_templates, development_template_components, generic_land_use_types):
     uses =  pd.merge(development_template_components.local[["building_type_id", "template_id", "description", "percent_building_sqft"]],
                          development_templates.local[["land_use_type_id", "density_type"]], left_on="template_id", right_index=True, how="left")
     uses.description.iloc[np.core.defchararray.startswith(uses.description.values.astype("string"), "sfr")] = "sfr" # since there are 2 sfr uses (sfr_plat, sfr_parcel)
@@ -22,6 +22,10 @@ def proforma_settings(land_use_types, building_types, development_templates, dev
     blduses = uses[uses.template_id.isin(blduses.template_id.values)]
     blduses = pd.merge(blduses, building_types.local[["building_type_name", "is_residential"]], left_on="building_type_id", right_index=True, how="left")
     blduses = pd.merge(blduses, land_use_types.local[["land_use_name", "generic_land_use_type_id"]], left_on="land_use_type_id", right_index=True, how="left")
+    blduses = pd.merge(blduses, generic_land_use_types.local, how="left", on = "generic_land_use_type_id")
+    # replace residential generic LUT name
+    blduses.loc[np.logical_or(blduses.generic_land_use_type_name == "single_family_residential", blduses.generic_land_use_type_name == "multi_family_residential"), 
+                              "generic_land_use_type_name"] = "residential"
     # rename duplicated description
     tmp = blduses[['template_id', 'description']].drop_duplicates()
     is_dupl = tmp.duplicated('description')
@@ -51,21 +55,9 @@ def parcel_sales_price_func(use, config):
 @orca.injectable("parcel_is_allowed_func", autocall=False)
 def parcel_is_allowed_func(form):
     config = orca.get_injectable("pf_config")
-    bt_distr = config.forms[form]
     glu = config.form_glut[form]
     zoning = orca.get_table('parcel_zoning')
-    btused = config.residential_uses.index[bt_distr > 0]
-    is_res_bt = config.residential_uses[btused]
-    unit = config.form_density_type[form]
-    parcels = orca.get_table('parcels')
-    result = pd.Series(0, index=parcels.index)
-    for typ in is_res_bt.index:
-        this_zoning = zoning.local.loc[np.logical_and(zoning.index.get_level_values("constraint_type") == unit, 
-                                                      zoning.index.get_level_values("generic_land_use_type_id") == glu)]
-        pcls = this_zoning.index.get_level_values("parcel_id")
-        result[pcls] = result[pcls] + 1
-    return (result == is_res_bt.index.size)
-
+    return zoning.local[[glu]] > 0
 
 def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):    
     # extract uses 
@@ -92,7 +84,7 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
         submerge = pd.merge(blduses, subuse, on='building_type_name', how="left")
         form_name = subuse.description.values[0]
         forms[form_name] = submerge.percent_building_sqft.fillna(0).values/100.
-        form_glut[form_name] = subuse.generic_land_use_type_id.values[0]
+        form_glut[form_name] = subuse.generic_land_use_type_name.values[0]
         form_density_type[form_name] = subuse.density_type.values[0]
 
     # Conversion similar to sqftproforma._convert_types()
@@ -184,7 +176,7 @@ def run_feasibility(parcels, parcel_price_callback,
         #    newdf = df.loc[misc.reindex(allowed, df.parcel_id)]
         #else:
         allowed = parcel_use_allowed_callback(form).loc[df.index]
-        newdf = df[allowed]
+        newdf = df[allowed.values]
         
         # Core function - computes profitability
         d[form] = pf.lookup(form, newdf, only_built = pf.only_built,
@@ -261,11 +253,14 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
                 # that the actual units are not the only use of the building
                 resratio /
 
+                #df.max_coverage /
+                
                 # divided by the parcel size again in order to get FAR.
                 # I recognize that parcel_size actually
                 # cancels here as it should, but the calc was hard to get right
                 # and it's just so much more transparent to have it in there
                 # twice
+                
                 df.parcel_size)
             # sum of max_far and max_far_from_dua capped at max_far_from_heights
             df['max_far_total'] = df.max_far + df.max_far_from_dua

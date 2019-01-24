@@ -42,10 +42,10 @@ column.names <- list(plan_type_id = "plan_type_id:i4",
                       max_far = "max_far:f4",
                       max_coverage = "max_coverage:f4",
                       max_height_ft = "max_height:f4",
-                      height_imputed = "height_imputed:b1")
+                      height_imputed = "height_imputed:i4")
 for(col in names(column.names))
   setnames(plantypes, col, column.names[[col]])
 for(col in c("office", "commercial", "industrial", "mixed_use", "residential"))
-  setnames(plantypes, col, paste0(col, ":b1"))
+  setnames(plantypes, col, paste0(col, ":i4"))
 
 fwrite(plantypes, file = "zoning_heights.csv")
