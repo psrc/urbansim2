@@ -178,7 +178,14 @@ def multi_family_residential_units(parcels, buildings):
 
 @orca.column('parcels', 'nonres_building_sqft', cache=True, cache_scope='iteration')
 def nonres_building_sqft(parcels, buildings):
+    #    """Total sqft of non-resiential buldings"""
     return (buildings.building_sqft * (~buildings.is_residential)).groupby(buildings.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'nonres_sqft', cache=True, cache_scope='iteration')
+def nonres_sqft(parcels, buildings):
+    #    """Total sqft of non-resiential space- includes non-res sqft in mixed use buildings"""
+    return buildings.non_residential_sqft.groupby(buildings.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'number_of_buildings', cache=True, cache_scope='iteration')
@@ -267,6 +274,11 @@ def residential_units(parcels, buildings):
     return buildings.residential_units.groupby(buildings.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
 
+@orca.column('parcels', 'residential_sqft', cache=True, cache_scope='iteration')
+def residential_sqft(parcels, buildings):
+    return buildings.residential_sqft.groupby(buildings.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
 @orca.column('parcels', 'retail_density_wwd', cache=True, cache_scope='step')
 def retail_density_wwd(parcels):
     return (parcels.employment_retail_wwd / parcels.acres_wwd).replace(np.inf, 0).fillna(0)
@@ -302,16 +314,75 @@ def total_land_value_per_sqft(parcels):
 def unit_name(parcels, land_use_types):
     return misc.reindex(land_use_types.unit_name, parcels.land_use_type_id)
 
-@orca.column('parcels', 'unit_price', cache=True, cache_scope='iteration')
-def unit_price(parcels):
-    return ((parcels.land_value + parcels.total_improvement_value)/parcels.existing_units).replace(np.inf, 0).fillna(0)
+#@orca.column('parcels', 'unit_price', cache=True, cache_scope='iteration')
+#def unit_price(parcels):
+#    return ((parcels.land_value + parcels.total_improvement_value)/parcels.existing_units).replace(np.inf, 0).fillna(0)
 
-@orca.column('parcels', 'unit_price_trunc', cache=True, cache_scope='iteration')
-def unit_price_trunc(parcels):
-    price = parcels.unit_price
-    price[price < 1] = 1
-    price[price > 1500] = 1500
-    return price
+#@orca.column('parcels', 'unit_price_residential2', cache=True, cache_scope='iteration')
+#def unit_price_residential2(parcels, buildings):
+#    results = np.zeros(parcels.local.shape[0]) 
+#    # some parcels are all res or have no residential sqft
+#    all_res_ix = np.where((parcels.building_sqft_pcl == parcels.nonres_building_sqft2) & (parcels.residential_units > 0))[0]
+#    mixed_ix = np.where((parcels.building_sqft_pcl <> parcels.nonres_building_sqft2) & (parcels.residential_units > 0))[0]
+#    # assume all square footage is residential for ones missing
+#    results[all_res_ix] =  ((parcels.land_value + parcels.total_improvement_value)/parcels.residential_units).iloc[all_res_ix]
+#    results[mixed_ix] =  (((parcels.land_value + parcels.total_improvement_value)/parcels.residential_units) * ((parcels.building_sqft_pcl - parcels.nonres_building_sqft2) / parcels.building_sqft_pcl)).iloc[mixed_ix]
+
+#    res_unit_price =  pd.Series(results, index=parcels.index)
+    
+#    # now deal with parcels that are missing total value
+#    df = parcels.to_frame(['zone_id', 'land_cost', 'residential_units'])
+#    df['res_unit_price'] = res_unit_price
+#    # dont want to include 0 in median calc
+#    df['res_unit_price'].replace(0, np.nan, inplace = True)
+#    # get the zonal median res unit price
+#    df['zonal_median_unit_price'] = df.groupby('zone_id')['res_unit_price'].transform('median')
+#    # apply median to parcels that have no total value
+#    df['res_unit_price'] = np.where((df.land_cost == 0) & (df.residential_units > 0), df['zonal_median_unit_price'], df['res_unit_price'])
+#    df['res_unit_price'].replace(np.nan, 0, inplace = True)
+    
+#    return df['res_unit_price']
+
+@orca.column('parcels', 'unit_price_residential', cache=True, cache_scope='iteration')
+def unit_price_residential(parcels, buildings):
+
+    res_unit_price = (parcels.land_cost * (parcels.residential_sqft/parcels.building_sqft_pcl)) / parcels.residential_units
+    
+    # now deal with parcels that are missing total value
+    df = parcels.to_frame(['zone_id', 'land_cost', 'residential_units'])
+    df['res_unit_price'] = res_unit_price
+    # dont want to include 0 in median calc
+    df['res_unit_price'].replace(0, np.nan, inplace = True)
+    # get the zonal median res unit price
+    df['zonal_median_unit_price'] = df.groupby('zone_id')['res_unit_price'].transform('median')
+    # apply median to parcels that have no total value
+    df['res_unit_price'] = np.where((df.land_cost == 0) & (df.residential_units > 0), df['zonal_median_unit_price'], df['res_unit_price'])
+    df['res_unit_price'].replace(np.nan, 0, inplace = True)
+    
+    return df['res_unit_price']
+
+
+#    missing_ix = np.where((parcels.building_sqft_pcl == parcels.nonres_building_sqft) & (parcels.residential_units > 0))[0]
+#    a = ((parcels.building_sqft_pcl - parcels.nonres_building_sqft) / parcels.building_sqft_pcl).replace(np.inf, 0).fillna(0)
+#    x = (((parcels.land_value + parcels.total_improvement_value)/parcels.residential_units).replace(np.inf, 0).fillna(0)) * a
+#    test = np.where((parcels.building_sqft_pcl == parcels.nonres_building_sqft) & (parcels.residential_units > 0))[0]
+#    x.update(test, (parcels.land_value + parcels.total_improvement_value)/parcels.residential_units.replace(np.inf, 0).fillna(0))
+    
+
+#    residential_sqft = parcels.building_sqft_pcl - parcels.nonres_building_sqft
+##df['total_sqft'] = df['residential_sqft']+df['non_residential_sqft']
+#    total_value = parcels.land_value + parcels.total_improvement_value
+#    percent_residential_sqft = residential_sqft/parcels.building_sqft_pcl
+#    total_residential_value = percent_residential_sqft * total_value
+#    return (total_residential_value/parcels.residential_units).replace(np.inf, 0).fillna(0)
+
+
+#@orca.column('parcels', 'unit_price_trunc', cache=True, cache_scope='iteration')
+#def unit_price_trunc(parcels):
+#    price = parcels.unit_price
+#    price[price < 1] = 1
+#    price[price > 1500] = 1500
+#    return price
 
 @orca.column('parcels', 'warehousing_job_spaces', cache=True, cache_scope='iteration')
 def warehousing_job_spaces(parcels, buildings):
@@ -327,6 +398,26 @@ def get_ave_unit_size_by_zone(is_in, buildings, parcels):
     reg_median = bsu.median()
     return buildings.building_sqft_per_unit[is_in].groupby(buildings.zone_id[is_in]).median().\
            reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+
+#def get_ave_parcel_res_value_by_zone(is_in, parcels):
+#    # Median building sqft per residential unit over zones
+#    # is_in is a logical Series giving the filter for subsetting the parcels
+#    # Values for parcels in zones with no residential buildings are imputed 
+#    # using the regional median.
+#    df = parcels.to_frame(['zone_id', 'total_value', 'residential_units'])
+#    zonal_median = pd.Series(0, df.index)
+#    df['total_value2'] = np.where((df.total_value > 0) & (df.residential_units > 0), df['total_value'], 0).replace(0, np.nan)
+#    df['total_value2'].replace(0, np.nan, inplace = True)
+#    df['zonal_median'] = df.groupby('zone_id')['total_value'].transform('median')
+#    zonal_median.update(df['zonal_median'])
+
+    
+#    res_ix = np.where((parcels.total_value > 0) & (parcels.residential_units > 0))[0]
+#    res_median = (parcels.total_value).iloc[res_ix].median()
+#    d['zonal_median'] = df.groupby('zone_id')['total_value'].transform('std')
+#    #return parcels.total_value[is_in].groupby(parcels.zone_id[is_in]).median()
+#    test = parcels.total_value.iloc[res_ix].groupby(parcel.zone_id.iloc[res_ix]).median()
+#    return test
 
 def get_units_by_type(is_type, buildings, parcels, units_attribute = "residential_units"):
     return buildings[units_attribute][is_type].groupby(buildings.parcel_id[is_type]).sum().\

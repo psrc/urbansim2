@@ -58,13 +58,19 @@ def hlcm_estimate(households_for_estimation, buildings, parcels, zones):
 
 @orca.step('hlcm_simulate')
 def hlcm_simulate(households, buildings, persons, settings):
+    col = households.building_id
+    test = pd.Series(-1, index = np.random.choice(households.index, 100000, False))
+    col.update(test)
+
+    households.update_col_from_series('building_id', col, households.index)
+
     movers = households.to_frame()
     movers = movers[movers.building_id == -1]
     relocated = movers[movers.is_inmigrant < 1]
     res = utils.lcm_simulate("hlcmcoef.yaml", households, buildings,
                              None, "building_id", "residential_units",
                              "vacant_residential_units", cast=True)
-    orca.clear_cache()
+    #orca.clear_cache()
 
     # Determine which relocated persons get disconnected from their job
     if settings.get('remove_jobs_from_workers', False):
@@ -93,59 +99,28 @@ def hlcm_simulate(households, buildings, persons, settings):
         households.update_col_from_series("is_inmigrant", pd.Series(0,
                                       index=households.index), cast=True)
 
-    orca.clear_cache()
+    #orca.clear_cache()
 
     return res
-
-
-
-@orca.step('hlcm_simulate_sample2')
-def hlcm_simulate_sample2(households, buildings, persons, settings):
-    movers = households.to_frame()
-    movers = movers[movers.building_id == -1]
-    relocated = movers[movers.is_inmigrant < 1]
-    #households.update_col('residence_large_area2', pd.Series(households.residence_large_area, households.index))
-    #buildings.update_col('large_area_id2', pd.Series(buildings.large_area_id, buildings.index))
-
-    #households.update_col("residence_large_area2", pd.Series(np.where(households.residence_large_area2 == -1, 99, households.residence_large_area2), households.index)
-    households.update_col("residence_large_area2", pd.Series(np.where(households.residence_large_area == -1.0, 99, households.residence_large_area), households.index))
-    
-    #buildings.update_col("large_area_id2",
-    #                            pd.Series(np.where(buildings.large_area_id == -1, 99, buildings.large_area_id), buildings.index))
-
-    for large_area in households.residence_large_area2.unique():
-        if large_area > -2:
-            households.update_col("predict_filter",
-                                   pd.Series(np.where(np.logical_and
-                                             (households.building_id == -1,
-                                              households.residence_large_area2 == large_area), 1,
-                                               0),
-                                             index=households.index))
-   
-            samples = sample(buildings, large_area, households.predict_filter.sum() * 4)
-            buildings.update_col("sample_filter_" + str(int(large_area)), samples)
-
-    #res = utils.lcm_simulate("hlcmcoef.yaml", households, buildings,
-    #                         None, "building_id", "residential_units",
-    #                         "vacant_residential_units", cast=True)
-
-    #res = utils.lcm_simulate2("hlcmcoef.yaml", households, 'predict_filter', buildings, 'sample_filter',
-    #                         None, "building_id", "residential_units",
-    #                         "vacant_residential_units", cast=True)
-
-    
-    res = psrc_dcm.lcm_simulate_sample("hlcmcoef_sample.yaml", households, 'residence_large_area2', buildings,
-                             None, "building_id", "residential_units",
-                             "vacant_residential_units", cast=True)
-    orca.clear_cache()
 
 @orca.step('hlcm_simulate_sample')
 def hlcm_simulate_sample(households, buildings, persons, settings):
 
+    #df = households.to_frame()
+    #df['building_id'] = -1
+
+    col = households.building_id
+    test = pd.Series(-1, index = np.random.choice(households.index, 100000, False))
+    col.update(test)
+
+    households.update_col_from_series('building_id', col, households.index)
+    #col.update(test)
+    #households.update_col("building_id", -1)
+
     res = psrc_dcm.lcm_simulate_sample("hlcmcoef.yaml", households, 'prev_residence_large_area_id', buildings,
                              None, "building_id", "residential_units",
                              "vacant_residential_units", cast=True)
-    orca.clear_cache()
+    #orca.clear_cache()
 
 @orca.step('hlcm_estimate_sample')
 def hlcm_estimate_sample(households_for_estimation, buildings, persons, settings):
@@ -153,7 +128,8 @@ def hlcm_estimate_sample(households_for_estimation, buildings, persons, settings
     res = psrc_dcm.lcm_estimate_sample("hlcm.yaml", households_for_estimation, 'prev_residence_large_area_id',
                               "building_id", buildings, None,
                               out_cfg="hlcmcoef.yaml")
-    orca.clear_cache()
+    #orca.clear_cache()
+
 # WPLCM
 @orca.step('wplcm_estimate')
 def wplcm_estimate(persons_for_estimation, jobs):
@@ -175,7 +151,7 @@ def elcm_simulate(jobs, buildings, parcels, zones, gridcells):
                              [parcels, zones, gridcells],
                              "building_id", "job_spaces", "vacant_job_spaces",
                              cast=True)
-    orca.clear_cache()
+    #orca.clear_cache()
 
 
 @orca.step('households_relocation')
@@ -289,7 +265,7 @@ def households_transition(households, household_controls,
                                              (persons.employment_status > 0,
                                               persons.job_id, -2),
                                              index=persons.index), cast=True)
-    orca.clear_cache()
+    #orca.clear_cache()
     return res
 
 
@@ -420,6 +396,6 @@ def update_buildings_lag1(buildings):
     orca.add_table('buildings_lag1', df, cache=True)
 
 
-@orca.step('clear_cache')
-def clear_cache():
-    orca.clear_cache()
+#@orca.step('clear_cache')
+##def clear_cache():
+#    orca.clear_cache()

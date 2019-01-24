@@ -29,42 +29,6 @@ import timeit
 
 logger = logging.getLogger(__name__)
 
-def lcm_estimate_sample2(cfg, choosers, chosen_fname, buildings, join_tbls, out_cfg=None):
-    """
-    Estimate the location choices for the specified choosers
-
-    Parameters
-    ----------
-    cfg : string
-        The name of the yaml config file from which to read the location
-        choice model
-    choosers : DataFrameWrapper
-        A dataframe of agents doing the choosing
-    chosen_fname : str
-        The name of the column (present in choosers) which contains the ids
-        that identify the chosen alternatives
-    buildings : DataFrameWrapper
-        A dataframe of buildings which the choosers are locating in and which
-        have a supply.
-    join_tbls : list of strings
-        A list of land use dataframes to give neighborhood info around the
-        buildings - will be joined to the buildings using existing broadcasts
-    out_cfg : string, optional
-        The name of the yaml config file to which to write the estimation results.
-        If not given, the input file cfg is overwritten.
-    """
-    cfg = misc.config(cfg)
-    choosers = to_frame(choosers, [], cfg, additional_columns=[chosen_fname])
-    alternatives = to_frame(buildings, join_tbls, cfg)
-    if out_cfg is not None:
-        out_cfg = misc.config(out_cfg)
-    return yaml_to_class(cfg).fit_from_cfg(choosers,
-                                           chosen_fname,
-                                           alternatives,
-                                           cfg,
-                                           outcfgname=out_cfg)
-
-
 def lcm_estimate_sample(cfg, choosers, choosers_filter, chosen_fname, buildings, join_tbls, out_cfg=None):
     """
     Estimate the location choices for the specified choosers
@@ -102,11 +66,7 @@ def lcm_estimate_sample(cfg, choosers, choosers_filter, chosen_fname, buildings,
         out_cfg = misc.config(out_cfg)
 
     return dcm_weighted.fit(choosers, alternatives, chosen_fname, out_cfg)
-    #return yaml_to_class(cfg).fit_from_cfg(choosers,
-    #                                       chosen_fname,
-    #                                       alternatives,
-    #                                       cfg,
-    #                                       outcfgname=out_cfg)
+    
 
 def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, out_fname,
                  supply_fname, vacant_fname,
@@ -232,21 +192,19 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, ou
     print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
 
 def large_area_sample_weights(units, movers):
-
-        #ds = self.get_dataset()
-        #buildings_df = buildings.to_frame(['vacant_residential_units', 'large_area_id'] )
-        #buildings_df = buildings_df[buildings_df["vacant_residential_units"] > 0]
-        #movers['prev_residence_large_area_id'] = np.where(movers.prev_residence_large_area_id == -1.0, 99, movers.prev_residence_large_area_id)
-        #units['large_area_id'] = np.where(units.large_area_id == -1.0, 99, units.large_area_id)
         
         vacant = len(units)
         for large_area in movers.prev_residence_large_area_id.unique():
             this_area_index = units[units['large_area_id'] == large_area].index
             vacant_this_area = len(units.ix[this_area_index])
-            if vacant-vacant_this_area > 0:
+            # only use weights if there area units in/outside large area
+            if (vacant_this_area > 0) and (vacant-vacant_this_area > 0):
                 units['sample_filter_' + str(int(large_area))] = 60.0/(vacant-vacant_this_area)
-            if vacant_this_area > 0:
                 units['sample_filter_' + str(int(large_area))].update(pd.Series(40.0/vacant_this_area, this_area_index))
+            # give every unit an equal weight
+            else:
+                print "with %d units in large area %d and %d outside, weights will be the same for all samples." % (vacant_this_area, large_area, (vacant-vacant_this_area))
+                units['sample_filter_' + str(int(large_area))] = 100.0/len(units)
 
         return units, movers
 
@@ -292,8 +250,6 @@ def mnl_interaction_dataset_weighted(choosers, alternatives, SAMPLE_SIZE, choose
         sample = alternatives.sample(SAMPLE_SIZE * numchoosers, weights = alteratives_weight_column, replace = True)
         sample = pd.Series(alts_idx, index=alternatives.index).loc[sample.index]
         sample = np.array(sample)
-        #weight_array = np.array(alternatives[alteratives_weight_column])
-        #sample = np.random.choice(alts_idx, SAMPLE_SIZE * numchoosers, weight_array)
         if chosenalts is not None:
             # replace the first row for each chooser with
             # the currently chosen alternative.
@@ -327,84 +283,6 @@ def mnl_interaction_dataset_weighted(choosers, alternatives, SAMPLE_SIZE, choose
     logger.debug('finish: compute MNL interaction dataset')
     return alternatives.index.values[sample], alts_sample, chosen
 
-def mnl_interaction_dataset_weighted2(choosers, alternatives, SAMPLE_SIZE, choosers_weight_segmentation_col, choosers_seg_value, alteratives_weight_column,  
-                            chosenalts=None):
-    logger.debug((
-        'start: compute MNL interaction dataset with {} choosers, '
-        '{} alternatives, and sample_size={}'
-        ).format(len(choosers), len(alternatives), SAMPLE_SIZE))
-    # filter choosers and their current choices if they point to
-    # something that isn't in the alternatives table
-
-    choosers = choosers[choosers[choosers_weight_segmentation_col]==choosers_seg_value]
-    chosenalts = chosenalts.ix[chosenalts.index.isin(choosers.index)]
-
-    if chosenalts is not None:
-        isin = chosenalts.isin(alternatives.index)
-        try:
-            removing = isin.value_counts().loc[False]
-        except Exception:
-            removing = None
-        if removing:
-            logger.info((
-                "Removing {} choice situations because chosen "
-                "alt doesn't exist"
-            ).format(removing))
-            choosers = choosers[isin]
-            chosenalts = chosenalts[isin]
-
-    numchoosers = choosers.shape[0]
-    numalts = alternatives.shape[0]
-
-    # TODO: this is currently broken in a situation where
-    # SAMPLE_SIZE >= numalts. That may not happen often in
-    # practical situations but it should be supported
-    # because a) why not? and b) testing.
-    alts_idx = np.arange(len(alternatives))
-    if SAMPLE_SIZE < numalts:
-        # TODO: Use stdlib random.sample to individually choose
-        # alternatives for each chooser (to avoid repeatedly choosing the
-        # same alternative).
-        # random.sample is much faster than np.random.choice.
-        #sample = np.random.choice(alts_idx, SAMPLE_SIZE * numchoosers)
-        sample = alternatives.sample(SAMPLE_SIZE * numchoosers, weights = alteratives_weight_column, replace = True)
-        #alts_idx = np.arange(len(sample))
-        if chosenalts is not None:
-            # replace the first row for each chooser with
-            # the currently chosen alternative.
-            # chosenalts -> integer position
-            sample[::SAMPLE_SIZE] = pd.Series(
-                alts_idx, index=alternatives.index).loc[chosenalts].values
-    else:
-        assert chosenalts is None  # if not sampling, must be simulating
-        sample = np.tile(alts_idx, numchoosers)
-
-    if not choosers.index.is_unique:
-        raise Exception(
-            "ERROR: choosers index is not unique, "
-            "sample will not work correctly")
-    if not alternatives.index.is_unique:
-        raise Exception(
-            "ERROR: alternatives index is not unique, "
-            "sample will not work correctly")
-
-    #alts_sample = alternatives.take(sample)
-    alts_sample = sample
-    assert len(alts_sample.index) == SAMPLE_SIZE * len(choosers.index)
-
-    
-    alts_sample['join_index'] = np.repeat(choosers.index.values, SAMPLE_SIZE)
-
-    alts_sample = pd.merge(
-        alts_sample, choosers, left_on='join_index', right_index=True,
-        suffixes=('', '_r'))
-
-    chosen = np.zeros((numchoosers, SAMPLE_SIZE))
-    chosen[:, 0] = 1
-
-    logger.debug('finish: compute MNL interaction dataset')
-
-    return sample.index.unique().values, alts_sample, chosen
 
 class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
     @classmethod
@@ -523,7 +401,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
                 'the input columns.')
 
         self.log_likelihoods, self.fit_parameters = mnl.mnl_estimate(
-            model_design.as_matrix(), chosen, self.sample_size)
+            model_design.as_matrix(), chosen, self.sample_size, False, (-10, 10)) 
         self.fit_parameters.index = model_design.columns
 
         logger.debug('finish: fit LCM model {}'.format(self.name))
@@ -636,7 +514,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
                             _, merged, _ = interaction.mnl_interaction_dataset(choosers_no_weight, alternatives, sample_size)
                     else:
                         raise ValueError('Unrecognized probability_mode option: {}'.format(self.probability_mode))
-                        
+                    merged = merged[[col for col in merged.columns if 'sample_filter' not in col]]    
                     data_set_list.append(merged)
       
                 else:
@@ -648,6 +526,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
                         choosers, alternatives, sample_size, choosers_weight_segmentation_col, choosers_seg_value, alternatives_weight_column)
                     else:
                         raise ValueError('Unrecognized probability_mode option: {}'.format(self.probability_mode))
+                    merged = merged[[col for col in merged.columns if 'sample_filter' not in col]]
                     data_set_list.append(merged)
         merged =  pd.concat(data_set_list)
         merged = util.apply_filter_query(
@@ -1176,29 +1055,29 @@ class MNLDiscreteChoiceModelWeightedSamples(object):
         self.weight_columns_map[choosers_value] = samples_weight_column
 
 
-    def _iter_weight_columns(self, data):
-        """
-        Iterate over the groups in `data` after grouping by
-        `segmentation_col`. Skips any groups for which there
-        is no model stored.
+    #def _iter_weight_columns(self, data):
+    #    """
+    #    Iterate over the groups in `data` after grouping by
+    #    `segmentation_col`. Skips any groups for which there
+    #    is no model stored.
 
-        Yields tuples of (name, df) where name is the group key
-        and df is the group DataFrame.
+    #    Yields tuples of (name, df) where name is the group key
+    #    and df is the group DataFrame.
 
-        Parameters
-        ----------
-        data : pandas.DataFrame
-            Must have a column with the same name as `segmentation_col`.
+    #    Parameters
+    #    ----------
+    #    data : pandas.DataFrame
+    #        Must have a column with the same name as `segmentation_col`.
 
-        """
-        weight_columns = data.groupby(choosers_weight_segmentation_col )
+    #    """
+    #    weight_columns = data.groupby(choosers_weight_segmentation_col )
 
-        for name, group in weight_columns:
-            if name not in self.weight_columns:
-                continue
-            logger.debug(
-                'returning weigth column {} in LCM group {}'.format(name, self.name))
-            yield name, group
+    #    for name, group in weight_columns:
+    #        if name not in self.weight_columns:
+    #            continue
+    #        logger.debug(
+    #            'returning weigth column {} in LCM group {}'.format(name, self.name))
+    #        yield name, group
 
 
     def fit(self, choosers, alternatives, current_choice, outcfgname):
@@ -1226,11 +1105,7 @@ class MNLDiscreteChoiceModelWeightedSamples(object):
             log-liklihood values as returned by MNLDiscreteChoiceModel.fit.
 
         """
-        #with log_start_finish(
-        #        'fit models in LCM group {}'.format(self.name), logger):
-        #    return {
-        #        name: self.models[name].fit(df, alternatives, current_choice)
-        #        for name, df in self._iter_groups(choosers)}
+
         choices = self.model.fit_weighted(choosers, alternatives, current_choice, self.weight_columns_map, self.choosers_weight_segmentation_col, outcfgname)
 
     @property
