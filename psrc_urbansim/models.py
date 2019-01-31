@@ -279,6 +279,7 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
     # reduce parcel dataset to those that can be developed
     if development_filter is not None:
         pcl = pcl.loc[parcels[development_filter] == True]
+        #pcl = pcl.iloc[1:1000,:]
     df = orca.DataFrameWrapper("parcels", pcl, copy_col=False)
     # create a feasibility dataset
     sqftproforma.run_feasibility(df, parcel_sales_price_func,

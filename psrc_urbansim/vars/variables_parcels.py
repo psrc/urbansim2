@@ -152,7 +152,7 @@ def lnemp20da(parcels, zones):
 @orca.column('parcels', 'max_coverage', cache=True, cache_scope='forever')
 def max_coverage(parcels, zoning_heights):
     cov = misc.reindex(zoning_heights.max_coverage, parcels.plan_type_id)
-    cov[cov <= 0] = 1
+    cov[cov <= 0] = 0.8 # default
     return cov
 
 @orca.column('parcels', 'max_developable_capacity', cache=True, cache_scope='forever')

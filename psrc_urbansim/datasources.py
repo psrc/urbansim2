@@ -114,7 +114,8 @@ def generic_land_use_types():
                         "government",
                         "other",
                         "no code"],
-                       "generic_land_use_type_id": range(1,10)})
+                       "generic_land_use_type_id": range(1,10),
+                       "is_residential": [True, True] + 7*[False]})
     df = df.set_index("generic_land_use_type_id")
     return df
 
@@ -254,8 +255,8 @@ def zoning_heights(store, generic_land_use_types):
     df = store['zoning_heights']
     # set max_far to nan for records that do not allow non-res
     is_allowed = np.zeros(df.shape[0], dtype = "bool8")
-    for glu in generic_land_use_types.generic_land_use_type_name.values:
-        if glu <> "residential" and glu in df.columns:
+    for glu in generic_land_use_types.local.loc[generic_land_use_types.is_residential == False].generic_land_use_type_name.values:
+        if glu in df.columns:
             is_allowed = is_allowed + (df[glu] > 0).values
     df["max_far"] = np.where(is_allowed == 0, np.nan, df.max_far)
     return df

@@ -278,6 +278,12 @@ def disaggregate_buildings(buildings, bt_units, building_types, forms):
     dbuildings.loc[dbuildings.is_residential == 1, "residential_units"] = np.maximum(dbuildings.loc[dbuildings.is_residential == 1, "units"].round(), 1)
     dbuildings.loc[dbuildings.is_residential == 0, "job_spaces"] = np.maximum(dbuildings.loc[dbuildings.is_residential == 0, "units"].round(), 1)
     
+    # set res attributes for non-res buildings to 0 and vice versa
+    for attr in ["residential_sqft", "residential_units"]:
+        dbuildings.loc[dbuildings.is_residential == 0, attr] = 0
+    for attr in ["non_residential_sqft", "job_spaces"]:
+        dbuildings.loc[dbuildings.is_residential == 1, attr] = 0
+    
     # assign sqft_per_unit
     dbuildings.loc[:, "sqft_per_unit"] = 1
     dbuildings.loc[dbuildings.is_residential == 1, "sqft_per_unit"] = dbuildings.building_sqft / dbuildings.residential_units

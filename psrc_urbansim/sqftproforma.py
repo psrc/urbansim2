@@ -13,7 +13,7 @@ from developer.utils import yaml_to_dict
 def proforma_settings(land_use_types, building_types, development_templates, development_template_components, generic_land_use_types):
     uses =  pd.merge(development_template_components.local[["building_type_id", "template_id", "description", "percent_building_sqft"]],
                          development_templates.local[["land_use_type_id", "density_type"]], left_on="template_id", right_index=True, how="left")
-    uses.description.iloc[np.core.defchararray.startswith(uses.description.values.astype("string"), "sfr")] = "sfr" # since there are 2 sfr uses (sfr_plat, sfr_parcel)
+    uses.description.loc[np.core.defchararray.startswith(uses.description.values.astype("string"), "sfr")] = "sfr" # since there are 2 sfr uses (sfr_plat, sfr_parcel)
     # remove template_id in order to remove duplicates
     blduses = uses.drop("template_id", 1).drop_duplicates()
     # add template_id back in order to group the components into forms
@@ -22,10 +22,7 @@ def proforma_settings(land_use_types, building_types, development_templates, dev
     blduses = uses[uses.template_id.isin(blduses.template_id.values)]
     blduses = pd.merge(blduses, building_types.local[["building_type_name", "is_residential"]], left_on="building_type_id", right_index=True, how="left")
     blduses = pd.merge(blduses, land_use_types.local[["land_use_name", "generic_land_use_type_id"]], left_on="land_use_type_id", right_index=True, how="left")
-    blduses = pd.merge(blduses, generic_land_use_types.local, how="left", on = "generic_land_use_type_id")
-    # replace residential generic LUT name
-    blduses.loc[np.logical_or(blduses.generic_land_use_type_name == "single_family_residential", blduses.generic_land_use_type_name == "multi_family_residential"), 
-                              "generic_land_use_type_name"] = "residential"
+    blduses = pd.merge(blduses, generic_land_use_types.local[["generic_land_use_type_name"]], how="left", on = "generic_land_use_type_id")
     # rename duplicated description
     tmp = blduses[['template_id', 'description']].drop_duplicates()
     is_dupl = tmp.duplicated('description')
@@ -231,6 +228,7 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
         Series
         """    
         
+        df['max_far_from_heights_times_coverage'] = df.max_far_from_heights * df.max_coverage
         if 'max_dua' in df.columns and resratio > 0:
             # if max_dua is in the data frame, ave_unit_size must also be there
             assert 'ave_unit_size' in df.columns
@@ -252,8 +250,6 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
                 # divided by the resratio which is a  factor that indicates
                 # that the actual units are not the only use of the building
                 resratio /
-
-                #df.max_coverage /
                 
                 # divided by the parcel size again in order to get FAR.
                 # I recognize that parcel_size actually
@@ -262,12 +258,46 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
                 # twice
                 
                 df.parcel_size)
-            # sum of max_far and max_far_from_dua capped at max_far_from_heights
-            df['max_far_total'] = df.max_far + df.max_far_from_dua
-            #return df[['max_far_total', 'max_far_from_heights']].min(axis=1)
-            return df[['max_far', 'max_far_from_dua', 'max_far_from_heights']].min(axis=1)
+            # sum of max_far and max_far_from_dua 
+            df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua, df.max_far + df.max_far_from_dua)            
+            #return df[['max_far', 'max_far_from_dua', 'max_far_from_heights']].min(axis=1)
         else:
             # if max_far is given than take that otherwise max_far_from_heights
-            df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_heights, df.max_far)
-            return df['max_far_total']
+            df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_heights_times_coverage, df.max_far)
+        # cap at max_far_from_heights
+        return df[['max_far_total', 'max_far_from_heights_times_coverage']].min(axis=1)
         
+    def check_is_reasonable(self):
+        fars = pd.Series(self.fars)
+        #assert len(fars[fars > 20]) == 0
+        assert len(fars[fars <= 0]) == 0
+        for k, v in self.forms.items():
+            assert isinstance(v, dict)
+            for k2, v2 in self.forms[k].items():
+                assert isinstance(k2, str)
+                assert isinstance(v2, float)
+            for k2, v2 in self.forms[k].items():
+                assert isinstance(k2, str)
+                assert isinstance(v2, float)
+        for k, v in self.parking_rates.items():
+            assert isinstance(k, str)
+            assert k in self.uses
+            assert 0 <= v < 5
+        for k, v in self.parking_sqft_d.items():
+            assert isinstance(k, str)
+            assert k in self.parking_configs
+            assert 50 <= v <= 1000
+        for k, v in self.parking_sqft_d.items():
+            assert isinstance(k, str)
+            assert k in self.parking_cost_d
+            assert 10 <= v <= 300
+        for v in self.heights_for_costs:
+            assert isinstance(v, int) or isinstance(v, float)
+            if np.isinf(v):
+                continue
+            assert 0 <= v <= 1000
+        for k, v in self.costs.items():
+            assert isinstance(k, str)
+            assert k in self.uses
+            for i in v:
+                assert 10 < i < 1000        

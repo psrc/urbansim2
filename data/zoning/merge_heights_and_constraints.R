@@ -12,6 +12,9 @@ heights[max_coverage == "NULL", max_coverage := NA]
 heights[, max_coverage := as.double(max_coverage)]
 heights[is.na(max_coverage), max_coverage := -1]
 
+# set min max_height to 12
+heights[, max_height_ft := pmax(max_height_ft, 12)]
+
 # convert constraints into wide format
 wconstr <- dcast(constr, plan_type_id ~ generic_land_use_type_id , value.var = "maximum", 
                  fun.aggregate = max, fill = NA)
@@ -32,8 +35,8 @@ for(col in colnames(wconstr)[-1]) {
 }
 plantypes <- copy(wconstr)
 # merge residential into one
-plantypes[, residential := as.integer((single_family_residential + multi_family_residential) > 0)]
-plantypes[,`:=`(single_family_residential = NULL, multi_family_residential = NULL)]
+#plantypes[, residential := as.integer((single_family_residential + multi_family_residential) > 0)]
+#plantypes[,`:=`(single_family_residential = NULL, multi_family_residential = NULL)]
 plantypes <- merge(plantypes, heights, by = "plan_type_id")
 
 # rename columns so that opus can translate it into the right type
@@ -45,7 +48,7 @@ column.names <- list(plan_type_id = "plan_type_id:i4",
                       height_imputed = "height_imputed:i4")
 for(col in names(column.names))
   setnames(plantypes, col, column.names[[col]])
-for(col in c("office", "commercial", "industrial", "mixed_use", "residential"))
+for(col in c("office", "commercial", "industrial", "mixed_use", "single_family_residential", "multi_family_residential"))
   setnames(plantypes, col, paste0(col, ":i4"))
 
 fwrite(plantypes, file = "zoning_heights.csv")
