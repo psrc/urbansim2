@@ -10,7 +10,7 @@ from psrc_urbansim.vars.variables_interactions import max_network_distance_from_
 # HOUSEHOLDS VARIABLES (in alphabetic order)
 #####################
 
-@orca.column('households', 'building_type_id', cache=True)
+@orca.column('households', 'building_type_id', cache=True, cache_scope='iteration')
 def building_type_id(households, buildings):
     return misc.reindex(buildings.building_type_id, households.building_id)
 

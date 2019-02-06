@@ -28,7 +28,27 @@ def avg_school_score(zones, fazes):
 def building_sqft(zones, buildings):
     return buildings.sqft_per_unit.groupby(buildings.zone_id).sum().\
            reindex(zones.index).fillna(0)
-	
+
+@orca.column('zones', 'Business_Services', cache=True, cache_scope='iteration')
+def Business_Services(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 7)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
+@orca.column('zones', 'Construction', cache=True, cache_scope='iteration')
+def Construction(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 2)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
+@orca.column('zones', 'edu', cache=True, cache_scope='iteration')
+def edu(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 13)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
+@orca.column('zones', 'Food_Services', cache=True, cache_scope='iteration')
+def Food_Services(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 10)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
 @orca.column('zones', 'generalized_cost_hbw_am_drive_alone_to_bellevue_cbd')
 def generalized_cost_hbw_am_drive_alone_to_bellevue_cbd(zones, travel_data):
     """Generalized cost for travel to the Bellevue CBD. It is the minimum of costs for travels to zones that have bellevue_cbd=1.
@@ -75,6 +95,15 @@ def generalized_cost_weighted_access_to_population_hbw_am_drive_alone(zones, tra
     """
     return abstract_weighted_access(travel_data.single_vehicle_to_work_travel_cost, zones.population)
 
+@orca.column('zones', 'government', cache=True, cache_scope='iteration')
+def government(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 12)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
+@orca.column('zones', 'Healthcare', cache=True, cache_scope='iteration')
+def Healthcare(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 9)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
 
 @orca.column('zones', 'jobs_within_10_min_tt_hbw_am_walk')
 def jobs_within_10_min_tt_hbw_am_walk(zones, travel_data):    
@@ -100,6 +129,11 @@ def jobs_within_30_min_tt_hbw_am_transit_walk(zones, travel_data):
 def jobs_within_30_min_tt_hbw_am_drive_alone(zones, travel_data):
     return abstract_access_within_threshold_variable_from_origin(travel_data.am_single_vehicle_to_work_travel_time, zones.number_of_jobs, 30)
 
+@orca.column('zones', 'Manuf', cache=True, cache_scope='iteration')
+def Manuf(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 3)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
 @orca.column('zones', 'median_income')
 def median_income(zones, households):
     s = households.income.groupby(households.zone_id).quantile()
@@ -109,6 +143,11 @@ def median_income(zones, households):
 def median_parcel_sqft(zones, parcels):
     s = parcels.parcel_sqft.groupby(parcels.zone_id).quantile()
     return s.reindex(zones.index).fillna(s.quantile())
+
+@orca.column('zones', 'Natural_resources', cache=True, cache_scope='iteration')
+def Natural_resources(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 1)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
 
 @orca.column('zones', 'nonres_sqft', cache=True, cache_scope='iteration')
 def nonres_sqft(zones, buildings):
@@ -129,6 +168,11 @@ def number_of_jobs(zones, jobs):
 def number_of_jobs_per_acre(zones):
     return (zones.number_of_jobs/zones.acres).replace(np.inf,0).fillna(0)
 
+@orca.column('zones', 'Personal_Services', cache=True, cache_scope='iteration')
+def Personal_Services(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 11)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
 @orca.column('zones', 'population', cache=True, cache_scope='iteration')
 def population(zones, households):
     return households.persons.groupby(households.zone_id).sum().\
@@ -138,11 +182,21 @@ def population(zones, households):
 def population_per_acre(zones):
     return (zones.population/zones.acres).replace(np.inf,0).fillna(0)
 
+@orca.column('zones', 'Private_Ed', cache=True, cache_scope='iteration')
+def Private_Ed(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 8)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
 @orca.column('zones', 'residential_units', cache=True, cache_scope='iteration')
 def residetial_units(zones, buildings):
     return buildings.residential_units.groupby(buildings.zone_id).sum().\
            reindex(zones.index).fillna(0)
-	
+
+@orca.column('zones', 'Retail', cache=True, cache_scope='iteration')
+def Retail(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 5)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
 def trip_weighted_average_logsum_hbw_am_income_category(zones, travel_data, income_category):
     return abstract_trip_weighted_average_from_home(travel_data["logsum_hbw_am_income_%s" % income_category], 
                                                     travel_data["am_pk_period_drive_alone_vehicle_trips"],
@@ -169,7 +223,11 @@ def trip_weighted_average_time_hbw_from_home_am_drive_alone(zones, travel_data):
     return abstract_trip_weighted_average_from_home(travel_data["am_single_vehicle_to_work_travel_time"], 
                                                     travel_data["am_pk_period_drive_alone_vehicle_trips"],
                                                     travel_data.index.get_level_values('from_zone_id'), zones)
-
+@orca.column('zones', 'WTU', cache=True, cache_scope='iteration')
+def WTU(zones, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 4)).groupby(jobs.job_zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+													
 # Functions
 def number_of_jobs_of_sector(sector, zones, jobs):
     return (jobs.sector_id==sector).groupby(jobs.job_zone_id).sum().reindex(zones.index).fillna(0).astype("int32")

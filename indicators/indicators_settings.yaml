@@ -1,53 +1,22 @@
-store: simresult20180814.h5
+store: simresult20190205.h5
 
-base_year: 2014
+base_year: 2014A
 years: [2014, 2015, 2016]
 
 indicators:
-    number_of_households:
-        dataset: [zones, fazes, cities, alldata]
-        
-    number_of_jobs:
-        dataset: [zones, fazes, cities, alldata]
-
     building_sqft:
-        dataset: [zones, fazes, cities]
-
-    nonres_sqft:
-        dataset: [zones, fazes, cities]
-
-    residential_units:
-        dataset: [zones, fazes, cities, alldata]
-
-    population:
-        dataset: [zones, fazes, cities, alldata]
-		
+        dataset: [zones]
+        
 dataset_tables:
     DU_and_HH_by_bld_type_by_faz_by_year:
-	    dataset: [fazes]
-
-	persons_by_5year_age_groups:
-	    dataset: [alldata]
-
-	persons_by_age_groups_of_interest:
-	    dataset: [alldata]
-
-	regional_total_hhs_by_30_60_90_in_14dollars_groups:
-	    dataset: [alldata]
-
-	pptyp:
-	    dataset: [alldata]
-
-	pwtyp:
-	    dataset: [alldata]
-
-	regional_total_hhs_by_new_14incomegroups:
-		dataset: [alldata]
-
-	employment_by_aggr_sector:
-		dataset: [zones, city]
-
-	eoy_vacancy_by_building_type:
-		dataset: [counties]
-    
-	    
+        dataset: [fazes]
+    employment_by_aggr_sector:
+        dataset: [zones, cities]
+    persons_by_5year_age_groups:
+        dataset: [alldata]
+    persons_by_age_groups_of_interest:
+        dataset: [alldata]
+    regional_total_hhs_by_30_60_90_in_14dollars_groups:
+        dataset: [alldata]
+    regional_total_hhs_by_new_14incomegroups:
+        dataset: [alldata]

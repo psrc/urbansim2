@@ -40,7 +40,11 @@ def building_type_name(buildings, building_types):
 @orca.column('buildings', 'city_id', cache=True, cache_scope='iteration')
 def city_id(buildings, parcels):
     return misc.reindex(parcels.city_id, buildings.parcel_id)
-	
+
+@orca.column('buildings', 'county_id', cache=True, cache_scope='iteration')
+def city_id(buildings, counties):
+    return misc.reindex(parcels.county_id, buildings.parcel_id)
+
 @orca.column('buildings', 'employment_density_wwd', cache=True, cache_scope='step')
 def employment_density_wwd(buildings, parcels):
     return misc.reindex(parcels.employment_density_wwd, buildings.parcel_id)
@@ -183,6 +187,10 @@ def sqft_per_unit_imputed(buildings):
     results[is_condo] = results[is_condo].replace(0, buildings.sqft_per_unit[is_condo].median())
     results[is_other_res] = results[is_other_res].replace(0, buildings.sqft_per_unit[is_other_res].median())
     return results
+
+# @orca.column('buildings', 'target_vacancy_rate', cache=True, cache_scope='iteration')
+# def faz_id(buildings, zones):
+    # return misc.reindex(target_vacancies.target_vacancy_rate, buildings.index)
 
 @orca.column('buildings', 'tractcity_id', cache=True)
 def tractcity_id(buildings, parcels):

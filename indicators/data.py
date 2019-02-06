@@ -114,6 +114,11 @@ def cities(store, year, base_year):
     df_parcels = find_table_in_store('parcels', store, year, base_year)
     return df_parcels.groupby(df_parcels.city_id).first()
 
+@orca.table('counties', cache=True, cache_scope='iteration')
+def counties(store, year, base_year):
+    df_parcels = find_table_in_store('parcels', store, year, base_year)
+    return df_parcels.groupby(df_parcels.county_id).first()
+
 @orca.table('alldata', cache=True)
 def alldata():
     df = pd.DataFrame.from_dict({'alldata_id': [1]})
