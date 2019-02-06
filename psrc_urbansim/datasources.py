@@ -28,8 +28,7 @@ def store_table_names_dict():
             'employment_sector_groups': "employment_adhoc_sector_groups",
             'household_controls': "annual_household_control_totals",
             'household_relocation_rates': 'annual_household_relocation_rates',
-            'job_relocation_rates': 'annual_job_relocation_rates',
-            'parcel_zoning': 'development_constraints'
+            'job_relocation_rates': 'annual_job_relocation_rates'
             }
 
     

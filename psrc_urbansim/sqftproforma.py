@@ -258,8 +258,11 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
                 # twice
                 
                 df.parcel_size)
-            # sum of max_far and max_far_from_dua 
-            df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua, df.max_far + df.max_far_from_dua)            
+            if resratio > 0.9999:
+                df['max_far_total'] = df.max_far_from_dua
+            else:
+                # if it is a real mix of res and non-res, sum max_far and max_far_from_dua 
+                df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua, df.max_far + df.max_far_from_dua)            
             #return df[['max_far', 'max_far_from_dua', 'max_far_from_heights']].min(axis=1)
         else:
             # if max_far is given than take that otherwise max_far_from_heights
