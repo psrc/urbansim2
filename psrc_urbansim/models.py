@@ -273,8 +273,8 @@ def create_proforma_config(proforma_settings):
 def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func):
 
-    #development_filter = "capacity_opportunity_non_gov" # includes empty parcels
-    development_filter = "developable"
+    development_filter = "capacity_opportunity_non_gov" # includes empty parcels
+    #development_filter = "developable"
     pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'ave_unit_size', 'parcel_size', 'land_cost'])
     # reduce parcel dataset to those that can be developed
     if development_filter is not None:
