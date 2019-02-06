@@ -40,7 +40,7 @@ def proposal_selection(self, proposals, p, targets):
         
     while len(df) > 0:        
         # Sample by chunks and check vacancy after each step
-        choice_idx = pd.Series(weighted_random_choice_multiparcel_by_count(df, p, count = chunksize))
+        choice_idx = pd.Series(weighted_random_choice_multiparcel_by_count(df, p, count = min(chunksize, df.shape[0])))
         all_choices = pd.concat([all_choices, choice_idx])
         # remove proposals that:
         proposals_to_remove = pd.concat([pd.Series( # 1) satisfy target vacancy 
@@ -63,6 +63,8 @@ def filter_by_vacancy(df, uses, targets, net_units, choices = None):
     # Return feasibility_id of proposals that should be switched off.
     vacancy_met = pd.Series([], dtype = "int32")
     for use in uses:
+        if targets[use] is None:
+            continue
         units = net_units[use].reindex(df.index)
         if units.sum() == 0:
             continue
@@ -71,8 +73,10 @@ def filter_by_vacancy(df, uses, targets, net_units, choices = None):
     return vacancy_met.unique()
 
     
-def compute_target_units(vacancy_rate):
+def compute_target_units(vacancy_rate, unlimited = False):
     pf = orca.get_injectable("pf_config")
+    if unlimited:
+        return dict.fromkeys(pf.uses)
     pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
     vac = pd.concat((pfbt, vacancy_rate.local, pf.residential_uses), axis=1)
     bld = orca.get_table("buildings")
