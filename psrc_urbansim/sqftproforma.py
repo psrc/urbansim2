@@ -56,6 +56,20 @@ def parcel_is_allowed_func(form):
     zoning = orca.get_table('parcel_zoning')
     return zoning.local[[glu]] > 0
 
+@orca.injectable("set_ave_unit_size_func", autocall=False)
+def set_ave_unit_size_func(pf, form, df):
+    attrs = []
+    if pf.forms_df.ix[form, "condo_residential"] > 0:
+        attrs = attrs + ["ave_unit_size_condo"]
+    if pf.forms_df.ix[form, "multi_family_residential"] > 0:
+        attrs = attrs + ["ave_unit_size_mf"]
+    if pf.forms_df.ix[form, "single_family_residential"] > 0:
+        attrs = attrs + ["ave_unit_size_sf"]
+    if len(attrs) == 0:
+        return df
+    df["ave_unit_size"] = df[attrs].mean(axis = 1)
+    return df
+    
 def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):    
     # extract uses 
     blduses = proforma_uses[["building_type_id", "building_type_name", "is_residential"]].drop_duplicates()
@@ -112,9 +126,9 @@ def update_sqftproforma_reference(pf):
     return pf      
     
 
-
 def run_feasibility(parcels, parcel_price_callback,
-                    parcel_use_allowed_callback, pipeline=False,
+                    parcel_use_allowed_callback, lookup_modify_callback=None,
+                    pipeline=False,
                     cfg=None, **kwargs):
     """
     Execute development feasibility on all development sites
@@ -177,7 +191,10 @@ def run_feasibility(parcels, parcel_price_callback,
         
         # Core function - computes profitability
         d[form] = pf.lookup(form, newdf, only_built = pf.only_built,
-                            pass_through = pf.pass_through)
+                            pass_through = pf.pass_through, modify_df = lookup_modify_callback)
+        # apply parking ratio to res and non-res sqft
+        d[form].residential_sqft = d[form].residential_sqft * (1 - d[form].parking_ratio)
+        d[form].non_residential_sqft = d[form].non_residential_sqft * (1 - d[form].parking_ratio)
 
     # Collect results     
     if pf.proposals_to_keep > 1:
