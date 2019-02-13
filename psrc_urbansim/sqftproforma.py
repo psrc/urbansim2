@@ -197,32 +197,28 @@ def run_feasibility(parcels, parcel_price_callback,
         d[form].non_residential_sqft = d[form].non_residential_sqft * (1 - d[form].parking_ratio)
 
     # Collect results     
-    if pf.proposals_to_keep > 1:
-        # feasibility is in long format
-        form_feas = []
-        for form_name in d.keys():
-            df_feas_form = d[form_name]
-            df_feas_form['form'] = form_name
-            form_feas.append(df_feas_form)
-        
-        feasibility = pd.concat(form_feas, sort=False)
-        if pf.percent_of_max_profit > 0:
-            feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'form'])['max_profit'].transform(max)
-            feasibility['ratio'] = feasibility.max_profit/feasibility.max_profit_parcel
-            feasibility = feasibility[feasibility.ratio >= pf.percent_of_max_profit / 100.]
-            feasibility.drop(['max_profit_parcel', 'ratio'], axis=1, inplace = True)
-        feasibility.index.name = 'parcel_id'
-        # add attribute that enumerates proposals (can be used as a unique index)
-        feasibility["feasibility_id"] = np.arange(1, len(feasibility)+1, dtype = "int32")
-        # create a dataset with disaggregated sqft by building type
-        feas_bt = pd.merge(feasibility.loc[:, ["form", "feasibility_id", "residential_sqft", "non_residential_sqft"]], pf.forms_df, left_on = "form", right_index = True)
-        feas_bt.set_index(['form'], append = True, inplace = True)
-        feas_bt[pf.uses[pf.residential_uses.values == 1]] = feas_bt[pf.uses[pf.residential_uses.values == 1]].multiply(feas_bt.residential_sqft, axis = "index")
-        feas_bt[pf.uses[pf.residential_uses.values == 0]] = feas_bt[pf.uses[pf.residential_uses.values == 0]].multiply(feas_bt.non_residential_sqft, axis = "index")
-        orca.add_table('feasibility_bt', feas_bt)
-    else:
-        # feasibility is in wide format
-        feasibility = pd.concat(d.values(), keys = d.keys(), axis=1)        
+    # put feasibility into long format
+    form_feas = []
+    for form_name in d.keys():
+        df_feas_form = d[form_name]
+        df_feas_form['form'] = form_name
+        form_feas.append(df_feas_form)
+    
+    feasibility = pd.concat(form_feas, sort=False)
+    if pf.percent_of_max_profit > 0:
+        feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'form'])['max_profit'].transform(max)
+        feasibility['ratio'] = feasibility.max_profit/feasibility.max_profit_parcel
+        feasibility = feasibility[feasibility.ratio >= pf.percent_of_max_profit / 100.]
+        feasibility.drop(['max_profit_parcel', 'ratio'], axis=1, inplace = True)
+    feasibility.index.name = 'parcel_id'
+    # add attribute that enumerates proposals (can be used as a unique index)
+    feasibility["feasibility_id"] = np.arange(1, len(feasibility)+1, dtype = "int32")
+    # create a dataset with disaggregated sqft by building type
+    feas_bt = pd.merge(feasibility.loc[:, ["form", "feasibility_id", "residential_sqft", "non_residential_sqft"]], pf.forms_df, left_on = "form", right_index = True)
+    feas_bt.set_index(['form'], append = True, inplace = True)
+    feas_bt[pf.uses[pf.residential_uses.values == 1]] = feas_bt[pf.uses[pf.residential_uses.values == 1]].multiply(feas_bt.residential_sqft, axis = "index")
+    feas_bt[pf.uses[pf.residential_uses.values == 0]] = feas_bt[pf.uses[pf.residential_uses.values == 0]].multiply(feas_bt.non_residential_sqft, axis = "index")
+    orca.add_table('feasibility_bt', feas_bt)     
            
     orca.add_table('feasibility', feasibility)
     return feasibility
