@@ -159,10 +159,9 @@ def max_coverage(parcels, zoning_heights):
 def max_developable_capacity(parcels, parcel_zoning):
     #med_bld_sqft_per_du = int((parcels.building_sqft_pcl / parcels.residential_units).quantile())
     med_bld_sqft_per_du = 1870 # median of building sqft per unit in 2014
-    values = parcel_zoning.maximum.copy()
-    subset = values.loc[values.index.get_level_values('constraint_type') == 'units_per_acre']
-    values.update((subset /43560.0 * med_bld_sqft_per_du).astype(values.dtype))
-    return values.groupby(level="parcel_id").max().reindex(parcels.index).fillna(0)
+    values = parcel_zoning.local.loc[:, ["max_du", "max_far"]]
+    values.loc[:, "max_far_from_dua"] = values.max_du / 43560.0 * med_bld_sqft_per_du
+    return (values[["max_far", "max_far_from_dua"]].max(axis = 1)*parcels.parcel_sqft).reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'max_dua', cache=True, cache_scope='forever')
 def max_dua(parcels, zoning_heights):
