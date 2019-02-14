@@ -246,5 +246,8 @@ loan_fees: 0.02
 
 # settings that influence how many proposals are kept per parcel
 # (maximum number per form and percent max deviation from the maximum)
-proposals_to_keep: 10 # should be not larger than the number of FARs (currently 49)
+proposals_to_keep: 20 # should be not larger than the number of FARs (currently 49)
+#proposals_to_keep_per_parcel: 20
 percent_of_max_profit: 65 
+#percent_of_max_profit: 0
+percent_of_max_profit_per_use: True

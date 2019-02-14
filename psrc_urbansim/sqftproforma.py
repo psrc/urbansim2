@@ -47,7 +47,7 @@ def parcel_sales_price_func(use, config):
     # Temporarily use the expected sales price model coefficients
     coef_const = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "constant")].estimate
     coef = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate
-    return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan) * pcl.parcel_sqft
+    return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan) #* pcl.parcel_sqft
 
 @orca.injectable("parcel_is_allowed_func", autocall=False)
 def parcel_is_allowed_func(form):
@@ -110,7 +110,9 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings["form_glut"] = form_glut
     local_settings["form_density_type"] = form_density_type
     local_settings["forms_to_test"] = None
-    local_settings['percent_of_max_profit'] = all_default_settings.get('percent_of_max_profit', 100)
+    local_settings['percent_of_max_profit'] = all_default_settings.get('percent_of_max_profit', 0) # Default is no restriction
+    local_settings['percent_of_max_profit_per_use'] = all_default_settings.get('percent_of_max_profit_per_use', False)
+    local_settings['proposals_to_keep_per_parcel'] = all_default_settings.get('proposals_to_keep_per_parcel', None)
     pf = default_settings
     for attr in local_settings.keys():
         setattr(pf, attr, local_settings[attr])
@@ -206,11 +208,19 @@ def run_feasibility(parcels, parcel_price_callback,
     
     feasibility = pd.concat(form_feas, sort=False)
     if pf.percent_of_max_profit > 0:
-        feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'form'])['max_profit'].transform(max)
+        if pf.percent_of_max_profit_per_use:
+            feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'form'])['max_profit'].transform(max)
+        else:
+            feasibility['max_profit_parcel'] = feasibility.groupby(feasibility.index)['max_profit'].transform(max)
         feasibility['ratio'] = feasibility.max_profit/feasibility.max_profit_parcel
         feasibility = feasibility[feasibility.ratio >= pf.percent_of_max_profit / 100.]
         feasibility.drop(['max_profit_parcel', 'ratio'], axis=1, inplace = True)
     feasibility.index.name = 'parcel_id'
+    
+    if pf.proposals_to_keep_per_parcel is not None:
+        feassort = feasibility.sort_values('max_profit', ascending=False)
+        feasibility = feassort.groupby(feassort.index).head(pf.proposals_to_keep_per_parcel)     
+        
     # add attribute that enumerates proposals (can be used as a unique index)
     feasibility["feasibility_id"] = np.arange(1, len(feasibility)+1, dtype = "int32")
     # create a dataset with disaggregated sqft by building type
