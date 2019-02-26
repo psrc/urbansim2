@@ -248,6 +248,6 @@ loan_fees: 0.02
 # (maximum number per form and percent max deviation from the maximum)
 proposals_to_keep: 49 # should be not larger than the number of FARs (currently 49)
 #proposals_to_keep_per_parcel: 20
-percent_of_max_profit: 5 
+percent_of_max_profit: 65 
 #percent_of_max_profit: 0
 percent_of_max_profit_per_use: True
