@@ -290,13 +290,14 @@ def disaggregate_buildings(buildings, bt_units, building_types, forms):
     for attr in ["non_residential_sqft", "job_spaces"]:
         dbuildings.loc[dbuildings.is_residential == 1, attr] = 0
     
-    # assign sqft_per_unit
-    dbuildings.loc[:, "sqft_per_unit"] = 1
-    dbuildings.loc[dbuildings.is_residential == 1, "sqft_per_unit"] = dbuildings.building_sqft / dbuildings.residential_units
-    
     # drop the building_type_name index
     dbuildings.index = dbuildings.index.droplevel("building_type_name")
-    
+        
+    # assign sqft_per_unit
+    dbuildings.loc[:, "sqft_per_unit"] = 1
+    isres = dbuildings.is_residential == 1
+    dbuildings.loc[isres, "sqft_per_unit"] = dbuildings.loc[isres, "building_sqft"] / dbuildings.loc[isres, "residential_units"]
+        
     return dbuildings
     
 

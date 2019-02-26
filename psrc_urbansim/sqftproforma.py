@@ -47,7 +47,7 @@ def parcel_sales_price_func(use, config):
     # Temporarily use the expected sales price model coefficients
     coef_const = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "constant")].estimate
     coef = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate
-    return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan) #* pcl.parcel_sqft
+    return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)*config.cap_rate 
 
 @orca.injectable("parcel_is_allowed_func", autocall=False)
 def parcel_is_allowed_func(form):
@@ -195,8 +195,9 @@ def run_feasibility(parcels, parcel_price_callback,
         d[form] = pf.lookup(form, newdf, only_built = pf.only_built,
                             pass_through = pf.pass_through, modify_df = lookup_modify_callback)
         # apply parking ratio to res and non-res sqft
-        d[form].residential_sqft = d[form].residential_sqft * (1 - d[form].parking_ratio)
-        d[form].non_residential_sqft = d[form].non_residential_sqft * (1 - d[form].parking_ratio)
+        if d[form].size > 0:
+            d[form].residential_sqft = d[form].residential_sqft * (1 - d[form].parking_ratio)
+            d[form].non_residential_sqft = d[form].non_residential_sqft * (1 - d[form].parking_ratio)
 
     # Collect results     
     # put feasibility into long format
