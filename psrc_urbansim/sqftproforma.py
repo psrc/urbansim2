@@ -47,7 +47,7 @@ def parcel_sales_price_func(use, config):
     # Temporarily use the expected sales price model coefficients
     coef_const = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "constant")].estimate
     coef = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate
-    return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)*config.cap_rate 
+    return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)#*config.cap_rate 
 
 @orca.injectable("parcel_is_allowed_func", autocall=False)
 def parcel_is_allowed_func(form):

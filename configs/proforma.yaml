@@ -95,7 +95,7 @@ building_efficiency: 1 # original 0.7 but our zoning accounts for coverage
 
 parcel_coverage: 1 # code uses parcel-specific coverage
 
-cap_rate: 0.04
+cap_rate: 0.9
 
 parking_rates:
     single_family_residential: 1.
