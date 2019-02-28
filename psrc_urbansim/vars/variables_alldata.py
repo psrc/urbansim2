@@ -7,13 +7,6 @@ import urbansim_defaults.utils
 #####################
 # ALLDATA VARIABLES (in alphabetic order)
 #####################
-#'full_time_worker','part_time_worker', 'non_working_adult_age_65_plus',
-#'non_working_adult_age_16_64',
-#'university_student','hs_student_age_15_up',
-#'child_age_5_15','child_age_0_4'
-
-
-
 
 @orca.column('alldata', 'age_0_to_5', cache=True, cache_scope='iteration')
 def age_0_to_5(alldata, persons): 
@@ -95,9 +88,25 @@ def age_91_to_95(alldata, persons):
 def age_96_and_up(alldata, persons): 
     return pd.Series((persons.age >= 96).sum(), index = alldata.index)
 
+@orca.column('alldata', 'child_age_0_4', cache=True, cache_scope='iteration')
+def child_age_0_4(alldata, persons): 
+    return pd.Series(((persons.age < 5)).sum(), index = alldata.index)
+
+@orca.column('alldata', 'child_age_5_15', cache=True, cache_scope='iteration')
+def child_age_5_15(alldata, persons): 
+    return pd.Series(((persons.age > 4) * (persons.age < 16)).sum(), index = alldata.index)
+
 @orca.column('alldata', 'Five_18', cache=True, cache_scope='iteration')
 def Five_18(alldata, persons): 
     return pd.Series(((persons.age >= 5) * (persons.age <= 18)).sum(), index = alldata.index)
+	
+@orca.column('alldata', 'full_time', cache=True, cache_scope='iteration')
+def full_time(alldata, persons): 
+    return pd.Series((persons.employment_status == 1).sum(), index = alldata.index)
+
+@orca.column('alldata', 'full_time_worker', cache=True, cache_scope='iteration')
+def full_time_worker(alldata, persons): 
+    return alldata.full_time
 
 @orca.column('alldata', 'Group1_Under36870K', cache=True, cache_scope='iteration')
 def Group1_Under36870K(alldata, households): 
@@ -131,32 +140,52 @@ def Group4_Over100K(alldata, households):
 def Group4_Over110600(alldata, households): 
     return pd.Series((households.income > 110600).sum(), index = alldata.index)
 
+@orca.column('alldata', 'hs_student_age_15_up', cache=True, cache_scope='iteration')
+def hs_student_age_15_up(alldata, persons): 
+    return pd.Series(((persons.employment_status <> 1)* (persons.student == 1) * (persons.age > 15) * (persons.age < 19)).sum(), index = alldata.index)
+
 @orca.column('alldata', 'Nineteen_24', cache=True, cache_scope='iteration')
 def Nineteen_24(alldata, persons): 
     return pd.Series(((persons.age >= 19) * (persons.age <= 24)).sum(), index = alldata.index)
 
+@orca.column('alldata', 'non_workers_no_job', cache=True, cache_scope='iteration')
+def non_workers_no_job(alldata, persons): 
+    return pd.Series((persons.employment_status <= 0).sum(), index = alldata.index)
+
+@orca.column('alldata', 'non_working_adult_age_16_64', cache=True, cache_scope='iteration')
+def non_working_adult_age_16_64(alldata, persons): 
+    return pd.Series(((persons.employment_status < 1)* (persons.student == 0) * (persons.age < 65) * (persons.age > 15)).sum(), index = alldata.index)
+
+@orca.column('alldata', 'non_working_adult_age_65_plus', cache=True, cache_scope='iteration')
+def non_working_adult_age_65_plus(alldata, persons): 
+    return pd.Series(((persons.employment_status < 1)* (persons.student == 0) * (persons.age > 64)).sum(), index = alldata.index)
+
 @orca.column('alldata', 'number_of_households', cache=True, cache_scope='iteration')
 def number_of_households(alldata, households):
-    print 'in variables_alldata.py, in number_of_households function'
     return pd.Series(households.persons.size, index = alldata.index)
 
 @orca.column('alldata', 'number_of_jobs', cache=True, cache_scope='iteration')
 def number_of_jobs(alldata, jobs):
-    print 'in variables_alldata.py, in number_of_jobs function'
     return pd.Series(jobs.number_of_jobs.sum(), index = alldata.index)
 
 @orca.column('alldata', 'Over_60', cache=True, cache_scope='iteration')
 def Over_60(alldata, persons): 
     return pd.Series((persons.age > 60).sum(), index = alldata.index)
 
+@orca.column('alldata', 'part_time', cache=True, cache_scope='iteration')
+def part_time(alldata, persons): 
+    return pd.Series((persons.employment_status == 2).sum(), index = alldata.index)
+
+@orca.column('alldata', 'part_time_worker', cache=True, cache_scope='iteration')
+def part_time_worker(alldata, persons): 
+    return pd.Series(((persons.employment_status == 2) * (persons.student == 0)).sum(), index = alldata.index)
+
 @orca.column('alldata', 'population', cache=True, cache_scope='iteration')
 def number_of_households(alldata, households):
-    print 'in variables_alldata.py, in number_of_households function'
     return  pd.Series(households.persons.sum(), index = alldata.index)
 
 @orca.column('alldata', 'residential_units', cache=True, cache_scope='iteration')
 def residetial_units(alldata, buildings):
-    print 'in variables_alldata.py, residential_units function'
     return pd.Series(buildings.residential_units.sum(), index = alldata.index)
 
 @orca.column('alldata', 'Twentyfive_60', cache=True, cache_scope='iteration')
@@ -166,3 +195,11 @@ def Twentyfive_60(alldata, persons):
 @orca.column('alldata', 'Under5', cache=True, cache_scope='iteration')
 def Under5(alldata, persons): 
     return pd.Series((persons.age < 5).sum(), index = alldata.index)
+
+@orca.column('alldata', 'university_student', cache=True, cache_scope='iteration')
+def university_student(alldata, persons): 
+    return pd.Series(((persons.employment_status <> 1)* (persons.student == 1) * (persons.age > 18)).sum(), index = alldata.index)
+
+@orca.column('alldata', 'workers_no_job', cache=True, cache_scope='iteration')
+def workers_no_job(alldata, persons): 
+    return pd.Series(((persons.employment_status > 0) * (persons.job_id <= 0)).sum(), index = alldata.index)

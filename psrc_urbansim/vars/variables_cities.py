@@ -10,7 +10,6 @@ import urbansim_defaults.utils
 
 @orca.column('cities', 'building_sqft', cache=True, cache_scope='iteration')
 def building_sqft(cities, buildings):
-    print 'in variables_city.py, in buildings_sqft function'
     return buildings.sqft_per_unit.groupby(buildings.city_id).sum().\
            reindex(cities.index).fillna(0)
 
@@ -49,7 +48,6 @@ def Manuf(cities, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 3)).groupby(jobs.city_id).sum().\
 	        reindex(cities.index).fillna(0)
 
-
 @orca.column('cities', 'Natural_resources', cache=True, cache_scope='iteration')
 def Natural_resources(cities, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 1)).groupby(jobs.city_id).sum().\
@@ -57,19 +55,16 @@ def Natural_resources(cities, jobs):
 
 @orca.column('cities', 'nonres_sqft', cache=True, cache_scope='iteration')
 def nonres_sqft(cities, buildings):
-    print 'in variables_city.py, in nonres_sqft function'
     return buildings.non_residential_sqft.groupby(buildings.city_id).sum().\
            reindex(cities.index).fillna(0)
  
 @orca.column('cities', 'number_of_households', cache=True, cache_scope='iteration')
 def number_of_households(cities, households):
-    print 'in variables_city.py, in number_of_households function'
     return households.persons.groupby(households.city_id).size().\
            reindex(cities.index).fillna(0)
 
 @orca.column('cities', 'number_of_jobs', cache=True, cache_scope='iteration')
 def number_of_jobs(cities, jobs):
-    print 'in variables_city.py, in number_of_jobs function'
     return jobs.sector_id.groupby(jobs.city_id).size().\
            reindex(cities.index).fillna(0)
 
@@ -80,7 +75,6 @@ def Personal_Services(cities, jobs):
 		   
 @orca.column('cities', 'population', cache=True, cache_scope='iteration')
 def population(cities, households):
-    print 'in variables_city.py, inpopulation function'
     return households.persons.groupby(households.city_id).sum().\
            reindex(cities.index).fillna(0)
 
@@ -91,7 +85,6 @@ def Private_Ed(cities, jobs):
 		   
 @orca.column('cities', 'residential_units', cache=True, cache_scope='iteration')
 def residetial_units(cities, buildings):
-    print 'in variables_city.py, residential_units function'
     return buildings.residential_units.groupby(buildings.city_id).sum().\
            reindex(cities.index).fillna(0)
 

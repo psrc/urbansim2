@@ -25,60 +25,50 @@ def building_sqft(fazes, buildings):
 
 @orca.column('fazes', 'DU_CO_4', cache=True, cache_scope='iteration')
 def DU_CO_4(fazes, buildings):
-   print 'In DU_CO_4'
    return (buildings.residential_units *(buildings.building_type_id == 4)).\
           groupby(buildings.faz_id).sum().reindex(fazes.index).fillna(0)
 
 @orca.column('fazes', 'DU_MH_11', cache=True, cache_scope='iteration')
 def DU_MH_11(fazes, buildings):
-   print 'In DU_MH_11'
    return (buildings.residential_units *(buildings.building_type_id == 11)).\
           groupby(buildings.faz_id).sum().reindex(fazes.index).fillna(0)
 
 @orca.column('fazes', 'DU_MF_12', cache=True, cache_scope='iteration')
 def DU_MF_12(fazes, buildings):
-   print 'In DU_MF_12'
    return (buildings.residential_units *(buildings.building_type_id == 12)).\
           groupby(buildings.faz_id).sum().reindex(fazes.index).fillna(0)
 
 @orca.column('fazes', 'DU_SF_19', cache=True, cache_scope='iteration')
 def DU_SF_19(fazes, buildings):
-   print 'In DU_SF_19'
    return (buildings.residential_units *(buildings.building_type_id == 19)).\
           groupby(buildings.faz_id).sum().reindex(fazes.index).fillna(0)
 
 @orca.column('fazes', 'DU_Total', cache=True, cache_scope='iteration')
 def DU_Total(fazes):
-   print 'In DU_Total'
    return fazes.residential_units
 
 @orca.column('fazes', 'HH_CO_4', cache=True, cache_scope='iteration')
 def HH_CO_4(fazes, households):
-   print 'In HH_CO_4'
    return ((households.persons > 0) *(households.building_type_id == 4)).\
           groupby(households.faz_id).sum().reindex(fazes.index).fillna(0)   
 
 @orca.column('fazes', 'HH_MF_12', cache=True, cache_scope='iteration')
 def HH_MF_12(fazes, households):
-   print 'In HH_MF_12'
    return ((households.persons > 0) *(households.building_type_id == 12)).\
           groupby(households.faz_id).sum().reindex(fazes.index).fillna(0)
 
 @orca.column('fazes', 'HH_SF_19', cache=True, cache_scope='iteration')
 def HH_SF_19(fazes, households):
-   print 'In HH_SF_19'
    return ((households.persons > 0) *(households.building_type_id == 19)).\
           groupby(households.faz_id).sum().reindex(fazes.index).fillna(0)
 
 @orca.column('fazes', 'HH_MH_11', cache=True, cache_scope='iteration')
 def HH_MH_11(fazes, households):
-   print 'In HH_MH_11'
    return ((households.persons > 0) *(households.building_type_id == 11)).\
           groupby(households.faz_id).sum().reindex(fazes.index).fillna(0)
 
 @orca.column('fazes', 'HH_Total', cache=True, cache_scope='iteration')
 def HH_Total(fazes):
-   print 'In HH_Total'
    return fazes.number_of_households
 
 @orca.column('fazes', 'nonres_sqft', cache=True, cache_scope='iteration')

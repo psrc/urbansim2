@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "simresult20190205.h5"
+     return "simresult20190218.h5"
 
 # remove results file if exists
 outfile = simfile()
@@ -34,13 +34,13 @@ def tables_in_base_year():
 
 orca.run([
 #    "add_lag1_tables",
-    "proforma_feasibility",
-    "developer_picker",
+#    "proforma_feasibility",
+#    "developer_picker",
     #"wahcm_estimate",
     #"delete_invalid_households_persons",
     #"base_year_wplcm_simulate",
     "update_household_previous_building_id",
-    "update_buildings_lag1",
+#    "update_buildings_lag1",
     "repmres_simulate",          # residential REPM
     "repmnr_simulate",          # non-residential REPM           
     "households_transition",     # households transition

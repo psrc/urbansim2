@@ -42,7 +42,7 @@ def city_id(buildings, parcels):
     return misc.reindex(parcels.city_id, buildings.parcel_id)
 
 @orca.column('buildings', 'county_id', cache=True, cache_scope='iteration')
-def city_id(buildings, counties):
+def county_id(buildings, parcels):
     return misc.reindex(parcels.county_id, buildings.parcel_id)
 
 @orca.column('buildings', 'employment_density_wwd', cache=True, cache_scope='step')

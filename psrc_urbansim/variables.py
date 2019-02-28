@@ -15,3 +15,4 @@ import psrc_urbansim.vars.variables_tractcity
 import psrc_urbansim.vars.variables_gridcells
 import psrc_urbansim.vars.variables_schools
 import psrc_urbansim.vars.variables_alldata
+import psrc_urbansim.vars.variables_counties

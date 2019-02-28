@@ -37,16 +37,16 @@ def find_table_in_store(table, store, year, base_year):
     searchyear = year
     while searchyear > base_year:
         if (('/%s/%s' % (searchyear, table)) in store_table_list(store)):
-            print 'returning /%s/%s' % (searchyear, table) #for debugging purposes only
-            print store['/%s/%s' % (searchyear, table)].head()
+            #print 'returning /%s/%s' % (searchyear, table) #for debugging purposes only
+            #print store['/%s/%s' % (searchyear, table)].head()
             return store['/%s/%s' % (searchyear, table)]
         else:
             searchyear = searchyear - 1
     else:
-        if year <> base_year:
-            print 'Could not find table /%s/%s. Instead using the base table' % (year, table)
-        print 'returning /%s/%s' % ("base", table) #for debugging purposes only
-        print store['%s/%s' % ("base", table)].head()
+#        if year <> base_year:
+#            print 'Could not find table /%s/%s. Instead using the base table' % (year, table)
+        #print 'returning /%s/%s' % ("base", table) #for debugging purposes only
+        #print store['%s/%s' % ("base", table)].head()
         return store['/%s/%s' % ("base", table)]
     
 @orca.table('buildings', cache=True, cache_scope='iteration')
@@ -111,13 +111,18 @@ def gridcells(store, year, base_year):
 
 @orca.table('cities', cache=True, cache_scope='iteration')
 def cities(store, year, base_year):
-    df_parcels = find_table_in_store('parcels', store, year, base_year)
-    return df_parcels.groupby(df_parcels.city_id).first()
+    return find_table_in_store('cities', store, year, base_year)
 
 @orca.table('counties', cache=True, cache_scope='iteration')
 def counties(store, year, base_year):
-    df_parcels = find_table_in_store('parcels', store, year, base_year)
-    return df_parcels.groupby(df_parcels.county_id).first()
+    df_cities = find_table_in_store('cities', store, year, base_year)
+    return df_cities.groupby(df_cities.county_id).first()
+
+#@orca.table('counties', cache=True)
+#def counties():
+#    df = pd.DataFrame.from_dict({'county_id': [33, 35, 53, 61]})
+#    df = df.set_index('county_id')
+#    return df
 
 @orca.table('alldata', cache=True)
 def alldata():
