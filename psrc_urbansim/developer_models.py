@@ -63,12 +63,13 @@ def filter_by_vacancy(df, uses, targets, net_units, choices = None):
     # Return feasibility_id of proposals that should be switched off.
     vacancy_met = pd.Series([], dtype = "int32")
     for use in uses:
-        if targets[use] is None:
+        trgt = targets.ix[use].target_units
+        if trgt is None:
             continue
         units = net_units[use].reindex(df.index)
         if units.sum() == 0:
             continue
-        if (choices is None and targets[use] == 0) or (choices is not None and units.loc[choices].sum() >= targets[use]):
+        if (choices is None and trgt == 0) or (choices is not None and units.loc[choices].sum() >= trgt):
             vacancy_met = pd.concat([vacancy_met, units.index[units > 0].to_series()])
     return vacancy_met.unique()
 
@@ -76,22 +77,26 @@ def filter_by_vacancy(df, uses, targets, net_units, choices = None):
 def compute_target_units(vacancy_rate, unlimited = False):
     pf = orca.get_injectable("pf_config")
     if unlimited:
-        return dict.fromkeys(pf.uses)
-    pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
-    vac = pd.concat((pfbt, vacancy_rate.local, pf.residential_uses), axis=1)
-    bld = orca.get_table("buildings")
-    agents_attr = {0: "number_of_jobs", 1: "number_of_households"}
-    units_attr = {0: "job_spaces", 1: "residential_units"}
-    target_units = {}
-    for bt in vac.index:
-        agentattr = agents_attr[vac.loc[bt].is_residential]
-        unitattr = units_attr[vac.loc[bt].is_residential]
-        is_builting_type = bld["building_type_id"] == bt
-        number_of_agents = (bld[agentattr] * is_builting_type).sum()
-        existing_units =  (bld[unitattr] * is_builting_type).sum()
-        target_units[vac.loc[bt].use] = int(max(
-            (number_of_agents / (1 - vac.loc[bt].target_vacancy_rate) - existing_units), 0))
-    return target_units
+        target_units = dict.fromkeys(pf.uses)
+    else:
+        pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
+        vac = pd.concat((pfbt, vacancy_rate.local, pf.residential_uses), axis=1)
+        bld = orca.get_table("buildings")
+        agents_attr = {0: "number_of_jobs", 1: "number_of_households"}
+        units_attr = {0: "job_spaces", 1: "residential_units"}
+        target_units = {}
+        for bt in vac.index:
+            agentattr = agents_attr[vac.loc[bt].is_residential]
+            unitattr = units_attr[vac.loc[bt].is_residential]
+            is_builting_type = bld["building_type_id"] == bt
+            number_of_agents = (bld[agentattr] * is_builting_type).sum()
+            existing_units =  (bld[unitattr] * is_builting_type).sum()
+            target_units[vac.loc[bt].use] = int(max(
+                (number_of_agents / (1 - vac.loc[bt].target_vacancy_rate) - existing_units), 0))
+    tu = pd.DataFrame({'building_type_name': target_units.keys(),
+                       "target_units": target_units.values()})
+    tu = tu.set_index('building_type_name')
+    return tu
     
 def run_developer(forms, agents, buildings, supply_fname, feasibility,
                   parcel_size, ave_unit_size, cfg, current_units = ["units", "job_spaces"], year=None,
@@ -175,10 +180,11 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     """
     cfg = misc.config(cfg)
 
-    target_units = (num_units_to_build
-                    or compute_units_to_build(len(agents),
-                                              buildings[supply_fname].sum(),
-                                              target_vacancy))
+    if num_units_to_build is not None:
+        target_units = num_units_to_build
+    else:
+        compute_units_to_build(len(agents), buildings[supply_fname].sum(),
+                                              target_vacancy)
     #dev = develop.Developer.from_yaml(
     dev = PSRCDeveloper.from_yaml(
                                       feasibility.to_frame(), forms,
@@ -278,13 +284,20 @@ def disaggregate_buildings(buildings, bt_units, building_types, forms):
     dbuildings.loc[dbuildings.is_residential == 1, "residential_units"] = np.maximum(dbuildings.loc[dbuildings.is_residential == 1, "units"].round(), 1)
     dbuildings.loc[dbuildings.is_residential == 0, "job_spaces"] = np.maximum(dbuildings.loc[dbuildings.is_residential == 0, "units"].round(), 1)
     
-    # assign sqft_per_unit
-    dbuildings.loc[:, "sqft_per_unit"] = 1
-    dbuildings.loc[dbuildings.is_residential == 1, "sqft_per_unit"] = dbuildings.building_sqft / dbuildings.residential_units
+    # set res attributes for non-res buildings to 0 and vice versa
+    for attr in ["residential_sqft", "residential_units"]:
+        dbuildings.loc[dbuildings.is_residential == 0, attr] = 0
+    for attr in ["non_residential_sqft", "job_spaces"]:
+        dbuildings.loc[dbuildings.is_residential == 1, attr] = 0
     
     # drop the building_type_name index
     dbuildings.index = dbuildings.index.droplevel("building_type_name")
-    
+        
+    # assign sqft_per_unit
+    dbuildings.loc[:, "sqft_per_unit"] = 1
+    isres = dbuildings.is_residential == 1
+    dbuildings.loc[isres, "sqft_per_unit"] = dbuildings.loc[isres, "building_sqft"] / dbuildings.loc[isres, "residential_units"]
+        
     return dbuildings
     
 

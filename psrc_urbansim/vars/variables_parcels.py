@@ -153,28 +153,31 @@ def land_cost(parcels): # toal value of the parcel
 def lnemp20da(parcels, zones):
     return np.log1p(misc.reindex(zones.jobs_within_20_min_tt_hbw_am_drive_alone, parcels.zone_id))
 
+@orca.column('parcels', 'max_coverage', cache=True, cache_scope='forever')
+def max_coverage(parcels, zoning_heights):
+    cov = misc.reindex(zoning_heights.max_coverage, parcels.plan_type_id)
+    cov[cov <= 0] = 0.8 # default
+    return cov
+
 @orca.column('parcels', 'max_developable_capacity', cache=True, cache_scope='forever')
 def max_developable_capacity(parcels, parcel_zoning):
     #med_bld_sqft_per_du = int((parcels.building_sqft_pcl / parcels.residential_units).quantile())
     med_bld_sqft_per_du = 1870 # median of building sqft per unit in 2014
-    values = parcel_zoning.maximum.copy()
-    subset = values.loc[values.index.get_level_values('constraint_type') == 'units_per_acre']
-    values.update((subset /43560.0 * med_bld_sqft_per_du).astype(values.dtype))
-    return values.groupby(level="parcel_id").max().reindex(parcels.index).fillna(0)
+    values = parcel_zoning.local.loc[:, ["max_du", "max_far"]]
+    values.loc[:, "max_far_from_dua"] = values.max_du / 43560.0 * med_bld_sqft_per_du
+    return (values[["max_far", "max_far_from_dua"]].max(axis = 1)*parcels.parcel_sqft).reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'max_dua', cache=True, cache_scope='forever')
-def max_dua(parcels, parcel_zoning):
-    return parcel_zoning.local.xs("units_per_acre", level="constraint_type").maximum.groupby(level="parcel_id").min().\
-           reindex(parcels.index)
+def max_dua(parcels, zoning_heights):
+    return misc.reindex(zoning_heights.max_du, parcels.plan_type_id)
 
 @orca.column('parcels', 'max_far', cache=True, cache_scope='forever')
-def max_far(parcels, parcel_zoning):
-    return parcel_zoning.local.xs("far", level="constraint_type").maximum.groupby(level="parcel_id").min().\
-           reindex(parcels.index)
+def max_far(parcels, zoning_heights):
+    return misc.reindex(zoning_heights.max_far, parcels.plan_type_id)
   
 @orca.column('parcels', 'max_height', cache=True, cache_scope='forever')
-def max_height(parcels, parcel_zoning):
-    return parcel_zoning.local.max_height.groupby(level="parcel_id").min().reindex(parcels.index)
+def max_height(parcels, zoning_heights):
+    return misc.reindex(zoning_heights.max_height, parcels.plan_type_id)
 
 @orca.column('parcels', 'multi_family_residential_units', cache=True, cache_scope='iteration')
 def multi_family_residential_units(parcels, buildings):

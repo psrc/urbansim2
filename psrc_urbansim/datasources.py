@@ -28,8 +28,7 @@ def store_table_names_dict():
             'employment_sector_groups': "employment_adhoc_sector_groups",
             'household_controls': "annual_household_control_totals",
             'household_relocation_rates': 'annual_household_relocation_rates',
-            'job_relocation_rates': 'annual_job_relocation_rates',
-            'parcel_zoning': 'development_constraints'
+            'job_relocation_rates': 'annual_job_relocation_rates'
             }
 
     
@@ -107,6 +106,23 @@ def fazes(store):
     df = store['fazes']
     return df
 
+@orca.table('generic_land_use_types', cache=True)
+def generic_land_use_types():
+    df = pd.DataFrame({"generic_land_use_type_name" : 
+                       ["single_family_residential", 
+                        "multi_family_residential",
+                        "office",
+                        "commercial",
+                        "industrial",
+                        "mixed_use",
+                        "government",
+                        "other",
+                        "no code"],
+                       "generic_land_use_type_id": range(1,10),
+                       "is_residential": [True, True] + 7*[False]})
+    df = df.set_index("generic_land_use_type_id")
+    return df
+
 @orca.table('gridcells', cache=True)
 def gridcells(store):
     df = store['gridcells']
@@ -180,20 +196,15 @@ def land_use_types(store):
     return df
 
 @orca.table('parcel_zoning', cache=True)
-def parcel_zoning(store, development_constraints, parcels, zoning_heights):
-    constr = development_constraints.local.drop_duplicates()
-    # merge constraints with parcels
+def parcel_zoning(store, parcels, zoning_heights):
     pcl = pd.DataFrame(parcels['plan_type_id'])
     pcl['parcel_id'] = pcl.index
-    constr['constraint_id'] = constr.index
-    zoning = pd.merge(pcl, constr, how='left', on=['plan_type_id']) 
-    # merge with zoning_heights
-    zoning = pd.merge(zoning, zoning_heights.local, how='left', left_on=['plan_type_id'], right_index=True)
+    # merge parcels with zoning_heights
+    zoning = pd.merge(pcl, zoning_heights.local, how='left', on=['plan_type_id']) 
     # replace NaNs with 0 for records not found in zoning_heights (e.g. plan_type_id 1000) or constraints (e.g. plan_type_id 0)
     for col in zoning.columns:
         zoning[col] = np.nan_to_num(zoning[col])
-    # index is a composition of three attributes
-    return zoning.set_index(['parcel_id','generic_land_use_type_id', 'constraint_type'])
+    return zoning.set_index(['parcel_id'])
 
 @orca.table('parcels', cache=True)
 def parcels(store):
@@ -244,8 +255,14 @@ def zones(store):
     return df
 
 @orca.table('zoning_heights', cache=True)
-def zoning_heights(store):
+def zoning_heights(store, generic_land_use_types):
     df = store['zoning_heights']
+    # set max_far to nan for records that do not allow non-res
+    is_allowed = np.zeros(df.shape[0], dtype = "bool8")
+    for glu in generic_land_use_types.local.loc[generic_land_use_types.is_residential == False].generic_land_use_type_name.values:
+        if glu in df.columns:
+            is_allowed = is_allowed + (df[glu] > 0).values
+    df["max_far"] = np.where(is_allowed == 0, np.nan, df.max_far)
     return df
 
 orca.broadcast('buildings', 'households', cast_index=True, onto_on='building_id')
