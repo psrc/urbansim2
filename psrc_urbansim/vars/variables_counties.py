@@ -7,54 +7,6 @@ import urbansim_defaults.utils
 #####################
 # COUNTIES VARIABLES (in alphabetic order)
 #####################
-# 'res_4_VR','res_12_VR','res_19_VR','nonres_3_VR',
-# 'nonres_8_VR','nonres_13_VR','nonres_20_VR','nonres_21_VR'
-
-
-@orca.column('counties', 'res_4_all', cache=True, cache_scope='iteration')
-def res_4_all(counties, buildings):
-    return ((buildings.residential_units) * (buildings.building_type_id == 4)).\
-	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
-
-@orca.column('counties', 'res_4_vac', cache=True, cache_scope='iteration')
-def res_4_vac(counties, buildings):
-    return ((buildings.vacant_residential_units) * (buildings.building_type_id == 4)).\
-	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
-
-@orca.column('counties', 'res_4_VR', cache=True, cache_scope='iteration')
-def res_4_VR(counties, buildings):
-    return counties.res_4_vac / counties.res_4_all
-
-
-@orca.column('counties', 'res_12_all', cache=True, cache_scope='iteration')
-def res_12_all(counties, buildings):
-    return ((buildings.residential_units) * (buildings.building_type_id == 12)).\
-	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
-
-@orca.column('counties', 'res_12_vac', cache=True, cache_scope='iteration')
-def res_12_vac(counties, buildings):
-    return ((buildings.vacant_residential_units) * (buildings.building_type_id == 12)).\
-	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
-
-@orca.column('counties', 'res_12_VR', cache=True, cache_scope='iteration')
-def res_12_VR(counties, buildings):
-    return counties.res_12_vac / counties.res_12_all
-
-
-@orca.column('counties', 'res_19_all', cache=True, cache_scope='iteration')
-def res_19_all(counties, buildings):
-    return ((buildings.residential_units) * (buildings.building_type_id == 19)).\
-	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
-
-@orca.column('counties', 'res_19_vac', cache=True, cache_scope='iteration')
-def res_19_vac(counties, buildings):
-    return ((buildings.vacant_residential_units) * (buildings.building_type_id == 19)).\
-	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
-
-@orca.column('counties', 'res_19_VR', cache=True, cache_scope='iteration')
-def res_19_VR(counties, buildings):
-    return counties.res_19_vac / counties.res_19_all
-
 
 
 @orca.column('counties', 'nonres_3_all', cache=True, cache_scope='iteration')
@@ -130,3 +82,48 @@ def nonres_21_vac(counties, buildings):
 @orca.column('counties', 'nonres_21_VR', cache=True, cache_scope='iteration')
 def nonres_21_VR(counties):
     return counties.nonres_21_vac / counties.nonres_21_all
+
+
+@orca.column('counties', 'res_4_all', cache=True, cache_scope='iteration')
+def res_4_all(counties, buildings):
+    return ((buildings.residential_units) * (buildings.building_type_id == 4)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'res_4_vac', cache=True, cache_scope='iteration')
+def res_4_vac(counties, buildings):
+    return ((buildings.vacant_residential_units) * (buildings.building_type_id == 4)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'res_4_VR', cache=True, cache_scope='iteration')
+def res_4_VR(counties, buildings):
+    return counties.res_4_vac / counties.res_4_all
+
+
+@orca.column('counties', 'res_12_all', cache=True, cache_scope='iteration')
+def res_12_all(counties, buildings):
+    return ((buildings.residential_units) * (buildings.building_type_id == 12)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'res_12_vac', cache=True, cache_scope='iteration')
+def res_12_vac(counties, buildings):
+    return ((buildings.vacant_residential_units) * (buildings.building_type_id == 12)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'res_12_VR', cache=True, cache_scope='iteration')
+def res_12_VR(counties, buildings):
+    return counties.res_12_vac / counties.res_12_all
+
+
+@orca.column('counties', 'res_19_all', cache=True, cache_scope='iteration')
+def res_19_all(counties, buildings):
+    return ((buildings.residential_units) * (buildings.building_type_id == 19)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'res_19_vac', cache=True, cache_scope='iteration')
+def res_19_vac(counties, buildings):
+    return ((buildings.vacant_residential_units) * (buildings.building_type_id == 19)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'res_19_VR', cache=True, cache_scope='iteration')
+def res_19_VR(counties, buildings):
+    return counties.res_19_vac / counties.res_19_all
