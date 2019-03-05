@@ -219,7 +219,7 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
                                   form_to_btype_callback,
                                   add_more_columns_callback,
                                   supply_fname, remove_developed_buildings,
-                                  unplace_agents, pipeline)
+                                  unplace_agents, pipeline, dev.pf_config.cap_rate)
 
     return new_buildings
 
@@ -304,7 +304,7 @@ def disaggregate_buildings(buildings, bt_units, building_types, forms):
 def add_buildings(buildings, new_buildings,
                   form_to_btype_callback, add_more_columns_callback,
                   supply_fname, remove_developed_buildings, unplace_agents,
-                  pipeline=False):
+                  pipeline=False, cap_rate = 0.04):
     """
     Parameters
     ----------
@@ -345,7 +345,7 @@ def add_buildings(buildings, new_buildings,
     # They only need to be defined if the names differ.
     new_cols = {'job_capacity': new_buildings.job_spaces,
                 'land_area': new_buildings.building_sqft / new_buildings.stories, 
-                'improvement_value': new_buildings.building_revenue
+                'improvement_value': new_buildings.building_revenue * cap_rate
                 }
     if add_more_columns_callback is not None:
         new_buildings = add_more_columns_callback(new_buildings, new_cols)

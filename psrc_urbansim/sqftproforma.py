@@ -47,7 +47,7 @@ def parcel_sales_price_func(use, config):
     # Temporarily use the expected sales price model coefficients
     coef_const = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "constant")].estimate
     coef = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate
-    return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)#*config.cap_rate 
+    return np.exp(coef_const.values + coef.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan) 
 
 @orca.injectable("parcel_is_allowed_func", autocall=False)
 def parcel_is_allowed_func(form):
@@ -81,7 +81,8 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings["residential_uses"] = blduses.is_residential
     local_settings["residential_uses"].index = blduses.building_type_id
     # get coefficient file for modeling price
-    coeffile = os.path.join(misc.data_dir(), "expected_sales_unit_price_component_model_coefficients.csv")
+    #coeffile = os.path.join(misc.data_dir(), "expected_sales_unit_price_component_model_coefficients.csv")
+    coeffile = os.path.join(misc.data_dir(), "total_value_psf_coefficients.csv")
     coefs = pd.read_csv(coeffile)
     coefs = pd.merge(coefs, proforma_uses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
     local_settings["price_coefs"] = coefs
