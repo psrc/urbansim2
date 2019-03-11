@@ -168,9 +168,10 @@ def run_feasibility(parcels, parcel_price_callback,
     #df = apply_parcel_callbacks(sites, parcel_price_callback,
     #                            pf, **kwargs)
     
+    # apply parcel filter
+    df = sites.query(pf.parcel_filter)
     
     # compute price for each use
-    df = sites
     for use in pf.uses:        
         df[use] = parcel_price_callback(use, pf)
             
@@ -209,6 +210,24 @@ def run_feasibility(parcels, parcel_price_callback,
         form_feas.append(df_feas_form)
     
     feasibility = pd.concat(form_feas, sort=False)
+    feasibility['parcel_id'] = feasibility.index.values
+    # select only proposals with largest profit per parking and form
+    feassort = feasibility.sort_values('max_profit', ascending=False)
+    feasibility = feassort.groupby([feassort.index, 'form', 'max_profit_far']).head(1)
+    
+    # adjust profit so that all parcels get developed
+    #feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'form'])['max_profit'].transform(max)
+    feasibility['max_profit_parcel'] = feasibility.groupby(feasibility.index)['max_profit'].transform(max)
+    if (feasibility.max_profit_parcel < 0).any():
+        max_neg_profit = feasibility.loc[feasibility.max_profit_parcel < 0].max_profit_parcel.min()
+    else:
+        max_neg_profit = 1
+    feasibility['max_profit_orig'] = feasibility['max_profit']
+    feasibility['max_profit'] = feasibility['max_profit'] - max_neg_profit + 1
+
+    # remove proposals with negative adjusted profit
+    feasibility = feasibility[feasibility.max_profit > 0]
+    
     if pf.percent_of_max_profit > 0:
         if pf.percent_of_max_profit_per_use:
             feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'form'])['max_profit'].transform(max)

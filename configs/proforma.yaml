@@ -179,9 +179,9 @@ max_retail_height: 2.0
 
 max_industrial_height: 2.0
 
-only_built: true
+only_built: false
 
-parcel_filter: null
+parcel_filter: parcel_sqft > 1
 
 residential_to_yearly: false
 
