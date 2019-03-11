@@ -247,8 +247,16 @@ loan_fees: 0.02
 
 # settings that influence how many proposals are kept per parcel
 # (maximum number per form and percent max deviation from the maximum)
+#######
+# this one includes parking configurations
 proposals_to_keep: 49 # should be not larger than the number of FARs (currently 49)
-#proposals_to_keep_per_parcel: 20
-percent_of_max_profit: 5 
+
+# after keeping one parking type per form
+proposals_to_keep_per_form: 5
+proposals_to_keep_per_parcel: 20
+
+# exclude proposals based on percentage of max profit
+percent_of_max_profit: 50 
 #percent_of_max_profit: 0
-percent_of_max_profit_per_use: True
+# is the above meant per form (True) or per parcel (False)
+percent_of_max_profit_per_form: True

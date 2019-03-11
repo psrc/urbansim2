@@ -112,8 +112,9 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings["form_density_type"] = form_density_type
     local_settings["forms_to_test"] = None
     local_settings['percent_of_max_profit'] = all_default_settings.get('percent_of_max_profit', 0) # Default is no restriction
-    local_settings['percent_of_max_profit_per_use'] = all_default_settings.get('percent_of_max_profit_per_use', False)
+    local_settings['percent_of_max_profit_per_form'] = all_default_settings.get('percent_of_max_profit_per_form', False)
     local_settings['proposals_to_keep_per_parcel'] = all_default_settings.get('proposals_to_keep_per_parcel', None)
+    local_settings['proposals_to_keep_per_form'] = all_default_settings.get('proposals_to_keep_per_form', None)
     pf = default_settings
     for attr in local_settings.keys():
         setattr(pf, attr, local_settings[attr])
@@ -211,12 +212,22 @@ def run_feasibility(parcels, parcel_price_callback,
     
     feasibility = pd.concat(form_feas, sort=False)
     feasibility['parcel_id'] = feasibility.index.values
+    
     # select only proposals with largest profit per parking and form
     feassort = feasibility.sort_values('max_profit', ascending=False)
     feasibility = feassort.groupby([feassort.index, 'form', 'max_profit_far']).head(1)
     
-    # adjust profit so that all parcels get developed
-    #feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'form'])['max_profit'].transform(max)
+    # keep specified number of proposals per form
+    if pf.proposals_to_keep_per_form is not None:
+        feassort = feasibility.sort_values('max_profit', ascending=False)
+        feasibility = feassort.groupby([feassort.index, 'form']).head(pf.proposals_to_keep_per_form) 
+        
+    # keep specified number of proposals per parcel
+    if pf.proposals_to_keep_per_parcel is not None:
+        feassort = feasibility.sort_values('max_profit', ascending=False)
+        feasibility = feassort.groupby(feassort.index).head(pf.proposals_to_keep_per_parcel)     
+    
+    # adjust profit so that all parcels get developed, i.i shift by the maximum negative profit
     feasibility['max_profit_parcel'] = feasibility.groupby(feasibility.index)['max_profit'].transform(max)
     if (feasibility.max_profit_parcel < 0).any():
         max_neg_profit = feasibility.loc[feasibility.max_profit_parcel < 0].max_profit_parcel.min()
@@ -228,20 +239,18 @@ def run_feasibility(parcels, parcel_price_callback,
     # remove proposals with negative adjusted profit
     feasibility = feasibility[feasibility.max_profit > 0]
     
+    # keep proposals with profit within given percentage of max profit (per form or per parcel)
     if pf.percent_of_max_profit > 0:
-        if pf.percent_of_max_profit_per_use:
+        if pf.percent_of_max_profit_per_form:
             feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'form'])['max_profit'].transform(max)
         else:
             feasibility['max_profit_parcel'] = feasibility.groupby(feasibility.index)['max_profit'].transform(max)
         feasibility['ratio'] = feasibility.max_profit/feasibility.max_profit_parcel
         feasibility = feasibility[feasibility.ratio >= pf.percent_of_max_profit / 100.]
         feasibility.drop(['max_profit_parcel', 'ratio'], axis=1, inplace = True)
+        
     feasibility.index.name = 'parcel_id'
     
-    if pf.proposals_to_keep_per_parcel is not None:
-        feassort = feasibility.sort_values('max_profit', ascending=False)
-        feasibility = feassort.groupby(feassort.index).head(pf.proposals_to_keep_per_parcel)     
-        
     # add attribute that enumerates proposals (can be used as a unique index)
     feasibility["feasibility_id"] = np.arange(1, len(feasibility)+1, dtype = "int32")
     # create a dataset with disaggregated sqft by building type
