@@ -111,6 +111,7 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings["form_glut"] = form_glut
     local_settings["form_density_type"] = form_density_type
     local_settings["forms_to_test"] = None
+    local_settings['minimum_floor_space'] = all_default_settings.get('minimum_floor_space', 150)
     local_settings['percent_of_max_profit'] = all_default_settings.get('percent_of_max_profit', 0) # Default is no restriction
     local_settings['percent_of_max_profit_per_form'] = all_default_settings.get('percent_of_max_profit_per_form', False)
     local_settings['proposals_to_keep_per_parcel'] = all_default_settings.get('proposals_to_keep_per_parcel', None)
@@ -213,6 +214,9 @@ def run_feasibility(parcels, parcel_price_callback,
     feasibility = pd.concat(form_feas, sort=False)
     feasibility['parcel_id'] = feasibility.index.values
     
+    # remove proposals below the minimum floor space
+    feasibility = feasibility[feasibility.building_sqft > pf.minimum_floor_space]
+    
     # select only proposals with largest profit per parking and form
     feassort = feasibility.sort_values('max_profit', ascending=False)
     feasibility = feassort.groupby([feassort.index, 'form', 'max_profit_far']).head(1)
@@ -227,14 +231,22 @@ def run_feasibility(parcels, parcel_price_callback,
         feassort = feasibility.sort_values('max_profit', ascending=False)
         feasibility = feassort.groupby(feassort.index).head(pf.proposals_to_keep_per_parcel)     
     
-    # adjust profit so that all parcels get developed, i.i shift by the maximum negative profit
-    feasibility['max_profit_parcel'] = feasibility.groupby(feasibility.index)['max_profit'].transform(max)
-    if (feasibility.max_profit_parcel < 0).any():
-        max_neg_profit = feasibility.loc[feasibility.max_profit_parcel < 0].max_profit_parcel.min()
-    else:
-        max_neg_profit = 1
+    # adjust profit so that all parcels get developed, i.i shift by the maximum negative profit per sqft
+    feasibility['parcel_size'] = df.parcel_size
+    feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.parcel_size
+    feasibility['max_profit_psf_parcel'] = feasibility.groupby(feasibility.index)['max_profit_psf'].transform(max)
     feasibility['max_profit_orig'] = feasibility['max_profit']
-    feasibility['max_profit'] = feasibility['max_profit'] - max_neg_profit + 1
+    if (feasibility.max_profit_psf_parcel < 0).any():
+        feasibility.loc[feasibility.max_profit_psf < feasibility.max_profit_psf_parcel, 'max_profit_psf'] = np.nan
+        feasibility.loc[feasibility.max_profit_psf_parcel < -100, 'max_profit_psf_parcel'] = -100        
+        max_neg_profit_psf = feasibility.loc[feasibility.max_profit_psf_parcel < 0].max_profit_psf_parcel.min() - 0.001
+        feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.parcel_size
+        # adjust max_profit of proposals where all proposals per parcels would be eliminated (all < -100). 
+        # Set the profit so that the profit per sqft is 0.001 (thus will have a low weight)
+        iadj = np.logical_and(~np.isnan(feasibility.max_profit_psf), feasibility.max_profit < 0)
+        feasibility.loc[iadj, 'max_profit'] = 0.001 * feasibility.loc[iadj, 'parcel_size']
+        
+    feasibility.drop(['max_profit_psf_parcel', 'max_profit_psf'], axis=1, inplace = True)
 
     # remove proposals with negative adjusted profit
     feasibility = feasibility[feasibility.max_profit > 0]

@@ -245,6 +245,10 @@ interest_rate: 0.05
 
 loan_fees: 0.02
 
+# proposals wiht sqft below this number will be eliminated
+# (current code has a lower limit for SF of 120sf)
+minimum_floor_space: 150
+
 # settings that influence how many proposals are kept per parcel
 # (maximum number per form and percent max deviation from the maximum)
 #######
