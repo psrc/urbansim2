@@ -10,30 +10,37 @@ from developer.utils import yaml_to_dict
 #from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
 
 @orca.injectable("proforma_settings")
-def proforma_settings(land_use_types, building_types, development_templates, development_template_components, generic_land_use_types):
-    uses =  pd.merge(development_template_components.local[["building_type_id", "template_id", "description", "percent_building_sqft"]],
-                         development_templates.local[["land_use_type_id", "density_type"]], left_on="template_id", right_index=True, how="left")
-    uses.description.loc[np.core.defchararray.startswith(uses.description.values.astype("string"), "sfr")] = "sfr" # since there are 2 sfr uses (sfr_plat, sfr_parcel)
+def proforma_settings(building_types, #land_use_types, development_templates, development_template_components, generic_land_use_types
+                      ):
+    formfile = os.path.join(misc.data_dir(), "forms.csv")
+    forms = pd.read_csv(formfile)
+    forms = forms.set_index("form_name")
+    #uses =  pd.merge(development_template_components.local[["building_type_id", "template_id", "description", "percent_building_sqft"]],
+    #                     development_templates.local[["land_use_type_id", "density_type"]], left_on="template_id", right_index=True, how="left")
+    #uses.description.loc[np.core.defchararray.startswith(uses.description.values.astype("string"), "sfr")] = "sfr" # since there are 2 sfr uses (sfr_plat, sfr_parcel)
     # remove template_id in order to remove duplicates
-    blduses = uses.drop("template_id", 1).drop_duplicates()
+    #blduses = uses.drop("template_id", 1).drop_duplicates()
     # add template_id back in order to group the components into forms
-    blduses[["template_id"]] = uses[["template_id"]] 
+    #blduses[["template_id"]] = uses[["template_id"]] 
     # to make sure that all components of included templates are present (in case they were dropped)
-    blduses = uses[uses.template_id.isin(blduses.template_id.values)]
-    blduses = pd.merge(blduses, building_types.local[["building_type_name", "is_residential"]], left_on="building_type_id", right_index=True, how="left")
-    blduses = pd.merge(blduses, land_use_types.local[["land_use_name", "generic_land_use_type_id"]], left_on="land_use_type_id", right_index=True, how="left")
-    blduses = pd.merge(blduses, generic_land_use_types.local[["generic_land_use_type_name"]], how="left", on = "generic_land_use_type_id")
+    #blduses = uses[uses.template_id.isin(blduses.template_id.values)]
+    blduses = building_types.local[["building_type_name", "is_residential"]]
+    blduses = blduses.loc[blduses.building_type_name.isin(forms.columns), :]
+    blduses["building_type_id"] = blduses.index
+    #blduses = pd.merge(blduses, building_types.local[["building_type_name", "is_residential"]], left_on="building_type_id", right_index=True, how="left")
+    #blduses = pd.merge(blduses, land_use_types.local[["land_use_name", "generic_land_use_type_id"]], left_on="land_use_type_id", right_index=True, how="left")
+    #blduses = pd.merge(blduses, generic_land_use_types.local[["generic_land_use_type_name"]], how="left", on = "generic_land_use_type_id")
     # rename duplicated description
-    tmp = blduses[['template_id', 'description']].drop_duplicates()
-    is_dupl = tmp.duplicated('description')
-    if is_dupl.any():
-        dupltmp = tmp[is_dupl]
-        for desc in np.unique(dupltmp.description):
-            thisdescr = dupltmp[dupltmp.description == desc]
-            thisdescr.loc[:, "description"] = blduses['description'][thisdescr.index]+ np.arange(2,thisdescr.index.size+2).astype("str")
-            for templ in thisdescr.template_id.values:
-                blduses.loc[blduses.template_id == templ, 'description'] = thisdescr.loc[thisdescr.template_id == templ, "description"].values[0]
-    return blduses
+    #tmp = blduses[['template_id', 'description']].drop_duplicates()
+    #is_dupl = tmp.duplicated('description')
+    #if is_dupl.any():
+        #dupltmp = tmp[is_dupl]
+        #for desc in np.unique(dupltmp.description):
+            #thisdescr = dupltmp[dupltmp.description == desc]
+            #thisdescr.loc[:, "description"] = blduses['description'][thisdescr.index]+ np.arange(2,thisdescr.index.size+2).astype("str")
+            #for templ in thisdescr.template_id.values:
+                #blduses.loc[blduses.template_id == templ, 'description'] = thisdescr.loc[thisdescr.template_id == templ, "description"].values[0]
+    return [blduses, forms]
 
 # Empty function. Series indexed by parcel_id
 @orca.injectable("parcel_price_placeholder", autocall=False)
@@ -53,14 +60,18 @@ def parcel_sales_price_func(use, config):
 def parcel_is_allowed_func(form):
     config = orca.get_injectable("pf_config")
     glu = config.form_glut[form]
-    zoning = orca.get_table('parcel_zoning')
-    return zoning.local[[glu]] > 0
+    zoning = orca.get_table('parcel_zoning').local
+    res = zoning[[glu[0]]] > 0
+    if len(glu) > 1:
+        for gt in glu[1:]:
+            res = np.logical_or(res, zoning[[gt]] > 0)
+    return res
 
 @orca.injectable("set_ave_unit_size_func", autocall=False)
 def set_ave_unit_size_func(pf, form, df):
     attrs = []
-    if pf.forms_df.ix[form, "condo_residential"] > 0:
-        attrs = attrs + ["ave_unit_size_condo"]
+    #if pf.forms_df.ix[form, "condo_residential"] > 0:
+    #    attrs = attrs + ["ave_unit_size_condo"]
     if pf.forms_df.ix[form, "multi_family_residential"] > 0:
         attrs = attrs + ["ave_unit_size_mf"]
     if pf.forms_df.ix[form, "single_family_residential"] > 0:
@@ -71,10 +82,13 @@ def set_ave_unit_size_func(pf, form, df):
     return df
     
 def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):    
-    # extract uses 
-    blduses = proforma_uses[["building_type_id", "building_type_name", "is_residential"]].drop_duplicates()
+    # extract uses
+    blduses = proforma_uses[0]
+    forms_df = proforma_uses[1]
+    #blduses = proforma_uses[["building_type_id", "building_type_name", "is_residential"]].drop_duplicates()
     # put uses into the same order as the config file
     blduses = pd.merge(pd.DataFrame({"uses":default_settings.uses}), blduses, left_on="uses", right_on="building_type_name")
+    forms_df_extr = forms_df[blduses.uses]
     # store in a dictionary
     local_settings = {}
     local_settings["uses"] = blduses.uses.values
@@ -84,20 +98,26 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     #coeffile = os.path.join(misc.data_dir(), "expected_sales_unit_price_component_model_coefficients.csv")
     coeffile = os.path.join(misc.data_dir(), "total_value_psf_coefficients.csv")
     coefs = pd.read_csv(coeffile)
-    coefs = pd.merge(coefs, proforma_uses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
+    #coefs = pd.merge(coefs, proforma_uses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
+    coefs = pd.merge(coefs, blduses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
     local_settings["price_coefs"] = coefs
     
     # Assemble forms
     forms = {}
     form_glut = {}
     form_density_type = {}
-    for formid in np.unique(proforma_uses.template_id):
-        subuse = proforma_uses[proforma_uses.template_id==formid]
-        submerge = pd.merge(blduses, subuse, on='building_type_name', how="left")
-        form_name = subuse.description.values[0]
-        forms[form_name] = submerge.percent_building_sqft.fillna(0).values/100.
-        form_glut[form_name] = subuse.generic_land_use_type_name.values[0]
-        form_density_type[form_name] = subuse.density_type.values[0]
+
+    #for formid in np.unique(proforma_uses.template_id):
+    for form_name in forms_df.index.values:
+        #subuse = proforma_uses[proforma_uses.template_id==formid]
+        #submerge = pd.merge(blduses, subuse, on='building_type_name', how="left")
+        #form_name = subuse.description.values[0]
+        #forms[form_name] = submerge.percent_building_sqft.fillna(0).values/100.
+        #form_glut[form_name] = subuse.generic_land_use_type_name.values[0]
+        #form_density_type[form_name] = subuse.density_type.values[0]
+        forms[form_name] = forms_df_extr.ix[form_name].values
+        form_glut[form_name] = forms_df.glut.ix[form_name].split(":")
+        form_density_type[form_name] = forms_df.density_type.ix[form_name]
 
     # Conversion similar to sqftproforma._convert_types()
     local_settings["res_ratios"] = {}
@@ -107,9 +127,11 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
             
     all_default_settings = yaml_to_dict(None, yaml_file)
     local_settings["forms"] = forms
-    local_settings["forms_df"] = pd.DataFrame(forms, index = local_settings["uses"]).transpose()
+    #local_settings["forms_df"] = pd.DataFrame(forms, index = local_settings["uses"]).transpose()
+    local_settings["forms_df"] = forms_df_extr
     local_settings["form_glut"] = form_glut
     local_settings["form_density_type"] = form_density_type
+    local_settings["form_groups"] = forms_df[["group"]]
     local_settings["forms_to_test"] = None
     local_settings['minimum_floor_space'] = all_default_settings.get('minimum_floor_space', 150)
     local_settings['percent_of_max_profit'] = all_default_settings.get('percent_of_max_profit', 0) # Default is no restriction
@@ -217,21 +239,24 @@ def run_feasibility(parcels, parcel_price_callback,
     # remove proposals below the minimum floor space
     feasibility = feasibility[feasibility.building_sqft > pf.minimum_floor_space]
     
+    # add form group
+    feasibility = pd.merge(feasibility, pf.form_groups, left_on = "form", right_index = True)
+    
     # select only proposals with largest profit per parking and form
     feassort = feasibility.sort_values('max_profit', ascending=False)
     feasibility = feassort.groupby([feassort.index, 'form', 'max_profit_far']).head(1)
     
-    # keep specified number of proposals per form
+    # keep specified number of proposals per form group
     if pf.proposals_to_keep_per_form is not None:
         feassort = feasibility.sort_values('max_profit', ascending=False)
-        feasibility = feassort.groupby([feassort.index, 'form']).head(pf.proposals_to_keep_per_form) 
+        feasibility = feassort.groupby([feassort.index, 'group']).head(pf.proposals_to_keep_per_form) 
         
     # keep specified number of proposals per parcel
     if pf.proposals_to_keep_per_parcel is not None:
         feassort = feasibility.sort_values('max_profit', ascending=False)
         feasibility = feassort.groupby(feassort.index).head(pf.proposals_to_keep_per_parcel)     
     
-    # adjust profit so that all parcels get developed, i.i shift by the maximum negative profit per sqft
+    # adjust profit so that all parcels get developed, i.e. shift by the maximum negative profit per sqft
     feasibility['parcel_size'] = df.parcel_size
     feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.parcel_size
     feasibility['max_profit_psf_parcel'] = feasibility.groupby(feasibility.index)['max_profit_psf'].transform(max)
@@ -254,7 +279,7 @@ def run_feasibility(parcels, parcel_price_callback,
     # keep proposals with profit within given percentage of max profit (per form or per parcel)
     if pf.percent_of_max_profit > 0:
         if pf.percent_of_max_profit_per_form:
-            feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'form'])['max_profit'].transform(max)
+            feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'group'])['max_profit'].transform(max)
         else:
             feasibility['max_profit_parcel'] = feasibility.groupby(feasibility.index)['max_profit'].transform(max)
         feasibility['ratio'] = feasibility.max_profit/feasibility.max_profit_parcel

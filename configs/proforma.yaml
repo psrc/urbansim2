@@ -55,7 +55,7 @@ fars:
 
 uses: # has to match building type names in building_types
 - single_family_residential
-- condo_residential
+#- condo_residential
 - multi_family_residential
 - commercial
 - office
@@ -66,7 +66,7 @@ uses: # has to match building type names in building_types
 residential_uses: # gets overwritten
 - true
 - true
-- true
+#- true
 - false
 - false
 - false
@@ -100,7 +100,7 @@ cap_rate: 1
 
 parking_rates:
     single_family_residential: 1.
-    condo_residential: 0.75
+#    condo_residential: 0.75
     multi_family_residential: 1.
     commercial: 2.
     office: 0.75
@@ -121,11 +121,11 @@ costs:
     - 118.46
     - 130.31
     - 143.34
-    condo_residential:
-    - 96.92
-    - 106.61
-    - 117.28
-    - 129
+#    condo_residential:
+#    - 96.92
+#    - 106.61
+#    - 117.28
+#    - 129
     multi_family_residential:
     - 94.63
     - 119.69
@@ -200,11 +200,11 @@ construction_months:
     - 14.0
     - 18.0
     - 24.0
-    condo_residential:
-    - 12.0
-    - 14.0
-    - 18.0
-    - 24.0
+#    condo_residential:
+#    - 12.0
+#    - 14.0
+#    - 18.0
+#    - 24.0
     commercial:
     - 12.0
     - 14.0
@@ -256,11 +256,11 @@ minimum_floor_space: 150
 proposals_to_keep: 49 # should be not larger than the number of FARs (currently 49)
 
 # after keeping one parking type per form
-proposals_to_keep_per_form: 5
-proposals_to_keep_per_parcel: 20
+proposals_to_keep_per_form: 10
+#proposals_to_keep_per_parcel: 20
 
 # exclude proposals based on percentage of max profit
-percent_of_max_profit: 50 
+percent_of_max_profit: 65
 #percent_of_max_profit: 0
 # is the above meant per form (True) or per parcel (False)
 percent_of_max_profit_per_form: True
