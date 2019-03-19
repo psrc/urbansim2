@@ -135,9 +135,10 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings["forms_to_test"] = None
     local_settings['minimum_floor_space'] = all_default_settings.get('minimum_floor_space', 150)
     local_settings['percent_of_max_profit'] = all_default_settings.get('percent_of_max_profit', 0) # Default is no restriction
-    local_settings['percent_of_max_profit_per_form'] = all_default_settings.get('percent_of_max_profit_per_form', False)
+    local_settings['percent_of_max_profit_per_group'] = all_default_settings.get('percent_of_max_profit_per_group', False)
     local_settings['proposals_to_keep_per_parcel'] = all_default_settings.get('proposals_to_keep_per_parcel', None)
     local_settings['proposals_to_keep_per_form'] = all_default_settings.get('proposals_to_keep_per_form', None)
+    local_settings['proposals_to_keep_per_group'] = all_default_settings.get('proposals_to_keep_per_group', None)
     pf = default_settings
     for attr in local_settings.keys():
         setattr(pf, attr, local_settings[attr])
@@ -246,10 +247,15 @@ def run_feasibility(parcels, parcel_price_callback,
     feassort = feasibility.sort_values('max_profit', ascending=False)
     feasibility = feassort.groupby([feassort.index, 'form', 'max_profit_far']).head(1)
     
-    # keep specified number of proposals per form group
+    # keep specified number of proposals per form
     if pf.proposals_to_keep_per_form is not None:
         feassort = feasibility.sort_values('max_profit', ascending=False)
-        feasibility = feassort.groupby([feassort.index, 'group']).head(pf.proposals_to_keep_per_form) 
+        feasibility = feassort.groupby([feassort.index, 'form']).head(pf.proposals_to_keep_per_form) 
+        
+    # keep specified number of proposals per group
+    if pf.proposals_to_keep_per_group is not None:
+        feassort = feasibility.sort_values('max_profit', ascending=False)
+        feasibility = feassort.groupby([feassort.index, 'group']).head(pf.proposals_to_keep_per_group) 
         
     # keep specified number of proposals per parcel
     if pf.proposals_to_keep_per_parcel is not None:
@@ -278,7 +284,7 @@ def run_feasibility(parcels, parcel_price_callback,
     
     # keep proposals with profit within given percentage of max profit (per form or per parcel)
     if pf.percent_of_max_profit > 0:
-        if pf.percent_of_max_profit_per_form:
+        if pf.percent_of_max_profit_per_group:
             feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'group'])['max_profit'].transform(max)
         else:
             feasibility['max_profit_parcel'] = feasibility.groupby(feasibility.index)['max_profit'].transform(max)

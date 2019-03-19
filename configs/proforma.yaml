@@ -255,12 +255,13 @@ minimum_floor_space: 150
 # this one includes parking configurations
 proposals_to_keep: 49 # should be not larger than the number of FARs (currently 49)
 
-# after keeping one parking type per form
-proposals_to_keep_per_form: 10
-#proposals_to_keep_per_parcel: 20
+# after keeping one parking type per form/group/parcel
+#proposals_to_keep_per_form: 1
+proposals_to_keep_per_group: 5
+proposals_to_keep_per_parcel: 20
 
 # exclude proposals based on percentage of max profit
 percent_of_max_profit: 65
 #percent_of_max_profit: 0
-# is the above meant per form (True) or per parcel (False)
-percent_of_max_profit_per_form: True
+# is the above meant per group (True) or per parcel (False)
+percent_of_max_profit_per_group: True
