@@ -81,6 +81,7 @@ def compute_target_units(vacancy_rate, unlimited = False):
     else:
         pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
         vac = pd.concat((pfbt, vacancy_rate.local, pf.residential_uses), axis=1)
+        vac = vac.loc[~np.isnan(vac.is_residential.values),:]
         bld = orca.get_table("buildings")
         agents_attr = {0: "number_of_jobs", 1: "number_of_households"}
         units_attr = {0: "job_spaces", 1: "residential_units"}
