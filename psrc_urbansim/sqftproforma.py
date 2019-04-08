@@ -294,6 +294,9 @@ def run_feasibility(parcels, parcel_price_callback,
         
     feasibility.index.name = 'parcel_id'
     
+    # normalize weights within groups (divide by the number of proposals within each group)
+    feasibility['max_profit'] = feasibility.max_profit / feasibility.groupby([feasibility.index, 'group'])["max_profit"].transform("count")
+    
     # add attribute that enumerates proposals (can be used as a unique index)
     feasibility["feasibility_id"] = np.arange(1, len(feasibility)+1, dtype = "int32")
     # create a dataset with disaggregated sqft by building type
