@@ -1,7 +1,23 @@
 parcel_sizes:
 - 10000.0
+#- 20000
 
 fars:
+- 0.00095 # corresponds to 0.025 max_dua 
+- 0.0019 # 0.05 dua
+- 0.0035 # 0.1 dua
+- 0.0045 # 0.125
+- 0.0075 # 0.2
+- 0.0095 # 0.25
+- 0.015 # 0.4
+- 0.019 # 0.5
+- 0.035 # 1
+- 0.04 # 1.1
+- 0.05
+- 0.06
+- 0.07
+- 0.08
+- 0.09
 - 0.1
 - 0.25
 - 0.5
@@ -24,12 +40,22 @@ fars:
 - 6.0
 - 6.5
 - 7.0
+- 8.0
 - 9.0
+- 10.0
 - 11.0
+- 12.0
+- 13.0
+- 14.0
+- 15.0
+- 18.0
+- 20.0
+- 23.0
+- 39.0
 
-uses:
+uses: # has to match building type names in building_types
 - single_family_residential
-- condo_residential
+#- condo_residential
 - multi_family_residential
 - commercial
 - office
@@ -37,10 +63,10 @@ uses:
 - warehousing
 - tcu
 
-residential_uses:
+residential_uses: # gets overwritten
 - true
 - true
-- true
+#- true
 - false
 - false
 - false
@@ -65,15 +91,16 @@ forms: # gets overwritten
 
 profit_factor: 1.1
 
-building_efficiency: 0.7
+building_efficiency: 1 # original 0.7 but our zoning accounts for coverage
 
-parcel_coverage: 0.8
+parcel_coverage: 1 # code uses parcel-specific coverage
 
-cap_rate: 0.04
+#cap_rate: 0.04
+cap_rate: 1
 
 parking_rates:
     single_family_residential: 1.
-    condo_residential: 0.75
+#    condo_residential: 0.75
     multi_family_residential: 1.
     commercial: 2.
     office: 0.75
@@ -94,11 +121,11 @@ costs:
     - 118.46
     - 130.31
     - 143.34
-    condo_residential:
-    - 96.92
-    - 106.61
-    - 117.28
-    - 129
+#    condo_residential:
+#    - 96.92
+#    - 106.61
+#    - 117.28
+#    - 129
     multi_family_residential:
     - 94.63
     - 119.69
@@ -152,11 +179,9 @@ max_retail_height: 2.0
 
 max_industrial_height: 2.0
 
-proposals_to_keep: 10
+only_built: false
 
-only_built: true
-
-parcel_filter: null
+parcel_filter: parcel_sqft > 1
 
 residential_to_yearly: false
 
@@ -175,11 +200,11 @@ construction_months:
     - 14.0
     - 18.0
     - 24.0
-    condo_residential:
-    - 12.0
-    - 14.0
-    - 18.0
-    - 24.0
+#    condo_residential:
+#    - 12.0
+#    - 14.0
+#    - 18.0
+#    - 24.0
     commercial:
     - 12.0
     - 14.0
@@ -219,3 +244,24 @@ drawdown_factor: 0.6
 interest_rate: 0.05
 
 loan_fees: 0.02
+
+# proposals wiht sqft below this number will be eliminated
+# (current code has a lower limit for SF of 120sf)
+minimum_floor_space: 150
+
+# settings that influence how many proposals are kept per parcel
+# (maximum number per form and percent max deviation from the maximum)
+#######
+# this one includes parking configurations
+proposals_to_keep: 49 # should be not larger than the number of FARs (currently 49)
+
+# after keeping one parking type per form/group/parcel
+#proposals_to_keep_per_form: 1
+proposals_to_keep_per_group: 5
+proposals_to_keep_per_parcel: 20
+
+# exclude proposals based on percentage of max profit
+percent_of_max_profit: 65
+#percent_of_max_profit: 0
+# is the above meant per group (True) or per parcel (False)
+percent_of_max_profit_per_group: True

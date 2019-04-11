@@ -1,8 +1,11 @@
+# not used (the code replaces it by our building_sqft_per_job table)
 bldg_sqft_per_job: 400.0
 
 min_unit_size: 400
 
-max_parcel_size: 2000000
+# Not to remove developable parcels, this is set to be larger 
+# than the largest developable parcels
+max_parcel_size: 50000000
 
 drop_after_build: True
 
