@@ -56,11 +56,19 @@ def lcm_estimate_sample(cfg, choosers, choosers_filter, chosen_fname, buildings,
     cfg = misc.config(cfg)
     choosers = to_frame(choosers, [], cfg, additional_columns=[chosen_fname])
     alternatives = to_frame(buildings, join_tbls, cfg)
-    segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
-    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(choosers_filter, segmented_mnl)
+    #segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
+    #dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(choosers_filter, segmented_mnl)
     alternatives, choosers = large_area_sample_weights(alternatives, choosers)
+
+    weight_columns_map = {}
     for large_area in choosers.prev_residence_large_area_id.unique():
-        dcm_weighted.map_weight_column(large_area, 'sample_filter_' + str(int(large_area)))         
+        weight_columns_map[large_area] = 'sample_filter_' + str(int(large_area))         
+    segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
+    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(choosers_filter, segmented_mnl, weight_columns_map)
+
+
+    #for large_area in choosers.prev_residence_large_area_id.unique():
+    #    dcm_weighted.map_weight_column(large_area, 'sample_filter_' + str(int(large_area)))         
 
     if out_cfg is not None:
         out_cfg = misc.config(out_cfg)
@@ -155,11 +163,13 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, ou
         print "WARNING: Not enough locations for movers"
         print "    reducing locations to size of movers for performance gain"
         movers = movers.head(int(vacant_units.sum()))
-    segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
-    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(choosers_filter, segmented_mnl)
     units, movers = large_area_sample_weights(units, movers)
+    weight_columns_map = {}
     for large_area in movers.prev_residence_large_area_id.unique():
-        dcm_weighted.map_weight_column(large_area, 'sample_filter_' + str(int(large_area)))         
+        weight_columns_map[large_area] = 'sample_filter_' + str(int(large_area))         
+    segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
+    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(choosers_filter, segmented_mnl, weight_columns_map)
+    
     start_time = timeit.default_timer()
    
     new_units = dcm_weighted.predict(movers, units)
@@ -192,6 +202,26 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, ou
     print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
 
 def large_area_sample_weights(units, movers):
+
+        """
+        For every large area, creates a column in the units table and assigns a weight to each record. 
+        The units that are within a given large area will get an equal weight that sums to .4. All others 
+        will get a weight that sums to .6. During estimation and prediction, the column that coresponds 
+        to the choosers current large area is used to weight the sample of units so that ~40% of the samples 
+        will come from the choosers current large area.   
+
+        Parameters
+        ----------
+        units : A table of vacant units that used in the HLCM.
+        movers : A table of households picked to move during the sim year.
+
+        Returns
+        -------
+        units
+        movers
+
+        """
+
         
         vacant = len(units)
         for large_area in movers.prev_residence_large_area_id.unique():
@@ -288,7 +318,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
     @classmethod
     def from_yaml(cls, yaml_str=None, str_or_buffer=None):
         """
-        Create a DiscreteChoiceModel instance from a saved YAML configuration.
+        Child class of dcm.MNLDiscreteChoiceModel. Create a DiscreteChoiceModel instance from a saved YAML configuration.
         Arguments are mutally exclusive.
 
         Parameters
@@ -572,6 +602,17 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
         return probabilities
 
 class PSRC_MNLDiscreteChoiceModelGroup(dcm.MNLDiscreteChoiceModelGroup):
+    """
+    Child class of dcm.MNLDiscreteChoiceModelGroup. Manages a group of discrete choice models that refer to different
+    segments of choosers and implements weighted sampling acrross segments of choosers. 
+
+    Model names must match the segment names after doing a pandas groupby.
+
+    Parameters
+    ----------
+    See dcm.MNLDiscreteChoiceModelGroup
+
+    """
     
     def fit_weighted(self, choosers, alternatives, current_choice, weights, choosers_weight_segmentation_col):
         """
@@ -714,8 +755,8 @@ class PSRC_MNLDiscreteChoiceModelGroup(dcm.MNLDiscreteChoiceModelGroup):
 
 class PSRC_SegmentedMNLDiscreteChoiceModel(dcm.SegmentedMNLDiscreteChoiceModel):
     """
-    An MNL LCM group that allows segments to have different model expressions
-    but otherwise share configurations.
+    A child class of dcm.SegmentedMNLDiscreteChoiceModel (An MNL LCM group that allows segments to have different model expressions
+    but otherwise share configurations) that implements weighted sampling.
 
     Parameters
     ----------
@@ -1019,66 +1060,27 @@ class MNLDiscreteChoiceModelWeightedSamples(object):
 
     Parameters
     ----------
-    segmentation_col : str
-        Name of a column in the table of choosers. Will be used to perform
-        a pandas groupby on the choosers table.
-    remove_alts : bool, optional
-        Specify how to handle alternatives between prediction for different
-        models. If False, the alternatives table is not modified between
-        predictions. If True, alternatives that have been chosen
-        are removed from the alternatives table before doing another
-        round of prediction.
+    sample_weight_segmentation_col : str
+        Name of a column in the table of choosers. Data must be categorical and 
+        is used to select a certain percentage of samples that where that category is 
+        'True' for both the chooser and samples. 
+    model : class instance
+        An instance of PSRC_SegmentedMNLDiscreteChoiceModel
     name : str, optional
         A name that may be used in places to identify this group.
-
+    weight_columns_map : dictionary
+        Dict where the key is a value in sample_weight_segmentation_col and the value 
+        is the name of a column that contains the sampling weights for this segment.
+        The weights in this column (dict key) will be used for choosers where 
+        choosers_weight_segmentation_column = dict value. 
     """
-    def __init__(self, segmentation_col, model, name=None):
+
+    def __init__(self, sample_weight_segmentation_col, model, weight_columns_map, name = None): 
         # alternatives will be sampled for each unique value in this column:
-        self.choosers_weight_segmentation_col = segmentation_col
+        self.choosers_weight_segmentation_col = sample_weight_segmentation_col
         self.model = model
         self.name = name if name is not None else 'MNLDiscreteChoiceModelWeightedSamples'
-        self.weight_columns_map = {}
-
-    def map_weight_column(self, choosers_value, samples_weight_column):
-        """
-        Add an MNLDiscreteChoiceModel instance.
-
-        Parameters
-        ----------
-        model : MNLDiscreteChoiceModel
-            Should have a ``.name`` attribute matching one of the segments
-            in the choosers table.
-
-        """
-        logger.debug(
-            'adding weight column {} to LCM weight columns {}'.format(choosers_value, samples_weight_column))
-        self.weight_columns_map[choosers_value] = samples_weight_column
-
-
-    #def _iter_weight_columns(self, data):
-    #    """
-    #    Iterate over the groups in `data` after grouping by
-    #    `segmentation_col`. Skips any groups for which there
-    #    is no model stored.
-
-    #    Yields tuples of (name, df) where name is the group key
-    #    and df is the group DataFrame.
-
-    #    Parameters
-    #    ----------
-    #    data : pandas.DataFrame
-    #        Must have a column with the same name as `segmentation_col`.
-
-    #    """
-    #    weight_columns = data.groupby(choosers_weight_segmentation_col )
-
-    #    for name, group in weight_columns:
-    #        if name not in self.weight_columns:
-    #            continue
-    #        logger.debug(
-    #            'returning weigth column {} in LCM group {}'.format(name, self.name))
-    #        yield name, group
-
+        self.weight_columns_map = weight_columns_map
 
     def fit(self, choosers, alternatives, current_choice, outcfgname):
         """
