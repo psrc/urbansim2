@@ -28,9 +28,13 @@ def repmres_estimate(parcels, zones, gridcells):
 
 
 @orca.step('repmres_simulate')
-def repmres_simulate(parcels, zones, gridcells):
-    return utils.hedonic_simulate("repmrescoef.yaml", parcels,
-                                  [zones, gridcells], "land_value", cast=True)
+def repmres_simulate(parcels, zones, gridcells, year, settings):
+    return psrcutils.hedonic_simulate("repmrescoef.yaml", parcels,
+                                  [zones, gridcells], "land_value", cast=True,
+                                  # compute residuals only in the first simulation year
+                                  compute_residuals = year == (settings['base_year'] + 1), 
+                                  add_residuals = True, 
+                                  settings = settings.get("real_estate_price_model", {}))
 
 
 # Non-Residential REPM
@@ -42,10 +46,13 @@ def repmnr_estimate(parcels, zones, gridcells):
 
 
 @orca.step('repmnr_simulate')
-def repmnr_simulate(parcels, zones, gridcells):
-    return utils.hedonic_simulate("repmnrcoef.yaml",
-                                  parcels, [zones, gridcells],
-                                  "land_value", cast=True)
+def repmnr_simulate(parcels, zones, gridcells, year, settings):
+    return psrcutils.hedonic_simulate("repmnrcoef.yaml", parcels, 
+                                      [zones, gridcells], "land_value", cast=True,
+                                      # compute residuals only in the first simulation year
+                                      compute_residuals = year == (settings['base_year'] + 1),
+                                      add_residuals = True, 
+                                      settings = settings.get("real_estate_price_model", {}))
 
 
 # HLCM
