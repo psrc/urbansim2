@@ -11,6 +11,9 @@ households_transition:
 jobs_transition:
   total_column: total_number_of_jobs
   
+real_estate_price_model:
+  ytransform_back: np.expm1
+  ytransform_out: np.log1p
   
 cell_walking_radius: 600
 

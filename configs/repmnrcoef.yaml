@@ -17,7 +17,7 @@ min_segment_size: 10
 default_config:
     model_expression: np.log1p(land_value) ~ np.log1p(parcel_sqft) + np.log1p(building_sqft_pcl)
         + np.log1p(invfar+1)
-    ytransform: np.exp
+    ytransform: 
 
 models:
     2:
