@@ -127,7 +127,7 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, ou
 
     available_units = buildings[supply_fname]
     vacant_units = buildings[vacant_fname]
-
+    existing_overfull_buildings = len(vacant_units[vacant_units < 0])
     print "There are %d total available units" % available_units.sum()
     print "    and %d total choosers" % len(choosers)
     print "    but there are %d overfull buildings" % \
@@ -184,9 +184,42 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, ou
     # go from units back to buildings
     new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
                               index=new_units.index)
-
     choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
-    _print_number_unplaced(choosers, out_fname)
+
+# re-simulate households that are in overfull buildings
+    for x in range(0, 100):
+        vacant_units = buildings[vacant_fname]
+        print "Re-simulating housholds in overfull buildings"
+        _print_number_unplaced(choosers, out_fname)
+        print "There are now %d empty units" % vacant_units.sum()
+        print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
+        # exit early when simulated households are not resulting in any overfull buildings
+        if len(vacant_units[vacant_units < 0]) == existing_overfull_buildings:
+            break
+        overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[buildings[vacant_fname] < 0]], columns=['amount'])
+        overfull_buildings['amount'] = abs(overfull_buildings['amount']).astype(int)
+        overfull_buildings.reset_index(inplace = True)
+        new_buildings_units = pd.DataFrame(new_buildings, columns=['building_id'])
+
+        overfull_buildings_units = new_buildings_units[new_buildings_units.building_id.isin(overfull_buildings.building_id)]
+
+        resim_choosers = bootstrap(overfull_buildings_units, overfull_buildings, 'building_id', 'amount')
+        multi_index = pd.MultiIndex.from_arrays([resim_choosers.index, resim_choosers['building_id']])
+        s = pd.Series(0, index=multi_index)
+        probabilities.update(s)
+        resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(resim_choosers.index)]
+
+        def mkchoice(probs):
+                probs.reset_index(0, drop=True, inplace=True)
+                return np.random.choice(
+                    probs.index.values, p=probs.values / probs.sum())
+        choices = resim_probabilities.groupby(level='chooser_id', sort=False).apply(mkchoice)
+        new_units.update(choices)
+        
+        new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
+                              index=new_units.index)
+        
+        choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
 
     if enable_supply_correction is not None:
         new_prices = buildings[price_col]
@@ -201,51 +234,6 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, ou
     vacant_units = buildings[vacant_fname]
     print "    and there are now %d empty units" % vacant_units.sum()
     print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
-
-    # find overfull buildings
-    overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[buildings[vacant_fname] < 0]], columns=['amount'])
-    overfull_buildings['amount'] = abs(overfull_buildings['amount']).astype(int)
-    overfull_buildings.reset_index(inplace = True)
-
-    new_buildings_units = pd.DataFrame(new_buildings, columns=['building_id'])
-
-    overfull_buildings_units = new_buildings_units[new_buildings_units.building_id.isin(overfull_buildings.building_id)]
-    
-    #overfull_units = units[units.building_id.isin(overfull_buildings.building_id)]
-
-    #print bootstrap(overfull_buildings_units, overfull_buildings, 'building_id', 'amount')
-    resim_choosers = bootstrap(overfull_buildings_units, overfull_buildings, 'building_id', 'amount')
-    resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(resim_choosers.index)]
-    multi_index = pd.MultiIndex.from_arrays([resim_choosers.index, resim_choosers['building_id']])
-    s = pd.Series(0, index=multi_index)
-    resim_probabilities.update(s)
-    def mkchoice(probs):
-                probs.reset_index(0, drop=True, inplace=True)
-                return np.random.choice(
-                    probs.index.values, p=probs.values / probs.sum())
-    choices = resim_probabilities.groupby(level='chooser_id', sort=False).apply(mkchoice)
-    new_units.update(choices)
-
-
-
-
-   
-
-
-
-
-    #overfull_units = units[units.building_id.isin(overfull_buildings.building_id)]
-    
-
-    
-    #overfull_buildings = buildings[vacant_fname][buildings.index[buildings[vacant_fname] < 0]]
-
-    #pd.Series(overfull_buildings.values, index = units[units.building_id.isin(overfull_buildings.index)])
-
-    #units[units.building_id.isin(overfull_buildings.index)]
-
-    ## find choosers in overfull buildings
-    #overfull_choosers = units.out_fname.isin(overfull_buildings.index)
 
 def bootstrap(data, freq, class_fname, freq_fname):
     freq = freq.set_index(class_fname)
@@ -748,6 +736,7 @@ class PSRC_MNLDiscreteChoiceModelGroup(dcm.MNLDiscreteChoiceModelGroup):
         """
         logger.debug('start: predict models in LCM group {}'.format(self.name))
         results = []
+        prob_results = []
 
         for name, df in self._iter_groups(choosers):
             choices, probabilities = self.models[name].predict_weighted(df, alternatives, weights, choosers_weight_segmentation_col, debug=debug)
@@ -755,10 +744,10 @@ class PSRC_MNLDiscreteChoiceModelGroup(dcm.MNLDiscreteChoiceModelGroup):
                 alternatives = alternatives.loc[
                     ~alternatives.index.isin(choices)]
             results.append(choices)
-
+            prob_results.append(probabilities)
         logger.debug(
             'finish: predict models in LCM group {}'.format(self.name))
-        return pd.concat(results) if results else pd.Series(), probabilities
+        return pd.concat(results) if results else pd.Series(), pd.concat(prob_results) if prob_results else pd.Series()
 
     def add_model_from_params(
             self, name, model_expression, sample_size,

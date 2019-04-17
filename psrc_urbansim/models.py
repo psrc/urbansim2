@@ -58,12 +58,6 @@ def hlcm_estimate(households_for_estimation, buildings, parcels, zones):
 
 @orca.step('hlcm_simulate')
 def hlcm_simulate(households, buildings, persons, settings):
-    col = households.building_id
-    test = pd.Series(-1, index = np.random.choice(households.index, 100000, False))
-    col.update(test)
-
-    households.update_col_from_series('building_id', col, households.index)
-
     movers = households.to_frame()
     movers = movers[movers.building_id == -1]
     relocated = movers[movers.is_inmigrant < 1]
@@ -106,21 +100,40 @@ def hlcm_simulate(households, buildings, persons, settings):
 @orca.step('hlcm_simulate_sample')
 def hlcm_simulate_sample(households, buildings, persons, settings):
 
-    #df = households.to_frame()
-    #df['building_id'] = -1
-
-    col = households.building_id
-    test = pd.Series(-1, index = np.random.choice(households.index, 100000, False))
-    col.update(test)
-
-    households.update_col_from_series('building_id', col, households.index)
-    #col.update(test)
-    #households.update_col("building_id", -1)
-
     res = psrc_dcm.lcm_simulate_sample("hlcmcoef.yaml", households, 'prev_residence_large_area_id', buildings,
                              None, "building_id", "residential_units",
                              "vacant_residential_units", cast=True)
+    
+    # Determine which relocated persons get disconnected from their job
+    if settings.get('remove_jobs_from_workers', False):
+        persons_df = persons.to_frame()
+        relocated_workers = persons_df.loc[(persons_df.employment_status > 0) &
+                                       (persons_df.household_id.isin
+                                       (relocated.index))]
+        relocated_workers['new_dist_to_work'] = network_distance_from_home_to_work(
+                                        relocated_workers.workplace_zone_id,
+                                        relocated_workers.household_zone_id)
+        relocated_workers['prev_dist_to_work'] = network_distance_from_home_to_work(
+                                        relocated_workers.workplace_zone_id,
+                                        relocated_workers.prev_household_zone_id)
+
+        # if new distance to work is greater than old, disconnect person from job
+        relocated_workers.job_id = np.where(relocated_workers.new_dist_to_work >
+                                        relocated_workers.prev_dist_to_work,
+                                        -1, relocated_workers.job_id)
+        persons.update_col_from_series("job_id", relocated_workers.job_id,
+                                   cast=True)
+
+        # Update is_inmigrant- I think this it is ok to do this now,
+        # but perhaps this should be part of a clean up step
+        # at the end of the sim year.
+
+        households.update_col_from_series("is_inmigrant", pd.Series(0,
+                                      index=households.index), cast=True)
+
     #orca.clear_cache()
+
+    return res
 
 @orca.step('hlcm_estimate_sample')
 def hlcm_estimate_sample(households_for_estimation, buildings, persons, settings):
@@ -128,7 +141,7 @@ def hlcm_estimate_sample(households_for_estimation, buildings, persons, settings
     res = psrc_dcm.lcm_estimate_sample("hlcm.yaml", households_for_estimation, 'prev_residence_large_area_id',
                               "building_id", buildings, None,
                               out_cfg="hlcmcoef.yaml")
-    #orca.clear_cache()
+    orca.clear_cache()
 
 # WPLCM
 @orca.step('wplcm_estimate')
