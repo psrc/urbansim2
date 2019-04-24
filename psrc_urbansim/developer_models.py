@@ -9,6 +9,19 @@ from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_n
 
 #from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
 
+MAXlog = np.log(np.finfo('f').max) # max limit of float32 - for using with np.exp()
+
+
+@orca.injectable('proposal_selection_probabilities', autocall=False)
+def proposal_selection_probabilities(df):
+    profit = df.max_profit/df.building_sqft
+    # scale the profit field to be within allowed ranges
+    #a = max(profit.min(), 1e-10)
+    #b = min(profit.max(), MAXlog)
+    #profit_trans = (b-a) * (profit - profit.min())/(profit.max() - profit.min()) + a
+    #p = np.exp(profit_trans)
+    p = profit
+    return p/p.sum()
 
 @orca.injectable('proposal_selection', autocall=False)
 def proposal_selection(self, proposals, p, targets):

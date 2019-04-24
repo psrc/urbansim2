@@ -103,6 +103,7 @@ parking_rates:
 #    condo_residential: 0.75
     multi_family_residential: 1.
     commercial: 2.
+    #commercial: 0.75
     office: 0.75
     industrial: 0.5
     warehousing: 0.5
@@ -136,7 +137,15 @@ costs:
     - 139.26
     - 153.18
     - 168.5
+#    - 135.04
+#    - 132.99
+#    - 169.82
+#    - 186.8
     office:
+#    - 126.6
+#    - 139.26
+#    - 153.18
+#    - 168.5
     - 135.04
     - 132.99
     - 169.82
@@ -262,6 +271,7 @@ proposals_to_keep_per_parcel: 20
 
 # exclude proposals based on percentage of max profit
 percent_of_max_profit: 65
+#percent_of_max_profit: 5
 #percent_of_max_profit: 0
 # is the above meant per group (True) or per parcel (False)
 percent_of_max_profit_per_group: True

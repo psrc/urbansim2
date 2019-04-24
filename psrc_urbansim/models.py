@@ -320,7 +320,7 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
                          parcel_is_allowed_func, set_ave_unit_size_func):
 
     development_filter = "capacity_opportunity_non_gov" # includes empty parcels
-    #development_filter = "developable"
+    development_filter = "developable"
     pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'max_coverage', 
                                                     'ave_unit_size_sf', 'ave_unit_size_mf', 'ave_unit_size_condo',
                                                     'parcel_size', 'land_cost'])
@@ -343,8 +343,8 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
     return
 
 @orca.step('developer_picker')
-def developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection, building_sqft_per_job):
-    target_units = psrcdev.compute_target_units(target_vacancy, unlimited = False)
+def developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, proposal_selection, building_sqft_per_job):
+    target_units = psrcdev.compute_target_units(target_vacancy, unlimited = True)
     new_buildings = psrcdev.run_developer(forms = [],
                         agents = None,
                         buildings = buildings,
@@ -358,6 +358,7 @@ def developer_picker(feasibility, buildings, parcels, year, target_vacancy, prop
                         year = year,
                         num_units_to_build = target_units,
                         add_more_columns_callback = add_extra_columns,
+                        profit_to_prob_func = proposal_selection_probabilities,
                         custom_selection_func = proposal_selection,
                         building_sqft_per_job = building_sqft_per_job
                         )
@@ -407,6 +408,6 @@ def update_buildings_lag1(buildings):
     orca.add_table('buildings_lag1', df, cache=True)
 
 
-#@orca.step('clear_cache')
-##def clear_cache():
-#    orca.clear_cache()
+@orca.step('clear_cache')
+def clear_cache():
+    orca.clear_cache()
