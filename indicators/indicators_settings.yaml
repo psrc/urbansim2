@@ -1,26 +1,26 @@
-store: simresult20190218.h5
+store: simresult20190423.h5
 
 base_year: 2014
-years: [2014, 2015, 2016]
+years: [2015, 2017, 2020, 2025, 2030, 2035, 2040, 2045, 2050]
 
 indicators:
     number_of_households:
-        dataset: [zones, fazes, cities, alldata]
+        dataset: [zones, fazes, cities, alldata, growth_centers]
         
+    population:
+        dataset: [zones, fazes, cities, alldata, growth_centers]
+
     number_of_jobs:
-        dataset: [zones, fazes, cities, alldata]
-
-    building_sqft:
-        dataset: [zones, fazes, cities]
-
-    nonres_sqft:
-        dataset: [zones, fazes, cities]
+        dataset: [zones, fazes, cities, alldata, growth_centers]
 
     residential_units:
-        dataset: [zones, fazes, cities, alldata]
+        dataset: [zones, fazes, cities, alldata, growth_centers]
 
-    population:
-        dataset: [zones, fazes, cities, alldata]
+    building_sqft:
+        dataset: [zones, fazes, cities, growth_centers]
+
+    nonres_sqft:
+        dataset: [zones, fazes, cities, growth_centers]
 
 dataset_tables:
     DU_and_HH_by_bld_type_by_faz_by_year:

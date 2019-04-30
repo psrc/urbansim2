@@ -28,6 +28,10 @@ def faz_id(jobs, zones):
 def faz_id(jobs, zones):
     return misc.reindex(zones.faz_id, jobs.job_zone_id)
 
+@orca.column('jobs', 'growth_center_id', cache=True)
+def growth_center_id(jobs, parcels_geos):
+    return misc.reindex(parcels_geos.growth_center_id, jobs.parcel_id)	
+
 @orca.column('jobs', 'grid_id', cache=True)
 def grid_id(jobs, parcels):
     return misc.reindex(parcels.grid_id, jobs.parcel_id)

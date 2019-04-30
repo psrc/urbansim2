@@ -43,14 +43,22 @@ datasets = {'DU_and_HH_by_bld_type_by_faz_by_year': ['DU_SF_19', 'DU_MF_12', 'DU
             }
 
 
-geography_alias = {'cities': 'city', 'zones': 'zone', 'fazes': 'faz', 'counties': 'county'}
+geography_alias = {'cities': 'city', 'zones': 'zone', 'fazes': 'faz',
+                   'counties': 'county', 'growth_centers': 'growth_center'}
+
+table_alias = {'number_of_jobs': 'employment', 'number_of_households': 'households'}
 
 # create_csv() will export the a .csv file from the given data and with the
 # given file name.
 def create_csv(column_list, column_list_headers, csv_file_name):
     ind_csv = pd.concat(column_list, axis=1)
     ind_csv.columns = column_list_headers
-    ind_csv.to_csv(csv_file_name) 
+    ind_csv.to_csv(csv_file_name)
+
+def create_tab(column_list, column_list_headers, csv_file_name):
+    ind_csv = pd.concat(column_list, axis=1)
+    ind_csv.columns = column_list_headers
+    ind_csv.to_csv(csv_file_name, sep='\t')
     
     
 # List of Indicator tables created during each iteration used in compute_indicators()
@@ -75,12 +83,18 @@ def compute_indicators(settings, iter_var):
     for ind, value in settings['indicators'].iteritems():
         for ds in value['dataset']:          
             df = orca.get_table(ds)[ind]
-            #print 'ds is %s and ind is %s' % (ds, ind)
+            #print 'ds is %s, ind is %s and iter_var is %s' % (ds, ind, iter_var)
             #print orca.get_table(ds)[ind].to_frame().head()
             if ds in geography_alias:
                 ds = geography_alias[ds]
-            ds_tablename = '%s__table__%s_%s' % (ds, ind, str(iter_var))
-            #print '%s_%s_%s' % (ds, ind, str(iter_var))
+                #print 'geography_alias[ds] is %s' % ds
+            if ind == 'nonres_sqft' and ds == 'alldata':
+                ds_tablename = '%s__table__%s_%s' % (ds, 'non_residential_sqft', str(iter_var))
+            elif ind in table_alias:
+                ds_tablename = '%s__table__%s_%s' % (ds, table_alias[ind], str(iter_var))
+            else:
+                ds_tablename = '%s__table__%s_%s' % (ds, ind, str(iter_var))
+            #print ds_tablename
             orca.add_table(ds_tablename, df)
             ind_table_list.append(ds_tablename)
     orca.clear_cache()      
@@ -97,15 +111,22 @@ def compute_datasets(settings, iter_var):
                 df = orca.get_table(ds)[column]
                 #print orca.get_table(ds)[column].to_frame().head()
                 orca.add_table(column, df)
+                #print column
                 column_list_for_csv_table.append(orca.get_table(column).to_frame())    
             if ds in geography_alias:
                 ds = geography_alias[ds]
-            create_csv(column_list_for_csv_table, datasets[ind],
+            if ind == 'DU_and_HH_by_bld_type_by_faz_by_year' or ind == 'employment_by_aggr_sector':
+                create_tab(column_list_for_csv_table, datasets[ind],
+                       '%s__dataset_table__%s__%s.tab' % (ds, ind, str(iter_var)))
+            else:
+                create_csv(column_list_for_csv_table, datasets[ind],
                        '%s__dataset_table__%s__%s.csv' % (ds, ind, str(iter_var)))
+    orca.clear_cache()
             
 
 # Compute indicators
 orca.run(['compute_indicators', 'compute_datasets'], iter_vars=settings(settings_file())['years'])
+#orca.run(['compute_indicators'], iter_vars=settings(settings_file())['years'])
 
 # Create tables to output as CSV files
 def create_tables():

@@ -118,6 +118,11 @@ def existing_units(parcels):
 def faz_id(parcels, zones):
     return misc.reindex(zones.faz_id, parcels.zone_id)
 
+@orca.column('parcels', 'growth_center_id', cache=True, cache_scope='iteration')
+def growth_center_id(parcels, parcels_geos):
+    print 'in parcels - growth_center_id'
+    return misc.reindex(parcels_geos.growth_center_id, parcels.city_id)	
+
 @orca.column('parcels', 'industrial_job_spaces', cache=True, cache_scope='iteration')
 def industrial_job_spaces(parcels, buildings):
     return get_units_by_type(buildings.building_type_name == "industrial", buildings, parcels, units_attribute = "job_spaces")

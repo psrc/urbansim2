@@ -30,6 +30,10 @@ def faz_id(households, zones):
 def grid_id(households, parcels):
     return misc.reindex(parcels.grid_id, households.parcel_id)
 
+@orca.column('households', 'growth_center_id', cache=True)
+def growth_center_id(households, parcels_geos):
+    return misc.reindex(parcels_geos.growth_center_id, households.parcel_id)	
+
 @orca.column('households', 'income_category', cache=True)
 def income_category(households, settings):
     income_breaks = settings.get('income_breaks', [34000, 64000, 102000])

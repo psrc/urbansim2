@@ -57,6 +57,10 @@ def employment_retail_wwd(buildings, parcels):
 def faz_id(buildings, zones):
     return misc.reindex(zones.faz_id, buildings.zone_id)
 
+@orca.column('buildings', 'growth_center_id', cache=True)
+def growth_center_id(buildings, parcels_geos):
+    return misc.reindex(parcels_geos.growth_center_id, buildings.parcel_id)	
+
 @orca.column('buildings', 'has_valid_age_built', cache=True, cache_scope='iteration')
 def has_valid_age_built(buildings, settings):
     return buildings.year_built > settings.get('abs_min_year_built', 1800)

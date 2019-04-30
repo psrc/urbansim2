@@ -16,3 +16,4 @@ import psrc_urbansim.vars.variables_gridcells
 import psrc_urbansim.vars.variables_schools
 import psrc_urbansim.vars.variables_alldata
 import psrc_urbansim.vars.variables_counties
+import psrc_urbansim.vars.variables_growth_centers

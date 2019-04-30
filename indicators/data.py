@@ -8,6 +8,12 @@ def store(settings):
     #print os.path.join(os.getenv('DATA_HOME'), settings["store"])
     return pd.HDFStore(os.path.join(os.getenv('DATA_HOME'), settings["store"]), mode='r')
 
+@orca.injectable('csv_store', cache=True)
+def csv_store():
+    return os.path.join(os.getenv('DATA_HOME'), 'indicators/csv_store')
+#    return pd.read_csv(os.path.join(os.getenv('DATA_HOME'), 'indicators/csv_store/growth_centers.csv'),
+#                       index_col='growth_center_id')
+    
 @orca.injectable()
 def base_year(settings):
     return settings['base_year']
@@ -37,16 +43,16 @@ def find_table_in_store(table, store, year, base_year):
     searchyear = year
     while searchyear > base_year:
         if (('/%s/%s' % (searchyear, table)) in store_table_list(store)):
-            #print 'returning /%s/%s' % (searchyear, table) #for debugging purposes only
-            #print store['/%s/%s' % (searchyear, table)].head()
+#            print 'returning /%s/%s' % (searchyear, table) #for debugging purposes only
+#            print store['/%s/%s' % (searchyear, table)].head()
             return store['/%s/%s' % (searchyear, table)]
         else:
             searchyear = searchyear - 1
     else:
 #        if year <> base_year:
 #            print 'Could not find table /%s/%s. Instead using the base table' % (year, table)
-        #print 'returning /%s/%s' % ("base", table) #for debugging purposes only
-        #print store['%s/%s' % ("base", table)].head()
+#        print 'returning /%s/%s' % ("base", table) #for debugging purposes only
+#        print store['%s/%s' % ("base", table)].head()
         return store['/%s/%s' % ("base", table)]
     
 @orca.table('buildings', cache=True, cache_scope='iteration')
@@ -124,8 +130,18 @@ def counties(store, year, base_year):
 #    df = df.set_index('county_id')
 #    return df
 
-@orca.table('alldata', cache=True)
+@orca.table('alldata', cache=True, cache_scope='iteration')
 def alldata():
     df = pd.DataFrame.from_dict({'alldata_id': [1]})
     df = df.set_index('alldata_id')
     return df
+
+@orca.table('growth_centers', cache=True, cache_scope='iteration')
+def growth_centers(csv_store):
+    return pd.read_csv(os.path.join(csv_store, 'growth_centers.csv'),
+                       index_col='growth_center_id')
+    
+@orca.table('parcels_geos', cache=True, cache_scope='iteration')
+def parcels_geos(csv_store):
+    return pd.read_csv(os.path.join(csv_store, 'parcels_geos.csv'),
+                       index_col='parcel_id')
