@@ -105,9 +105,7 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings["residential_uses"].index = blduses.building_type_id
     # get coefficient file for modeling price
     #coeffile = os.path.join(misc.data_dir(), "expected_sales_unit_price_component_model_coefficients.csv")
-    coeffile = os.path.join(misc.data_dir(), "total_value_psf_coefficients6.csv")
-    #coeffile = os.path.join(misc.data_dir(), "total_value_psf_coefficients.csv")
-    #coeffile = os.path.join(misc.data_dir(), "total_value_coefficients_test.csv")
+    coeffile = os.path.join(misc.data_dir(), "total_value_psf_coefficients.csv")
     coefs = pd.read_csv(coeffile)
     #coefs = pd.merge(coefs, proforma_uses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
     coefs = pd.merge(coefs, blduses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
@@ -287,8 +285,7 @@ def run_feasibility(parcels, parcel_price_callback,
         feasibility.loc[feasibility.max_profit_psf_parcel < -100, 'max_profit_psf_parcel'] = -100        
         max_neg_profit_psf = feasibility.loc[feasibility.max_profit_psf_parcel < 0].max_profit_psf_parcel.min() - 0.001
         #feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.building_sqft
-        #feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.parcel_size
-        feasibility['max_profit'] = (feasibility['max_profit_orig']/feasibility.parcel_size - max_neg_profit_psf)*feasibility.parcel_size
+        feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.parcel_size
         # adjust max_profit of proposals where all proposals per parcels would be eliminated (all < -100). 
         # Set the profit so that the profit per sqft is 0.001 (thus will have a low weight)
         iadj = np.logical_and(~np.isnan(feasibility.max_profit_psf), feasibility.max_profit < 0)
