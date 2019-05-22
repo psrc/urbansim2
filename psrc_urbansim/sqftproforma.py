@@ -10,8 +10,8 @@ from developer.utils import columnize
 
 #from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
 
-@orca.injectable("proforma_settings")
-def proforma_settings(building_types, #land_use_types, development_templates, development_template_components, generic_land_use_types
+@orca.injectable("uses_and_forms")
+def uses_and_forms(building_types, #land_use_types, development_templates, development_template_components, generic_land_use_types
                       ):
     formfile = os.path.join(misc.data_dir(), "forms.csv")
     forms = pd.read_csv(formfile)

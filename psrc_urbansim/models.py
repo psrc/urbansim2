@@ -329,11 +329,27 @@ def create_proforma_config(proforma_settings):
     yamlio.convert_to_yaml(config, "proforma.yaml")
     
 @orca.step('proforma_feasibility')
-def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, parcel_sales_price_func, 
-                         parcel_is_allowed_func, set_ave_unit_size_func):
+def proforma_feasibility(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
 
-    development_filter = "capacity_opportunity_non_gov" # includes empty parcels
+    return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                             parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model", {}))
+
+@orca.step('proforma_feasibility_CY')
+def proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
+
+    return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                             parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model_CY", {}))
+
+
+
+def run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, model_settings):
+
+    development_filter = model_settings.get("development_filter", "capacity_opportunity_non_gov") # variable should include empty parcels
     #development_filter = "developable"
+    
     pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'max_coverage', 
                                                     'ave_unit_size_sf', 'ave_unit_size_mf', 'ave_unit_size_condo',
                                                     'parcel_size', 'land_cost'])
@@ -345,8 +361,8 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
     df = orca.DataFrameWrapper("parcels", pcl, copy_col=False)
     # create a feasibility dataset
     sqftproforma.run_feasibility(df, parcel_sales_price_func,
-                                 parcel_is_allowed_func, cfg = "proforma.yaml",
-                                proforma_uses = proforma_settings,
+                                 parcel_is_allowed_func, cfg = model_settings.get("config_file", "proforma.yaml"),
+                                proforma_uses = uses_and_forms,
                                 lookup_modify_callback = set_ave_unit_size_func)
     #projects = orca.get_table("feasibility")
     #p = projects.local.stack(level=0)

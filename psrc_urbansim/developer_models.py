@@ -210,8 +210,8 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     # keep developer config
     dev.config = devutils.yaml_to_dict(yaml_str = None, str_or_buffer=cfg)
     
-    print("{:,} feasible buildings before running developer".format(
-        len(dev.feasibility)))
+    print("{:,} feasible buildings on {:,} parcels before running developer".format( 
+        len(dev.feasibility), len(np.unique(dev.feasibility.parcel_id))))
 
     dev.feasibility_bt = orca.get_table("feasibility_bt").local
     dev._calculate_units_from_sqft(building_sqft_per_job)

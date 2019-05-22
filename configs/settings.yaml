@@ -15,6 +15,10 @@ real_estate_price_model:
   ytransform_back: np.expm1
   ytransform_out: np.log1p
   
+feasibility_model:
+  development_filter: capacity_opportunity_non_gov
+  config_file: proforma.yaml
+  
 cell_walking_radius: 600
 
 cell_size: 150

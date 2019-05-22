@@ -64,18 +64,34 @@ def building_sqft_wwd(parcels, gridcells, settings):
 
 @orca.column('parcels', 'capacity_opportunity_non_gov', cache=True, cache_scope='iteration')
 def capacity_opportunity_non_gov(parcels):
-    # use as a redevelopment filter
+    # use as a redevelopment filter (includes vacant parcels)
     return np.logical_or(parcels.building_sqft_pcl == 0, # if no buildings on parcels return True
         # OR the following chain of ANDs
-        (parcels.max_developable_capacity/parcels.building_sqft_pcl > 3)& # parcel is not utilized
-        (parcels.number_of_governmental_buildings == 0)& # no governmental buildings
-        (parcels.avg_building_age >= 10)& # buildings older than 20 years
+        ((parcels.max_developable_capacity/parcels.building_sqft_pcl) > 3) & # parcel is not utilized
+        (parcels.number_of_governmental_buildings == 0) & # no governmental buildings
+        (parcels.avg_building_age >= 10) & # buildings older than 10 years
         np.logical_or( # if condo, the utilization should have a higher bar (it's more difficult to get all condo owners to agree)
-            parcels.max_developable_capacity / parcels.building_sqft_pcl > 6, 
+            (parcels.max_developable_capacity / parcels.building_sqft_pcl) > 6, 
             parcels.land_use_type_id <> 15
             )&
         (parcels.job_capacity < 500)& # do not turn down buildings with lots of jobs
-        (parcels.total_improvement_value / parcels.parcel_sqft < 250) # do not turn down expensive mansions
+        ((parcels.total_improvement_value / parcels.parcel_sqft) < 250) # do not turn down expensive mansions
+    )
+
+@orca.column('parcels', 'capacity_opportunity_non_gov_relaxed', cache=True, cache_scope='iteration')
+def capacity_opportunity_non_gov_relaxed(parcels):
+    # use as a redevelopment filter in allocation mode (includes vacant parcels)
+    return np.logical_or(parcels.building_sqft_pcl == 0, # if no buildings on parcels return True
+        # OR the following chain of ANDs
+        ((parcels.max_developable_capacity/parcels.building_sqft_pcl) > 1.1) & # parcel is not utilized
+        (parcels.number_of_governmental_buildings == 0) & # no governmental buildings
+        (parcels.avg_building_age >= 1) & # buildings older than 1 year
+        np.logical_or( # if condo, the utilization should have a higher bar (it's more difficult to get all condo owners to agree)
+            (parcels.max_developable_capacity / parcels.building_sqft_pcl) > 6, 
+            parcels.land_use_type_id <> 15
+            ) &
+        (parcels.job_capacity < 500) & # do not turn down buildings with lots of jobs
+        ((parcels.total_improvement_value / parcels.parcel_sqft) < 250) # do not turn down expensive mansions
     )
 
 @orca.column('parcels', 'commercial_job_spaces', cache=True, cache_scope='iteration')

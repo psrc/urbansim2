@@ -17,6 +17,23 @@ def reduce_df_size(df):
         df[col] = pd.to_numeric(df_float[col], downcast='float')
     return df
 
+def deep_merge(source, destination):
+    """
+    Recursive merge of dictionaries.
+    >>> a = { 'first' : { 'all_rows' : { 'pass' : 'dog', 'number' : '1' } } }
+    >>> b = { 'first' : { 'all_rows' : { 'fail' : 'cat', 'number' : '5' } } }
+    >>> merge(b, a) == { 'first' : { 'all_rows' : { 'pass' : 'dog', 'fail' : 'cat', 'number' : '5' } } }
+    True
+    """
+    for key, value in source.items():
+        if isinstance(value, dict):
+            # get node or create one
+            node = destination.setdefault(key, {})
+            deep_merge(value, node)
+        else:
+            destination[key] = value
+    return
+
 def hedonic_simulate(cfg, tbl, join_tbls, out_fname, cast=False, 
                      compute_residuals = False, residual_name = None, add_residuals = False,
                      settings = {}):
