@@ -358,7 +358,7 @@ def developer_picker(feasibility, buildings, parcels, year, target_vacancy, prop
                         year = year,
                         num_units_to_build = target_units,
                         add_more_columns_callback = add_extra_columns,
-                        profit_to_prob_func = proposal_selection_probabilities,
+                        #profit_to_prob_func = proposal_selection_probabilities,
                         custom_selection_func = proposal_selection,
                         building_sqft_per_job = building_sqft_per_job
                         )

@@ -14,13 +14,14 @@ MAXlog = np.log(np.finfo('f').max) # max limit of float32 - for using with np.ex
 
 @orca.injectable('proposal_selection_probabilities', autocall=False)
 def proposal_selection_probabilities(df):
-    profit = df.max_profit/df.building_sqft
+    #profit = df.max_profit/df.building_sqft
     # scale the profit field to be within allowed ranges
     #a = max(profit.min(), 1e-10)
     #b = min(profit.max(), MAXlog)
     #profit_trans = (b-a) * (profit - profit.min())/(profit.max() - profit.min()) + a
     #p = np.exp(profit_trans)
-    p = profit
+    #p = profit
+    p = df.max_profit
     return p/p.sum()
 
 @orca.injectable('proposal_selection', autocall=False)

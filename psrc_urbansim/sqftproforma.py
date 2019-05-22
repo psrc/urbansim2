@@ -6,6 +6,7 @@ from developer import sqftproforma
 from urbansim.utils import misc
 from urbansim_defaults.utils import to_frame
 from developer.utils import yaml_to_dict
+from developer.utils import columnize
 
 #from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
 
@@ -52,11 +53,17 @@ def parcel_price_placeholder(use, **kwargs):
 def parcel_sales_price_func(use, config):
     pcl = orca.get_table('parcels')
     # Temporarily use the expected sales price model coefficients
-    coef_const = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "constant")].estimate
-    coefvalue = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate
-    #coefsize = config.price_coefs[np.logical_and(config.price_coefs.building_type_name == use, config.price_coefs.coefficient_name == "lnpsqft")].estimate
-    return np.exp(coef_const.values + coefvalue.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)
+    isusecoef = config.price_coefs.building_type_name == use
+    coef_const = config.price_coefs[np.logical_and(isusecoef, config.price_coefs.coefficient_name == "constant")].estimate
+    coef_lvpsf = config.price_coefs[np.logical_and(isusecoef, config.price_coefs.coefficient_name == "lnclvalue_psf")].estimate
+    values = coef_const.values + coef_lvpsf.values*np.log(pcl.land_value/pcl.parcel_sqft)
+    if sum(isusecoef) > 2:
+        coef_size = config.price_coefs[np.logical_and(isusecoef, config.price_coefs.coefficient_name == "lnpsqft")].estimate
+        values = values + coef_size.values*np.log(pcl.parcel_sqft)
+    #return np.exp(coef_const.values + coefvalue.values*np.log(pcl.land_value/pcl.parcel_sqft)).replace(np.inf, np.nan)
     #return np.exp(coef_const.values + coefvalue.values*np.log(pcl.land_value/pcl.parcel_sqft) + coefsize.values*np.log(pcl.parcel_sqft)).replace(np.inf, np.nan) 
+    return np.exp(values).replace(np.inf, np.nan)
+    #return values.replace(np.inf, np.nan).replace(-np.inf, np.nan)
 
 @orca.injectable("parcel_is_allowed_func", autocall=False)
 def parcel_is_allowed_func(form):
@@ -98,12 +105,16 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings["residential_uses"].index = blduses.building_type_id
     # get coefficient file for modeling price
     #coeffile = os.path.join(misc.data_dir(), "expected_sales_unit_price_component_model_coefficients.csv")
-    coeffile = os.path.join(misc.data_dir(), "total_value_psf_coefficients5.csv")
+    coeffile = os.path.join(misc.data_dir(), "total_value_psf_coefficients6.csv")
     #coeffile = os.path.join(misc.data_dir(), "total_value_psf_coefficients.csv")
+    #coeffile = os.path.join(misc.data_dir(), "total_value_coefficients_test.csv")
     coefs = pd.read_csv(coeffile)
     #coefs = pd.merge(coefs, proforma_uses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
     coefs = pd.merge(coefs, blduses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
     local_settings["price_coefs"] = coefs
+    
+    #bsqft_coef = coefs[np.logical_and(coefs.coefficient_name == "lnbsqft", ~coefs.building_type_name.isna())][["estimate", "building_type_name"]]
+    #local_settings["bsqft_coefs"] = np.transpose(bsqft_coef.set_index("building_type_name"))
     
     # Assemble forms
     forms = {}
@@ -267,25 +278,29 @@ def run_feasibility(parcels, parcel_price_callback,
     
     # adjust profit so that all parcels get developed, i.e. shift by the maximum negative profit per sqft
     feasibility['parcel_size'] = df.parcel_size
-    feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.building_sqft
+    #feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.building_sqft
+    feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.parcel_size
     feasibility['max_profit_psf_parcel'] = feasibility.groupby(feasibility.index)['max_profit_psf'].transform(max)
     feasibility['max_profit_orig'] = feasibility['max_profit']
     if (feasibility.max_profit_psf_parcel < 0).any():
         feasibility.loc[feasibility.max_profit_psf < feasibility.max_profit_psf_parcel, 'max_profit_psf'] = np.nan
         feasibility.loc[feasibility.max_profit_psf_parcel < -100, 'max_profit_psf_parcel'] = -100        
         max_neg_profit_psf = feasibility.loc[feasibility.max_profit_psf_parcel < 0].max_profit_psf_parcel.min() - 0.001
-        feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.building_sqft
+        #feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.building_sqft
+        #feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.parcel_size
+        feasibility['max_profit'] = (feasibility['max_profit_orig']/feasibility.parcel_size - max_neg_profit_psf)*feasibility.parcel_size
         # adjust max_profit of proposals where all proposals per parcels would be eliminated (all < -100). 
         # Set the profit so that the profit per sqft is 0.001 (thus will have a low weight)
         iadj = np.logical_and(~np.isnan(feasibility.max_profit_psf), feasibility.max_profit < 0)
-        feasibility.loc[iadj, 'max_profit'] = 0.001 * feasibility.loc[iadj, 'building_sqft']
+        #feasibility.loc[iadj, 'max_profit'] = 0.001 * feasibility.loc[iadj, 'building_sqft']
+        feasibility.loc[iadj, 'max_profit'] = 0.001 * feasibility.loc[iadj, 'parcel_size']
         
     feasibility.drop(['max_profit_psf_parcel', 'max_profit_psf'], axis=1, inplace = True)
 
     # remove proposals with negative adjusted profit
     feasibility = feasibility[feasibility.max_profit > 0]
     
-    # keep proposals with profit within given percentage of max profit (per form or per parcel)
+    # keep proposals with profit within given percentage of max profit (per group or per parcel)
     if pf.percent_of_max_profit > 0:
         if pf.percent_of_max_profit_per_group:
             feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'group'])['max_profit'].transform(max)
@@ -405,4 +420,193 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
             assert isinstance(k, str)
             assert k in self.uses
             for i in v:
-                assert 10 < i < 1000        
+                assert 10 < i < 1000
+                
+                
+    def _lookup_parking_cfg(self, form, parking_config, df,
+                            modify_df, modify_revenues, modify_costs,
+                            modify_profits):
+        """
+        This is the core square foot pro forma calculation. For each form and
+        parking configuration, generate DataFrame with profitability
+        information
+
+        Parameters
+        ----------
+        form : str
+            Name of form
+        parking_config : str
+            Name of parking configuration
+        df : DataFrame
+            DataFrame of developable sites/parcels passed to lookup() method
+        modify_df : func
+            Function to modify lookup DataFrame before profit calculations.
+            Must have (self, form, df) as parameters.
+        modify_revenues : func
+            Function to modify revenue ndarray during profit calculations.
+            Must have (self, form, df, revenues) as parameters.
+        modify_costs : func
+            Function to modify cost ndarray during profit calculations.
+            Must have (self, form, df, costs) as parameters.
+        modify_profits : func
+            Function to modify profit ndarray during profit calculations.
+            Must have (self, form, df, profits) as parameters.
+
+        Returns
+        -------
+        outdf : DataFrame
+        """
+        # don't really mean to edit the df that's passed in
+        df = df.copy()
+
+        # Reference table for this form and parking configuration
+        dev_info = self.reference_dict[(form, parking_config)]
+
+        # Helper values
+        cost_sqft_col = columnize(dev_info.ave_cost_sqft.values)
+        cost_sqft_index_col = columnize(dev_info.index.values)
+        parking_sqft_ratio = columnize(dev_info.parking_sqft_ratio.values)
+        heights = columnize(dev_info.height.values)
+        months = columnize(dev_info.construction_months.values)
+        resratio = self.res_ratios[form]
+        nonresratio = 1.0 - resratio
+        
+
+        # Allow for user modification of DataFrame here
+        df = modify_df(self, form, df) if modify_df else df
+
+        # ZONING FILTERS
+        # Minimize between max_fars and max_heights
+        df['max_far_from_heights'] = (df.max_height
+                                      / self.height_per_story
+                                      * self.parcel_coverage)
+
+        df['min_max_fars'] = self._min_max_fars(df, resratio)
+
+        if self.only_built:
+            df = df.query('min_max_fars > 0 and parcel_size > 0')
+
+        # turn fars and heights into nans which are not allowed by zoning
+        # (so we can fillna with one of the other zoning constraints)
+        fars = np.repeat(cost_sqft_index_col, len(df.index), axis=1)
+        mask = ~np.isnan(fars)  # mask out existing nans for safer comparison
+        if form == "multi_family_residential":
+            min_far_ratio = 0.6
+        else:
+            min_far_ratio = 0.4
+        mask *= np.logical_or(np.nan_to_num(fars) > df.min_max_fars.values + .01, np.nan_to_num(fars) < df.min_max_fars.values*min_far_ratio)
+        fars[mask] = np.nan
+
+        heights = np.repeat(heights, len(df.index), axis=1)
+        mask = ~np.isnan(heights)
+        mask *= np.nan_to_num(heights) > df.max_height.values + .01
+        fars[mask] = np.nan
+
+        # PROFIT CALCULATION
+        # parcel sizes * possible fars
+        building_bulks = fars * df.parcel_size.values
+
+        # cost to build the new building
+        building_costs = building_bulks * cost_sqft_col
+
+        # add cost to buy the current building
+        total_construction_costs = building_costs + df.land_cost.values
+        #total_construction_costs = building_costs
+        
+        # Financing costs
+        loan_amount = total_construction_costs * self.loan_to_cost_ratio
+        months = np.repeat(months, len(df.index), axis=1)
+        interest = (loan_amount
+                    * self.drawdown_factor
+                    * (self.interest_rate / 12 * months))
+        points = loan_amount * self.loan_fees
+        total_financing_costs = interest + points
+        total_development_costs = (total_construction_costs
+                                   + total_financing_costs)
+        #total_development_costs = total_construction_costs
+
+        # rent to make for the new building
+
+        #rent = 0 * building_bulks
+        #for use in self.uses[self.forms[form] > 0]:
+            #bblk = building_bulks * self.forms[use]
+        #    rent = rent +  self.forms_df.ix[form][use] * np.exp(df[use][np.newaxis, :] + np.log(building_bulks) * self.bsqft_coefs[use].values)
+        #rent = rent / building_bulks
+        df['weighted_rent'] = np.dot(df[self.uses], self.forms[form])
+        #df['weighted_rent'] = np.dot(rent, self.forms[form])
+        building_revenue = (building_bulks
+                            * (1 - parking_sqft_ratio)
+                            * self.building_efficiency
+                            * df.weighted_rent.values
+                            #* rent
+                            / self.cap_rate)
+
+        # profit for each form, including user modification of
+        # revenues, costs, and/or profits
+
+        building_revenue = (modify_revenues(self, form, df, building_revenue)
+                            if modify_revenues else building_revenue)
+
+        total_development_costs = (
+            modify_costs(self, form, df, total_development_costs)
+            if modify_costs else total_development_costs)
+
+        profit = building_revenue - total_development_costs
+        
+        #profit = building_revenue
+
+        profit = (modify_profits(self, form, df, profit)
+                  if modify_profits else profit)
+
+        profit = profit.astype('float')
+        profit[np.isnan(profit)] = -np.inf
+
+        if self.proposals_to_keep > 1:
+            maxprofit_sorted_indexes = np.argsort(-profit, axis=0)
+            maxprofitind = maxprofit_sorted_indexes[:self.proposals_to_keep]
+        else:
+            maxprofitind = np.argmax(profit, axis=0)
+
+        def twod_get(indexes, arr):
+            if indexes.ndim == 1:
+                return arr[indexes, np.arange(indexes.size)].astype('float')
+            elif indexes.ndim == 2:
+                arr = arr[indexes, np.arange(indexes.shape[1])]
+                return arr.astype('float').flatten()
+
+        if self.proposals_to_keep == 1:
+            outdf_index = df.index
+        else:
+            outdf_index = np.tile(df.index, self.proposals_to_keep)
+
+        outdf = pd.DataFrame({
+            'building_sqft': twod_get(maxprofitind, building_bulks),
+            'building_cost': twod_get(maxprofitind, building_costs),
+            'parking_ratio': parking_sqft_ratio[maxprofitind].flatten(),
+            'stories': twod_get(maxprofitind,
+                                heights) / self.height_per_story,
+            'total_cost': twod_get(maxprofitind, total_development_costs),
+            'building_revenue': twod_get(maxprofitind, building_revenue),
+            'max_profit_far': twod_get(maxprofitind, fars),
+            'max_profit': twod_get(maxprofitind, profit),
+            'parking_config': parking_config,
+            'construction_time': twod_get(maxprofitind, months),
+            'financing_cost': twod_get(maxprofitind, total_financing_costs)
+        }, index=outdf_index)
+
+        if self.pass_through:
+            outdf[self.pass_through] = df[self.pass_through]
+
+        outdf["residential_sqft"] = (outdf.building_sqft *
+                                     self.building_efficiency *
+                                     resratio)
+        outdf["non_residential_sqft"] = (outdf.building_sqft *
+                                         self.building_efficiency *
+                                         nonresratio)
+
+        if self.only_built:
+            outdf = outdf.query('max_profit > 0').copy()
+        else:
+            outdf = outdf.loc[outdf.max_profit != -np.inf].copy()
+
+        return outdf

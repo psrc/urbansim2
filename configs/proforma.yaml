@@ -105,6 +105,7 @@ parking_rates:
     commercial: 2.
     #commercial: 0.75
     office: 0.75
+    #office: 2.
     industrial: 0.5
     warehousing: 0.5
     tcu: 0.5
