@@ -391,6 +391,28 @@ def developer_picker(feasibility, buildings, parcels, year, target_vacancy, prop
                         custom_selection_func = proposal_selection,
                         building_sqft_per_job = building_sqft_per_job
                         )
+    
+@orca.step('developer_picker_CY')
+def developer_picker_CY(feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, proposal_selection, building_sqft_per_job):
+    target_units = psrcdev.compute_target_units(target_vacancy, unlimited = False)
+    new_buildings = psrcdev.run_developer(forms = [],
+                        agents = None,
+                        buildings = buildings,
+                        supply_fname = ["residential_units", "job_spaces"],
+                        feasibility = feasibility,
+                        parcel_size = parcels.parcel_size,
+                        ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
+                                         "multi_family_residential": parcels.ave_unit_size_mf,
+                                         "condo_residential": parcels.ave_unit_size_condo},
+                        cfg = 'developer.yaml',
+                        year = year,
+                        num_units_to_build = target_units,
+                        add_more_columns_callback = add_extra_columns,
+                        #profit_to_prob_func = proposal_selection_probabilities,
+                        custom_selection_func = proposal_selection,
+                        building_sqft_per_job = building_sqft_per_job
+                        )
+    
 
 def random_type(form):
     form_to_btype = orca.get_injectable("form_to_btype")

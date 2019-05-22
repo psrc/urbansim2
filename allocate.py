@@ -21,6 +21,7 @@ def simfile():
 
 @orca.injectable('settings', cache=True)
 def settings():
+     # merges settings.yaml with settings_allocation.yaml 
      with open(os.path.join(misc.configs_dir(), "settings.yaml")) as f:
           settings = yaml.load(f)
           with open(os.path.join(misc.configs_dir(), "settings_allocation.yaml")) as af:
