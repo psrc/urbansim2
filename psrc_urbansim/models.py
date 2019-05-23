@@ -335,7 +335,7 @@ def proforma_feasibility(parcels, uses_and_forms, parcel_price_placeholder, parc
     return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                              parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model", {}))
 
-@orca.step('proforma_feasibility_CY')
+@orca.step('proforma_feasibility_CY') # for running in control years
 def proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func, set_ave_unit_size_func, settings):
 
@@ -392,10 +392,13 @@ def developer_picker(feasibility, buildings, parcels, year, target_vacancy, prop
                         building_sqft_per_job = building_sqft_per_job
                         )
     
-@orca.step('developer_picker_CY')
-def developer_picker_CY(feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, proposal_selection, building_sqft_per_job):
-    target_units = psrcdev.compute_target_units(target_vacancy, unlimited = False)
-    new_buildings = psrcdev.run_developer(forms = [],
+@orca.step('developer_picker_CY') # for running in control years
+def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selection_probabilities, 
+                        proposal_selection, building_sqft_per_job, settings):
+    subreg_geo_id = settings.get("control_geography_id", "city_id")
+    new_buildings = psrcdev.run_developer_CY(
+        subreg_geo_id = subreg_geo_id,
+        forms = [],
                         agents = None,
                         buildings = buildings,
                         supply_fname = ["residential_units", "job_spaces"],
@@ -406,7 +409,6 @@ def developer_picker_CY(feasibility, buildings, parcels, year, target_vacancy, p
                                          "condo_residential": parcels.ave_unit_size_condo},
                         cfg = 'developer.yaml',
                         year = year,
-                        num_units_to_build = target_units,
                         add_more_columns_callback = add_extra_columns,
                         #profit_to_prob_func = proposal_selection_probabilities,
                         custom_selection_func = proposal_selection,

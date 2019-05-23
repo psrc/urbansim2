@@ -42,6 +42,10 @@ def building_sqft_per_unit(buildings):
 def building_type_name(buildings, building_types):
     return misc.reindex(building_types.building_type_name, buildings.building_type_id)
 
+@orca.column('buildings', 'city_id', cache=True)
+def city_id(buildings, parcels):
+    return misc.reindex(parcels.city_id, buildings.parcel_id)
+
 @orca.column('buildings', 'employment_density_wwd', cache=True, cache_scope='step')
 def employment_density_wwd(buildings, parcels):
     return misc.reindex(parcels.employment_density_wwd, buildings.parcel_id)

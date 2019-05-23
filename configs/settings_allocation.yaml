@@ -1,3 +1,5 @@
+control_geography_id: city_id
+
 feasibility_model_CY:
   development_filter: capacity_opportunity_non_gov_relaxed
   config_file: proforma.yaml

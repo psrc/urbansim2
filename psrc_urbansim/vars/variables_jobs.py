@@ -16,6 +16,10 @@ def is_in_sector_group(group_name, jobs, employment_sectors, employment_sector_g
     res.index = jobs.index
     return res
 
+@orca.column('jobs', 'city_id', cache=True)
+def city_id(jobs, parcels):
+    return misc.reindex(parcels.city_id, jobs.parcel_id)
+
 @orca.column('jobs', 'district_id', cache=True)
 def faz_id(jobs, zones):
     return misc.reindex(zones.district_id, jobs.job_zone_id)
