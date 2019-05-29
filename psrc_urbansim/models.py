@@ -407,7 +407,7 @@ def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selectio
                         ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
                                          "multi_family_residential": parcels.ave_unit_size_mf,
                                          "condo_residential": parcels.ave_unit_size_condo},
-                        cfg = 'developer.yaml',
+                        cfg = 'developer_CY.yaml',
                         year = year,
                         add_more_columns_callback = add_extra_columns,
                         #profit_to_prob_func = proposal_selection_probabilities,

@@ -45,23 +45,25 @@ def tables_in_base_year():
      return [t for t in orca.list_tables() if t in h5store or store_table_names.get(t, None) in h5store]
 
 
+# models for control years
 orca.run([
+    # Must run hh/job transition models first in order to 
+    # determine the demand for the developer model.
+     #"households_transition",     # TODO: check if it can handle subreg controls
+     #"jobs_transition",           #
     "proforma_feasibility_CY", # has relaxed redevelopment filter
-    "developer_picker_CY",
-    #"wahcm_estimate",
-    #"delete_invalid_households_persons",
-    #"base_year_wplcm_simulate",
+    "developer_picker_CY",     # runs DM for each subreg separately
+
     "update_household_previous_building_id",
     "update_buildings_lag1",
     "repmres_simulate",          # residential REPM
     "repmnr_simulate",          # non-residential REPM           
-    "households_transition",     # households transition
-    "households_relocation",     # households relocation model
+
+    "households_relocation",     # TODO: use no rates for CY
     "hlcm_simulate",
-    #"update_household_parcel_id",
-    "jobs_transition",           # jobs transition
-    "jobs_relocation",
-    'update_persons_jobs',           # jobs relocation model
+
+    "jobs_relocation",           # TODO: use no rates for CY
+    'update_persons_jobs',          
     "elcm_simulate",             # employment location choice
     "governmental_jobs_scaling",
     "wahcm_simulate",

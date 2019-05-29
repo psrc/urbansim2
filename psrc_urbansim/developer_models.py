@@ -57,12 +57,15 @@ def proposal_selection(self, proposals, p, targets):
         choice_idx = pd.Series(weighted_random_choice_multiparcel_by_count(df, p, count = min(chunksize, df.shape[0])))
         all_choices = pd.concat([all_choices, choice_idx])
         # remove proposals that:
-        proposals_to_remove = pd.concat([pd.Series( # 1) satisfy target vacancy 
-                                            filter_by_vacancy(orig_df, pf.uses, targets, 
-                                                              net_units = self.net_units, choices = all_choices)), 
-                                         choice_idx, # 2) were sampled
-                                         df.index[df.parcel_id.isin(df.parcel_id[choice_idx])].to_series() # 3) are on parcels for which proposals were sampled
-                                         ])
+        proposals_to_remove = pd.concat([pd.Series( 
+            # 1) satisfy target vacancy 
+            filter_by_vacancy(orig_df, pf.uses, targets, 
+                              net_units = self.net_units, choices = all_choices)), 
+            # 2) were sampled
+            choice_idx, 
+            # 3) are on parcels for which proposals were sampled
+            df.index[df.parcel_id.isin(df.parcel_id[choice_idx])].to_series() 
+            ])
         proposals_to_remove = proposals_to_remove[proposals_to_remove.isin(df.index)]
         if proposals_to_remove.size > 0:
             df = df.drop(proposals_to_remove)
@@ -243,7 +246,7 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     # keep developer config
     dev.config = devutils.yaml_to_dict(yaml_str = None, str_or_buffer=cfg)
     
-    print("{:,} feasible buildings on {:,} parcels before running developer".format( 
+    print("{:,} feasible proposals on {:,} parcels before running developer".format( 
         len(dev.feasibility), len(np.unique(dev.feasibility.parcel_id))))
 
     dev.feasibility_bt = orca.get_table("feasibility_bt").local
@@ -284,12 +287,25 @@ def run_developer_CY(subreg_geo_id, feasibility, **kwargs):
 
     # loop over subregions
     subregs = np.unique(feasibility[subreg_geo_id])
+    new_buildings = None
     for subreg in subregs:
+        print("\nSubregion {}".format(subreg))
+        print("-------------")
         target_units = compute_target_units_for_subarea(subreg, subreg_geo_id)
         feas = feasibility.local.loc[feasibility[subreg_geo_id] == subreg]
-        orca.add_table("feasibility", feas)
-        run_developer(feasibility = orca.get_table("feasibility"), num_units_to_build = target_units, **kwargs)
-    return
+        orca.add_table("feasibility", feas) # this is to create an orca table
+        newbldgs = run_developer(feasibility = orca.get_table("feasibility"), num_units_to_build = target_units, **kwargs)
+        if new_buildings is None:
+            new_buildings = newbldgs
+        else:
+            new_buildings = pd.concat([new_buildings, newbldgs])
+    print("\nTotal: {} new buildings ({} residential, {} non-residential) on {} parcels ".format(
+        new_buildings.shape[0], (new_buildings.residential_units > 0).sum(), (new_buildings.non_residential_sqft > 0).sum(), 
+        len(np.unique(new_buildings.parcel_id))))
+    print("------")
+    new_buildings[['building_type_id', 'residential_units', 'job_capacity', 'non_residential_sqft']].groupby('building_type_id').agg(['count', 'sum'])
+    new_buildings[['residential_units', 'job_capacity', 'non_residential_sqft']].agg(['sum'])
+    return new_buildings
 
 
 def disaggregate_buildings(buildings, bt_units, building_types, forms):
