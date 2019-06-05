@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "simresult20190423.h5"
+     return "simresult20190423_test2.h5"
 
 # remove results file if exists
 outfile = simfile()
@@ -48,7 +48,7 @@ orca.run([
     #"hlcm_simulate",
     #"update_household_parcel_id",
     "jobs_transition",           # jobs transition
-    "jobs_relocation",
+    #"jobs_relocation",
     #'update_persons_jobs',           # jobs relocation model
     #"elcm_simulate",             # employment location choice
     #"governmental_jobs_scaling",
