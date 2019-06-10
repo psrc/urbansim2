@@ -164,6 +164,7 @@ def households_for_estimation(store):
     df = store[dfname]
     if 'for_estimation' in df.columns:
         df = df[df.for_estimation == 1]
+        df['previous_building_id'] = np.where(df.is_inmigrant == 1, -1, df.previous_building_id)
     return df
 
 @orca.table('job_relocation_rates', cache=True)

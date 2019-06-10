@@ -48,14 +48,14 @@ orca.run([
     #"hlcm_simulate",
     #"update_household_parcel_id",
     "jobs_transition",           # jobs transition
-    #"jobs_relocation",
-    #'update_persons_jobs',           # jobs relocation model
-    #"elcm_simulate",             # employment location choice
-    #"governmental_jobs_scaling",
-    #"wahcm_simulate",
-    #"wplcm_simulate",
+    "jobs_relocation",
+    'update_persons_jobs',           # jobs relocation model
+    "elcm_simulate",             # employment location choice
+    "governmental_jobs_scaling",
+    "wahcm_simulate",
+    "wplcm_simulate",
     #"clear_cache"
-], iter_vars=[2015, 2017, 2020, 2025, 2030, 2035, 2040, 2045, 2050], data_out=outfile, out_base_tables=tables_in_base_year(),
+], iter_vars=[2015, 2016], data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 
 

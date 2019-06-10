@@ -9,6 +9,20 @@ from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_n
 
 #from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
 
+MAXlog = np.log(np.finfo('f').max) # max limit of float32 - for using with np.exp()
+
+
+@orca.injectable('proposal_selection_probabilities', autocall=False)
+def proposal_selection_probabilities(df):
+    #profit = df.max_profit/df.building_sqft
+    # scale the profit field to be within allowed ranges
+    #a = max(profit.min(), 1e-10)
+    #b = min(profit.max(), MAXlog)
+    #profit_trans = (b-a) * (profit - profit.min())/(profit.max() - profit.min()) + a
+    #p = np.exp(profit_trans)
+    #p = profit
+    p = df.max_profit
+    return p/p.sum()
 
 @orca.injectable('proposal_selection', autocall=False)
 def proposal_selection(self, proposals, p, targets):
@@ -43,12 +57,15 @@ def proposal_selection(self, proposals, p, targets):
         choice_idx = pd.Series(weighted_random_choice_multiparcel_by_count(df, p, count = min(chunksize, df.shape[0])))
         all_choices = pd.concat([all_choices, choice_idx])
         # remove proposals that:
-        proposals_to_remove = pd.concat([pd.Series( # 1) satisfy target vacancy 
-                                            filter_by_vacancy(orig_df, pf.uses, targets, 
-                                                              net_units = self.net_units, choices = all_choices)), 
-                                         choice_idx, # 2) were sampled
-                                         df.index[df.parcel_id.isin(df.parcel_id[choice_idx])].to_series() # 3) are on parcels for which proposals were sampled
-                                         ])
+        proposals_to_remove = pd.concat([pd.Series( 
+            # 1) satisfy target vacancy 
+            filter_by_vacancy(orig_df, pf.uses, targets, 
+                              net_units = self.net_units, choices = all_choices)), 
+            # 2) were sampled
+            choice_idx, 
+            # 3) are on parcels for which proposals were sampled
+            df.index[df.parcel_id.isin(df.parcel_id[choice_idx])].to_series() 
+            ])
         proposals_to_remove = proposals_to_remove[proposals_to_remove.isin(df.index)]
         if proposals_to_remove.size > 0:
             df = df.drop(proposals_to_remove)
@@ -81,6 +98,7 @@ def compute_target_units(vacancy_rate, unlimited = False):
     else:
         pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
         vac = pd.concat((pfbt, vacancy_rate.local, pf.residential_uses), axis=1)
+        vac = vac.loc[~np.isnan(vac.is_residential.values),:]
         bld = orca.get_table("buildings")
         agents_attr = {0: "number_of_jobs", 1: "number_of_households"}
         units_attr = {0: "job_spaces", 1: "residential_units"}
@@ -91,12 +109,45 @@ def compute_target_units(vacancy_rate, unlimited = False):
             is_builting_type = bld["building_type_id"] == bt
             number_of_agents = (bld[agentattr] * is_builting_type).sum()
             existing_units =  (bld[unitattr] * is_builting_type).sum()
-            target_units[vac.loc[bt].use] = int(max(
+            target_units[vac.loc[bt].use] = np.round(max(
                 (number_of_agents / (1 - vac.loc[bt].target_vacancy_rate) - existing_units), 0))
     tu = pd.DataFrame({'building_type_name': target_units.keys(),
                        "target_units": target_units.values()})
     tu = tu.set_index('building_type_name')
     return tu
+    
+def compute_target_units_for_subarea(id, subreg_geo = "city_id", vacancy_factor = 1.05):
+    pf = orca.get_injectable("pf_config")
+    pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
+    pfbt = pd.concat((pfbt, pf.residential_uses), axis=1)
+    agents_attr = {0: "number_of_jobs", 1: "number_of_households"}
+    units_attr = {0: "job_spaces", 1: "residential_units"}
+    bld = orca.get_table("buildings")
+    is_in_subarea = bld[subreg_geo] == id
+    number_of_agents_in_subarea = {0: (bld[agents_attr[0]] * is_in_subarea).sum(),
+                                   1: (bld[agents_attr[1]] * is_in_subarea).sum()
+                                   }
+    demand = {0: np.round(vacancy_factor * ( orca.get_table("jobs")[subreg_geo] == id).sum()),
+              1: np.round(vacancy_factor * ( orca.get_table("households")[subreg_geo] == id).sum())
+              }
+    target_units = {}
+    for bt in pfbt.index:
+        is_res = pfbt.loc[bt].is_residential
+        agentattr = agents_attr[is_res]
+        unitattr = units_attr[is_res]
+        is_building_type_in_subarea = (bld["building_type_id"] == bt) & is_in_subarea
+        existing_units_in_bt_subarea =  (bld[unitattr] * is_building_type_in_subarea).sum()
+        if number_of_agents_in_subarea[is_res] == 0: # get regional proportion
+            proportion = (bld[agentattr] * (bld["building_type_id"] == bt)).sum()/float(bld[agentattr].sum())
+        else: # get subregional proportion            
+            number_of_agents_in_bt_subarea = (bld[agentattr] * is_building_type_in_subarea).sum()            
+            proportion = max(number_of_agents_in_bt_subarea, 1) / float(number_of_agents_in_subarea[is_res])
+        target_units[pfbt.loc[bt].use] = max(np.round(proportion * demand[is_res]) - existing_units_in_bt_subarea, 0)
+    tu = pd.DataFrame({'building_type_name': target_units.keys(),
+                        "target_units": target_units.values()})
+    tu = tu.set_index('building_type_name')
+    return tu    
+
     
 def run_developer(forms, agents, buildings, supply_fname, feasibility,
                   parcel_size, ave_unit_size, cfg, current_units = ["units", "job_spaces"], year=None,
@@ -195,10 +246,11 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     # keep developer config
     dev.config = devutils.yaml_to_dict(yaml_str = None, str_or_buffer=cfg)
     
-    print("{:,} feasible buildings before running developer".format(
-        len(dev.feasibility)))
+    print("{:,} feasible proposals on {:,} parcels before running developer".format( 
+        len(dev.feasibility), len(np.unique(dev.feasibility.parcel_id))))
 
     dev.feasibility_bt = orca.get_table("feasibility_bt").local
+    dev.feasibility_bt = dev.feasibility_bt.loc[dev.feasibility_bt.feasibility_id.isin(feasibility.feasibility_id)]
     dev._calculate_units_from_sqft(building_sqft_per_job)
     dev._calculate_current_units(current_units)
     
@@ -219,9 +271,42 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
                                   form_to_btype_callback,
                                   add_more_columns_callback,
                                   supply_fname, remove_developed_buildings,
-                                  unplace_agents, pipeline)
+                                  unplace_agents, pipeline, dev.pf_config.cap_rate)
 
     return new_buildings
+
+
+def run_developer_CY(subreg_geo_id, feasibility, **kwargs):
+    """
+    Run the developer model by subarea.
+
+    """
+    # disaggregate subreg_geo
+    parcels = orca.get_table("parcels")
+    feasibility[subreg_geo_id] = misc.reindex(parcels[subreg_geo_id], feasibility.parcel_id)
+
+    # loop over subregions
+    subregs = np.unique(feasibility[subreg_geo_id])
+    new_buildings = None
+    for subreg in subregs:
+        print("\nSubregion {}".format(subreg))
+        print("-------------")
+        target_units = compute_target_units_for_subarea(subreg, subreg_geo_id)
+        feas = feasibility.local.loc[feasibility[subreg_geo_id] == subreg]
+        orca.add_table("feasibility", feas) # this is to create an orca table
+        newbldgs = run_developer(feasibility = orca.get_table("feasibility"), num_units_to_build = target_units, **kwargs)
+        if new_buildings is None:
+            new_buildings = newbldgs
+        else:
+            new_buildings = pd.concat([new_buildings, newbldgs])
+    print("\nTotal: {} new buildings ({} residential, {} non-residential) on {} parcels ".format(
+        new_buildings.shape[0], (new_buildings.residential_units > 0).sum(), (new_buildings.non_residential_sqft > 0).sum(), 
+        len(np.unique(new_buildings.parcel_id))))
+    print("------")
+    new_buildings[['building_type_id', 'residential_units', 'job_capacity', 'non_residential_sqft']].groupby('building_type_id').agg(['count', 'sum'])
+    new_buildings[['residential_units', 'job_capacity', 'non_residential_sqft']].agg(['sum'])
+    return new_buildings
+
 
 def disaggregate_buildings(buildings, bt_units, building_types, forms):
     # Takes a dataset of selected proposals (buildings) which can have multiple building types in one row,
@@ -304,7 +389,7 @@ def disaggregate_buildings(buildings, bt_units, building_types, forms):
 def add_buildings(buildings, new_buildings,
                   form_to_btype_callback, add_more_columns_callback,
                   supply_fname, remove_developed_buildings, unplace_agents,
-                  pipeline=False):
+                  pipeline=False, cap_rate = 0.04):
     """
     Parameters
     ----------
@@ -345,7 +430,7 @@ def add_buildings(buildings, new_buildings,
     # They only need to be defined if the names differ.
     new_cols = {'job_capacity': new_buildings.job_spaces,
                 'land_area': new_buildings.building_sqft / new_buildings.stories, 
-                'improvement_value': new_buildings.building_revenue
+                'improvement_value': new_buildings.building_revenue * cap_rate
                 }
     if add_more_columns_callback is not None:
         new_buildings = add_more_columns_callback(new_buildings, new_cols)

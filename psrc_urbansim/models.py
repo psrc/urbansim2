@@ -13,6 +13,7 @@ import pandas as pd
 from psrc_urbansim.mod.allocation import AgentAllocationModel
 import urbansim.developer as dev
 import developer_models as psrcdev
+import dcm_weighted_sampling as psrc_dcm
 import sqftproforma
 from urbansim.utils import misc, yamlio
 import os
@@ -27,9 +28,13 @@ def repmres_estimate(parcels, zones, gridcells):
 
 
 @orca.step('repmres_simulate')
-def repmres_simulate(parcels, zones, gridcells):
-    return utils.hedonic_simulate("repmrescoef.yaml", parcels,
-                                  [zones, gridcells], "land_value", cast=True)
+def repmres_simulate(parcels, zones, gridcells, year, settings):
+    return psrcutils.hedonic_simulate("repmrescoef.yaml", parcels,
+                                  [zones, gridcells], "land_value", cast=True,
+                                  # compute residuals only in the first simulation year
+                                  compute_residuals = year == (settings['base_year'] + 1), 
+                                  add_residuals = True, 
+                                  settings = settings.get("real_estate_price_model", {}))
 
 
 # Non-Residential REPM
@@ -41,10 +46,13 @@ def repmnr_estimate(parcels, zones, gridcells):
 
 
 @orca.step('repmnr_simulate')
-def repmnr_simulate(parcels, zones, gridcells):
-    return utils.hedonic_simulate("repmnrcoef.yaml",
-                                  parcels, [zones, gridcells],
-                                  "land_value", cast=True)
+def repmnr_simulate(parcels, zones, gridcells, year, settings):
+    return psrcutils.hedonic_simulate("repmnrcoef.yaml", parcels, 
+                                      [zones, gridcells], "land_value", cast=True,
+                                      # compute residuals only in the first simulation year
+                                      compute_residuals = year == (settings['base_year'] + 1),
+                                      add_residuals = True, 
+                                      settings = settings.get("real_estate_price_model", {}))
 
 
 # HLCM
@@ -63,7 +71,7 @@ def hlcm_simulate(households, buildings, persons, settings):
     res = utils.lcm_simulate("hlcmcoef.yaml", households, buildings,
                              None, "building_id", "residential_units",
                              "vacant_residential_units", cast=True)
-    orca.clear_cache()
+    #orca.clear_cache()
 
     # Determine which relocated persons get disconnected from their job
     if settings.get('remove_jobs_from_workers', False):
@@ -92,10 +100,55 @@ def hlcm_simulate(households, buildings, persons, settings):
         households.update_col_from_series("is_inmigrant", pd.Series(0,
                                       index=households.index), cast=True)
 
-    orca.clear_cache()
+    #orca.clear_cache()
 
     return res
 
+@orca.step('hlcm_simulate_sample')
+def hlcm_simulate_sample(households, buildings, persons, settings):
+
+    res = psrc_dcm.lcm_simulate_sample("hlcmcoef.yaml", households, 'prev_residence_large_area_id', buildings,
+                             None, "building_id", "residential_units",
+                             "vacant_residential_units", cast=True)
+    
+    # Determine which relocated persons get disconnected from their job
+    if settings.get('remove_jobs_from_workers', False):
+        persons_df = persons.to_frame()
+        relocated_workers = persons_df.loc[(persons_df.employment_status > 0) &
+                                       (persons_df.household_id.isin
+                                       (relocated.index))]
+        relocated_workers['new_dist_to_work'] = network_distance_from_home_to_work(
+                                        relocated_workers.workplace_zone_id,
+                                        relocated_workers.household_zone_id)
+        relocated_workers['prev_dist_to_work'] = network_distance_from_home_to_work(
+                                        relocated_workers.workplace_zone_id,
+                                        relocated_workers.prev_household_zone_id)
+
+        # if new distance to work is greater than old, disconnect person from job
+        relocated_workers.job_id = np.where(relocated_workers.new_dist_to_work >
+                                        relocated_workers.prev_dist_to_work,
+                                        -1, relocated_workers.job_id)
+        persons.update_col_from_series("job_id", relocated_workers.job_id,
+                                   cast=True)
+
+        # Update is_inmigrant- I think this it is ok to do this now,
+        # but perhaps this should be part of a clean up step
+        # at the end of the sim year.
+
+        households.update_col_from_series("is_inmigrant", pd.Series(0,
+                                      index=households.index), cast=True)
+
+    #orca.clear_cache()
+
+    return res
+
+@orca.step('hlcm_estimate_sample')
+def hlcm_estimate_sample(households_for_estimation, buildings, persons, settings):
+
+    res = psrc_dcm.lcm_estimate_sample("hlcm.yaml", households_for_estimation, 'prev_residence_large_area_id',
+                              "building_id", buildings, None,
+                              out_cfg="hlcmcoef.yaml")
+    orca.clear_cache()
 
 # WPLCM
 @orca.step('wplcm_estimate')
@@ -118,7 +171,7 @@ def elcm_simulate(jobs, buildings, parcels, zones, gridcells):
                              [parcels, zones, gridcells],
                              "building_id", "job_spaces", "vacant_job_spaces",
                              cast=True)
-    orca.clear_cache()
+    #orca.clear_cache()
 
 
 @orca.step('households_relocation')
@@ -132,7 +185,6 @@ def households_relocation(households, household_relocation_rates):
     households.update_col_from_series("building_id",
                                       pd.Series(-1, index=movers), cast=True)
     print "%s households are unplaced in total." % ((households.local["building_id"] <= 0).sum())
-
 
 @orca.step('jobs_relocation')
 def jobs_relocation(jobs, job_relocation_rates):
@@ -206,6 +258,13 @@ def households_transition(households, household_controls,
                                                 index=households.index),
                                       cast=True)
 
+    households.update_col_from_series("previous_building_id",
+                                      pd.Series(np.where
+                                                (~households.index.isin
+                                                 (orig_hh_index), -1, households.previous_building_id),
+                                                index=households.index),
+                                      cast=True)
+
     # new workers dont have jobs yet, set job_id to -1
     persons.update_col_from_series("job_id",
                                    pd.Series(np.where(~persons.index.isin
@@ -226,7 +285,7 @@ def households_transition(households, household_controls,
                                              (persons.employment_status > 0,
                                               persons.job_id, -2),
                                              index=persons.index), cast=True)
-    orca.clear_cache()
+    #orca.clear_cache()
     return res
 
 
@@ -270,11 +329,27 @@ def create_proforma_config(proforma_settings):
     yamlio.convert_to_yaml(config, "proforma.yaml")
     
 @orca.step('proforma_feasibility')
-def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, parcel_sales_price_func, 
-                         parcel_is_allowed_func, set_ave_unit_size_func):
+def proforma_feasibility(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
 
-    development_filter = "capacity_opportunity_non_gov" # includes empty parcels
+    return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                             parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model", {}))
+
+@orca.step('proforma_feasibility_CY') # for running in control years
+def proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
+
+    return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                             parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model_CY", {}))
+
+
+
+def run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, model_settings):
+
+    development_filter = model_settings.get("development_filter", "capacity_opportunity_non_gov") # variable should include empty parcels
     #development_filter = "developable"
+    
     pcl = parcels.to_frame(parcels.local_columns + ['max_far', 'max_dua', 'max_height', 'max_coverage', 
                                                     'ave_unit_size_sf', 'ave_unit_size_mf', 'ave_unit_size_condo',
                                                     'parcel_size', 'land_cost'])
@@ -286,8 +361,8 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
     df = orca.DataFrameWrapper("parcels", pcl, copy_col=False)
     # create a feasibility dataset
     sqftproforma.run_feasibility(df, parcel_sales_price_func,
-                                 parcel_is_allowed_func, cfg = "proforma.yaml",
-                                proforma_uses = proforma_settings,
+                                 parcel_is_allowed_func, cfg = model_settings.get("config_file", "proforma.yaml"),
+                                proforma_uses = uses_and_forms,
                                 lookup_modify_callback = set_ave_unit_size_func)
     #projects = orca.get_table("feasibility")
     #p = projects.local.stack(level=0)
@@ -297,7 +372,7 @@ def proforma_feasibility(parcels, proforma_settings, parcel_price_placeholder, p
     return
 
 @orca.step('developer_picker')
-def developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection, building_sqft_per_job):
+def developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, proposal_selection, building_sqft_per_job):
     target_units = psrcdev.compute_target_units(target_vacancy, unlimited = False)
     new_buildings = psrcdev.run_developer(forms = [],
                         agents = None,
@@ -312,9 +387,34 @@ def developer_picker(feasibility, buildings, parcels, year, target_vacancy, prop
                         year = year,
                         num_units_to_build = target_units,
                         add_more_columns_callback = add_extra_columns,
+                        #profit_to_prob_func = proposal_selection_probabilities,
                         custom_selection_func = proposal_selection,
                         building_sqft_per_job = building_sqft_per_job
                         )
+    
+@orca.step('developer_picker_CY') # for running in control years
+def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selection_probabilities, 
+                        proposal_selection, building_sqft_per_job, settings):
+    subreg_geo_id = settings.get("control_geography_id", "city_id")
+    new_buildings = psrcdev.run_developer_CY(
+        subreg_geo_id = subreg_geo_id,
+        forms = [],
+                        agents = None,
+                        buildings = buildings,
+                        supply_fname = ["residential_units", "job_spaces"],
+                        feasibility = feasibility,
+                        parcel_size = parcels.parcel_size,
+                        ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
+                                         "multi_family_residential": parcels.ave_unit_size_mf,
+                                         "condo_residential": parcels.ave_unit_size_condo},
+                        cfg = 'developer_CY.yaml',
+                        year = year,
+                        add_more_columns_callback = add_extra_columns,
+                        #profit_to_prob_func = proposal_selection_probabilities,
+                        custom_selection_func = proposal_selection,
+                        building_sqft_per_job = building_sqft_per_job
+                        )
+    
 
 def random_type(form):
     form_to_btype = orca.get_injectable("form_to_btype")
@@ -361,6 +461,6 @@ def update_buildings_lag1(buildings):
     orca.add_table('buildings_lag1', df, cache=True)
 
 
-@orca.step('clear_cache')
-def clear_cache():
-    orca.clear_cache()
+#@orca.step('clear_cache')
+##def clear_cache():
+#    orca.clear_cache()

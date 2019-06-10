@@ -4,7 +4,7 @@ model_type: segmented_discretechoice
 
 segmentation_col: is_inmigrant
 
-choosers_fit_filters: [building_id > 0, for_estimation == 1]
+choosers_fit_filters: [building_id > 0, for_estimation == 1, previous_building_id <> 0]
 
 choosers_predict_filters: null
 
@@ -26,10 +26,10 @@ prediction_sample_size: 30 # #alternatives in prediction
 
 default_config: 
     # inmigrants
-    model_expression: I((income>0)*1):I(1*(np.logical_or(mortgage_cost2/income < 0.1, mortgage_cost2/income > 0.5))) + 
-            ln_price_residual + 
+    model_expression: I((income>0)*1):I(1*(np.logical_or(mortgage_cost/income < 0.1, mortgage_cost/income > 0.3))) + 
+            ln_price_residual_residential + 
             multifamily_generic_type + 
-            I(np.where(income>0, (np.log1p(income)/(persons*persons*1.0)*(np.log1p(sqft_per_unit))), 1)) +
+            I(np.where(income>0, (np.log1p(income)/(persons*persons*1.0)*(np.log1p(sqft_per_unit_imputed))), 1)) +
             I((persons < 2)*1):I(np.logical_not(building_type_name == "single_family_residential")*1) +
             I(1*(np.logical_and(persons == 1, age_of_head < 50))):I(1*(np.log1p(employment_retail_wwd)>4)) +
             I((tenure == 1)*1):I(~is_multifamily) + 
@@ -67,10 +67,10 @@ models:
                     I((persons > 3)*1):I(np.logical_not(large_area_id == 6)*1) +
                     I(1*(prev_residence_large_area_id == large_area_id)) +
                     I((tenure == 1)*1):I(~is_multifamily) +
-                    ln_price_residual +  
+                    ln_price_residual_residential +  
                     I(1*(np.logical_and(persons == 1, age_of_head < 50))):I(1*(np.log1p(employment_retail_wwd)>4)) +
-                    I(np.where(income>0, (np.log1p(income)/(persons*persons*1.0)*(np.log1p(sqft_per_unit))), 1)) +
-                    I((income>0)*1):I(1*(np.logical_or(mortgage_cost2/income < 0.1, mortgage_cost2/income > 0.5))) 
+                    I(np.where(income>0, (np.log1p(income)/(persons*persons*1.0)*(np.log1p(sqft_per_unit_imputed))), 1)) +
+                    I((income>0)*1):I(1*(np.logical_or(mortgage_cost/income < 0.1, mortgage_cost/income > 0.3))) 
         
                     #I(1*(mortgage_cost/income < 0.1)) +
                     #I(1*(mortgage_cost/income > 0.3))

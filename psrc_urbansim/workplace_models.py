@@ -118,7 +118,7 @@ def wahcm_simulate(persons, jobs, households, zones):
     jobs.update_col_from_series('vacant_jobs', combine_indexes.vacant_jobs, cast = True)
     print "Number of unplaced home-based jobs: %s" % len(jobs.local[(jobs.local.home_based_status==1) 
                               & (jobs.local.vacant_jobs > 0) & (jobs.building_id > 0)])
-    orca.clear_cache()
+    #orca.clear_cache()
   
 @orca.step('wplcm_simulate')
 def wplcm_simulate(persons, households, jobs):
@@ -131,4 +131,4 @@ def wplcm_simulate(persons, households, jobs):
     res = utils.lcm_simulate("wplcmcoef.yaml", persons, located_jobs, None,
                               "job_id", "number_of_jobs", "vacant_jobs", cast=True)
         
-    orca.clear_cache()
+    #orca.clear_cache()
