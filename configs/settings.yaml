@@ -7,9 +7,11 @@ base_year: 2014
 
 households_transition:
   total_column: total_number_of_households
+  remove_columns: city_id
 
 jobs_transition:
   total_column: total_number_of_jobs
+  remove_columns: city_id
   
 real_estate_price_model:
   ytransform_back: np.expm1

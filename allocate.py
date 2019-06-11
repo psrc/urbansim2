@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "simresult20181008.h5"
+     return "allocresult20190610.h5"
 
 @orca.injectable('settings', cache=True)
 def settings():
@@ -30,6 +30,14 @@ def settings():
           # but will also be available as injectable
           orca.settings = settings
           return settings
+
+@orca.injectable('control_years', cache=True)
+def control_years():
+     return [2017] + range(2020, 2050)
+
+@orca.injectable('isCY', cache=False)
+def isCY(year, control_years):
+     return year in control_years
 
 # remove results file if exists
 outfile = simfile()
@@ -49,27 +57,26 @@ def tables_in_base_year():
 orca.run([
     # Must run hh/job transition models first in order to 
     # determine the demand for the developer model.
-     #"households_transition",     # TODO: check if it can handle subreg controls
-     #"jobs_transition",           #
-    "proforma_feasibility_CY", # has relaxed redevelopment filter
-    "developer_picker_CY",     # runs DM for each subreg separately
+     "households_transition",     # 
+     "jobs_transition",           #
+     "proforma_feasibility_alloc",
+     "developer_picker_alloc",
+    #"update_household_previous_building_id",
+    #"update_buildings_lag1",
+    #"repmres_simulate",          # residential REPM
+    #"repmnr_simulate",          # non-residential REPM           
 
-    "update_household_previous_building_id",
-    "update_buildings_lag1",
-    "repmres_simulate",          # residential REPM
-    "repmnr_simulate",          # non-residential REPM           
+    #"households_relocation",     # TODO: use no rates for CY
+    #"hlcm_simulate",
 
-    "households_relocation",     # TODO: use no rates for CY
-    "hlcm_simulate",
-
-    "jobs_relocation",           # TODO: use no rates for CY
-    'update_persons_jobs',          
-    "elcm_simulate",             # employment location choice
-    "governmental_jobs_scaling",
-    "wahcm_simulate",
-    "wplcm_simulate",
+    #"jobs_relocation",           # TODO: use no rates for CY
+    #'update_persons_jobs',          
+    #"elcm_simulate",             # employment location choice
+    #"governmental_jobs_scaling",
+    #"wahcm_simulate",
+    #"wplcm_simulate",
     #"clear_cache"
-], iter_vars=[2015, 2016], data_out=outfile, out_base_tables=tables_in_base_year(),
+], iter_vars=[2017, 2018], data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 
 

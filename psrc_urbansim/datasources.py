@@ -75,7 +75,9 @@ def development_template_components(store):
 @orca.table('employment_controls', cache=True)
 def employment_controls(store):
     df = store["annual_employment_control_totals"]
-    df[df < 0] = np.inf
+    # remove rows that have negative totals
+    df = df.loc[df.total_number_of_jobs >= 0,:]    
+    df[df < 0] = np.nan
     return df
 
 @orca.table('employment_sector_group_definitions', cache=True)
@@ -126,7 +128,9 @@ def gridcells(store):
 @orca.table('household_controls', cache=True)
 def household_controls(store):
     df = store["annual_household_control_totals"]
-    df[df < 0] = np.inf
+    # remove rows that have negative totals
+    df = df.loc[df.total_number_of_households >= 0,:]
+    df[df < 0] = np.nan
     return df
 
 @orca.table('household_relocation_rates', cache=True)

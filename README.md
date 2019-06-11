@@ -138,7 +138,7 @@ To set the environment variables in step 4, 5 and 7, depending where you want to
 
 In both cases, it changes the environment only for the session in this terminal or bash window.
 
-The base year data are stored in ``/d/udst/psrc_urbansim/data``. The file to be used for estimation is ``psrc_estimation_2014.h5``. For a simulation use ``psrc_base_year_2014.h5``. 
+The base year data are stored in ``/d/udst/psrc_urbansim/data``. The file to be used for estimation is ``psrc_estimation_2014.h5``. For a simulation use ``psrc_base_year_2014.h5``. For allocation use ``psrc_base_year_2014_alloc.h5``.
 
 
 ## Using UrbanSim-2

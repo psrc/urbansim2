@@ -233,9 +233,10 @@ def households_transition(households, household_controls,
     orig_size_pers = persons.local.shape[0]
     orig_pers_index = persons.index
     orig_hh_index = households.index
-    res = utils.full_transition(households, household_controls, year,
-                                settings['households_transition'],
-                                "building_id",
+    config = settings['households_transition']
+    if len(config.get('remove_columns', [])) > 0:
+        household_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)
+    res = utils.full_transition(households, household_controls, year, config, "building_id",
                                 linked_tables={"persons":
                                                (persons.local,
                                                 'household_id')})
@@ -292,11 +293,10 @@ def households_transition(households, household_controls,
 @orca.step('jobs_transition')
 def jobs_transition(jobs, employment_controls, year, settings):
     orig_size = jobs.local.shape[0]
-    res = utils.full_transition(jobs,
-                                employment_controls,
-                                year,
-                                settings['jobs_transition'],
-                                "building_id")
+    config = settings['jobs_transition']
+    if len(config.get('remove_columns', [])) > 0:
+        employment_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)    
+    res = utils.full_transition(jobs, employment_controls, year, config, "building_id")
     print "Net change: %s jobs" % (orca.get_table("jobs").local.shape[0]-
                                    orig_size)
     return res
@@ -328,21 +328,13 @@ def create_proforma_config(proforma_settings):
     config = psrcdev.update_sqftproforma(user_cfg, proforma_settings)
     yamlio.convert_to_yaml(config, "proforma.yaml")
     
+
 @orca.step('proforma_feasibility')
 def proforma_feasibility(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func, set_ave_unit_size_func, settings):
 
     return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                              parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model", {}))
-
-@orca.step('proforma_feasibility_CY') # for running in control years
-def proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
-                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
-
-    return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
-                             parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model_CY", {}))
-
-
 
 def run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func, set_ave_unit_size_func, model_settings):
@@ -392,29 +384,7 @@ def developer_picker(feasibility, buildings, parcels, year, target_vacancy, prop
                         building_sqft_per_job = building_sqft_per_job
                         )
     
-@orca.step('developer_picker_CY') # for running in control years
-def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selection_probabilities, 
-                        proposal_selection, building_sqft_per_job, settings):
-    subreg_geo_id = settings.get("control_geography_id", "city_id")
-    new_buildings = psrcdev.run_developer_CY(
-        subreg_geo_id = subreg_geo_id,
-        forms = [],
-                        agents = None,
-                        buildings = buildings,
-                        supply_fname = ["residential_units", "job_spaces"],
-                        feasibility = feasibility,
-                        parcel_size = parcels.parcel_size,
-                        ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
-                                         "multi_family_residential": parcels.ave_unit_size_mf,
-                                         "condo_residential": parcels.ave_unit_size_condo},
-                        cfg = 'developer_CY.yaml',
-                        year = year,
-                        add_more_columns_callback = add_extra_columns,
-                        #profit_to_prob_func = proposal_selection_probabilities,
-                        custom_selection_func = proposal_selection,
-                        building_sqft_per_job = building_sqft_per_job
-                        )
-    
+ 
 
 def random_type(form):
     form_to_btype = orca.get_injectable("form_to_btype")
@@ -464,3 +434,58 @@ def update_buildings_lag1(buildings):
 #@orca.step('clear_cache')
 ##def clear_cache():
 #    orca.clear_cache()
+
+##############################
+### Models for ALLOCATION mode
+##############################
+@orca.step('proforma_feasibility_alloc')
+def proforma_feasibility_alloc(isCY, parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
+    if isCY:
+        print "Running proforma_feasibility for control year"
+        return proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings)
+    print "Running proforma_feasibility for non-control year"
+    return proforma_feasibility(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings)
+
+@orca.step('proforma_feasibility_CY') # for running in control years, should have relaxed redevelopment filter
+def proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
+
+    return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                             parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model_CY", {}))
+
+@orca.step('developer_picker_alloc') 
+def developer_picker_alloc(isCY, feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, 
+                        proposal_selection, building_sqft_per_job, settings):
+    if isCY:
+        print "Running developer_picker for control year"
+        return developer_picker_CY(feasibility, buildings, parcels, year, proposal_selection_probabilities, 
+                        proposal_selection, building_sqft_per_job, settings)
+    print "Running developer_picker for non-control year"
+    return developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, 
+                        proposal_selection, building_sqft_per_job)
+    
+@orca.step('developer_picker_CY') # for running in control years, runs for each subreg separately
+def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selection_probabilities, 
+                        proposal_selection, building_sqft_per_job, settings):
+    subreg_geo_id = settings.get("control_geography_id", "city_id")
+    new_buildings = psrcdev.run_developer_CY(
+        subreg_geo_id = subreg_geo_id,
+        forms = [],
+                        agents = None,
+                        buildings = buildings,
+                        supply_fname = ["residential_units", "job_spaces"],
+                        feasibility = feasibility,
+                        parcel_size = parcels.parcel_size,
+                        ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
+                                         "multi_family_residential": parcels.ave_unit_size_mf,
+                                         "condo_residential": parcels.ave_unit_size_condo},
+                        cfg = 'developer_CY.yaml',
+                        year = year,
+                        add_more_columns_callback = add_extra_columns,
+                        #profit_to_prob_func = proposal_selection_probabilities,
+                        custom_selection_func = proposal_selection,
+                        building_sqft_per_job = building_sqft_per_job
+                        )
