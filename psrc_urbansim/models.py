@@ -179,7 +179,7 @@ def households_relocation(households, household_relocation_rates):
     from urbansim.models import relocation as relo
     rm = relo.RelocationModel(household_relocation_rates.to_frame(),
                               rate_column='probability_of_relocating')
-    movers = rm.find_movers(households.to_frame()
+    movers = rm.find_movers(households.to_frame(households.local_columns + ['building_type_id'])
                             [households.building_id > 0])  # relocate only residents
     print "%s households selected to move." % movers.size
     households.update_col_from_series("building_id",
@@ -190,7 +190,7 @@ def households_relocation(households, household_relocation_rates):
 def jobs_relocation(jobs, job_relocation_rates):
     from urbansim.models import relocation as relo
     rm = relo.RelocationModel(job_relocation_rates.to_frame(), rate_column='job_relocation_probability')
-    movers = rm.find_movers(jobs.to_frame()[jobs.building_id > 0])  # relocate only placed jobs
+    movers = rm.find_movers(jobs.to_frame(jobs.local_columns)[jobs.building_id > 0])  # relocate only placed jobs
     print "%s jobs selected to move." % movers.size
     jobs.update_col_from_series("building_id",
                                 pd.Series(-1, index=movers), cast=True)
