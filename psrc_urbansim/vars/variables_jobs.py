@@ -18,7 +18,7 @@ def is_in_sector_group(group_name, jobs, employment_sectors, employment_sector_g
 
 @orca.column('jobs', 'city_id', cache=True)
 def city_id(jobs, parcels):
-    return misc.reindex(parcels.city_id, jobs.parcel_id)
+    return misc.reindex(parcels.city_id, jobs.parcel_id)	
 
 @orca.column('jobs', 'district_id', cache=True)
 def faz_id(jobs, zones):
@@ -27,6 +27,10 @@ def faz_id(jobs, zones):
 @orca.column('jobs', 'faz_id', cache=True)
 def faz_id(jobs, zones):
     return misc.reindex(zones.faz_id, jobs.job_zone_id)
+
+@orca.column('jobs', 'growth_center_id', cache=True)
+def growth_center_id(jobs, parcels_geos):
+    return misc.reindex(parcels_geos.growth_center_id, jobs.parcel_id)	
 
 @orca.column('jobs', 'grid_id', cache=True)
 def grid_id(jobs, parcels):

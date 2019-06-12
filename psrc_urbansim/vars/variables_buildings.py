@@ -42,9 +42,13 @@ def building_sqft_per_unit(buildings):
 def building_type_name(buildings, building_types):
     return misc.reindex(building_types.building_type_name, buildings.building_type_id)
 
-@orca.column('buildings', 'city_id', cache=True)
+@orca.column('buildings', 'city_id', cache=True, cache_scope='iteration')
 def city_id(buildings, parcels):
     return misc.reindex(parcels.city_id, buildings.parcel_id)
+
+@orca.column('buildings', 'county_id', cache=True, cache_scope='iteration')
+def county_id(buildings, parcels):
+    return misc.reindex(parcels.county_id, buildings.parcel_id)
 
 @orca.column('buildings', 'employment_density_wwd', cache=True, cache_scope='step')
 def employment_density_wwd(buildings, parcels):
@@ -57,6 +61,10 @@ def employment_retail_wwd(buildings, parcels):
 @orca.column('buildings', 'faz_id', cache=True, cache_scope='iteration')
 def faz_id(buildings, zones):
     return misc.reindex(zones.faz_id, buildings.zone_id)
+
+@orca.column('buildings', 'growth_center_id', cache=True)
+def growth_center_id(buildings, parcels_geos):
+    return misc.reindex(parcels_geos.growth_center_id, buildings.parcel_id)	
 
 @orca.column('buildings', 'has_valid_age_built', cache=True, cache_scope='iteration')
 def has_valid_age_built(buildings, settings):
@@ -201,6 +209,10 @@ def sqft_per_unit_imputed(buildings):
     results[is_non_res] = results[is_non_res].replace(0, results[(is_mf | is_sf | is_condo)].median())
     return results
 
+# @orca.column('buildings', 'target_vacancy_rate', cache=True, cache_scope='iteration')
+# def faz_id(buildings, zones):
+    # return misc.reindex(target_vacancies.target_vacancy_rate, buildings.index)
+
 @orca.column('buildings', 'tractcity_id', cache=True)
 def tractcity_id(buildings, parcels):
     return misc.reindex(parcels.tractcity_id, buildings.parcel_id)
@@ -241,7 +253,7 @@ def vacant_residential_units(buildings, households):
     return buildings.residential_units.sub(
         households.building_id.value_counts(), fill_value=0)
 
-@orca.column('buildings', 'zone_id', cache=True)
+@orca.column('buildings', 'zone_id', cache=True, cache_scope='iteration')
 def zone_id(buildings, parcels):
     return misc.reindex(parcels.zone_id, buildings.parcel_id)
 

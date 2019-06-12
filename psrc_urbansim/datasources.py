@@ -50,6 +50,11 @@ def buildings(store):
     #df = utils.fill_nas_from_config('buildings', df)
     return df
 
+@orca.table('cities', cache=True)
+def cities(store):
+    df = store['cities']
+    return df
+
 @orca.table('buildings_lag1', cache=True)
 def buildings_lag1(store):
     dfname = 'buildings_lag1'

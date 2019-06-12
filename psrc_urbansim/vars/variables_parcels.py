@@ -62,6 +62,10 @@ def building_sqft_wwd(parcels, gridcells, settings):
     from abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("building_sqft_pcl", parcels, gridcells, settings)
 
+@orca.column('parcels', 'county_id', cache=True, cache_scope='iteration')
+def county_id(parcels, cities):
+    return misc.reindex(cities.county_id, parcels.city_id)
+
 @orca.column('parcels', 'capacity_opportunity_non_gov', cache=True, cache_scope='iteration')
 def capacity_opportunity_non_gov(parcels):
     # use as a redevelopment filter (includes vacant parcels)
@@ -129,6 +133,11 @@ def existing_units(parcels):
 @orca.column('parcels', 'faz_id', cache=True)
 def faz_id(parcels, zones):
     return misc.reindex(zones.faz_id, parcels.zone_id)
+
+# @orca.column('parcels', 'growth_center_id', cache=True, cache_scope='iteration')
+# def growth_center_id(parcels, parcels_geos):
+    # print 'in parcels - growth_center_id'
+    # return misc.reindex(parcels_geos.growth_center_id, parcels.faz_id)	
 
 @orca.column('parcels', 'industrial_job_spaces', cache=True, cache_scope='iteration')
 def industrial_job_spaces(parcels, buildings):
