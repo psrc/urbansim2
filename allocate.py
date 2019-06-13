@@ -57,8 +57,8 @@ def tables_in_base_year():
 orca.run([
     # Must run hh/job transition models first in order to 
     # determine the demand for the developer model.
-     "households_transition",     # 
-     "jobs_transition",           #
+     "households_transition_alloc",     # 
+     "jobs_transition_alloc",           #
      "proforma_feasibility_alloc",
      "developer_picker_alloc",
     #"update_household_previous_building_id",

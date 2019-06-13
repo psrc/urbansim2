@@ -225,10 +225,14 @@ def update_persons_jobs(jobs, persons):
                                           (persons.job_id), 0, 1),
                                           index=jobs.index), cast=True)
 
-
 @orca.step('households_transition')
 def households_transition(households, household_controls,
                           year, settings, persons):
+    return run_households_transition(households, household_controls,
+                              year, settings, persons)    
+
+def run_households_transition(households, household_controls,
+                          year, settings, persons, is_allocation = False):
     orig_size_hh = households.local.shape[0]
     orig_size_pers = persons.local.shape[0]
     orig_pers_index = persons.index
@@ -252,46 +256,39 @@ def households_transition(households, household_controls,
     persons = orca.get_table("persons")
 
     # need to make some updates to the persons & households table
-    households.update_col_from_series("is_inmigrant",
-                                      pd.Series(np.where
-                                                (~households.index.isin
-                                                 (orig_hh_index), 1, 0),
-                                                index=households.index),
-                                      cast=True)
-
-    households.update_col_from_series("previous_building_id",
-                                      pd.Series(np.where
-                                                (~households.index.isin
-                                                 (orig_hh_index), -1, households.previous_building_id),
-                                                index=households.index),
-                                      cast=True)
-
+    households = update_local_scope(households, "is_inmigrant", 
+                                    np.where(~households.index.isin (orig_hh_index), 1, 0))
+    households = update_local_scope(households, "previous_building_id", 
+                                    np.where(~households.index.isin (orig_hh_index), -1, households.previous_building_id))
+    
     # new workers dont have jobs yet, set job_id to -1
-    persons.update_col_from_series("job_id",
-                                   pd.Series(np.where(~persons.index.isin
-                                             (orig_pers_index), -1,
-                                             persons.job_id),
-                                             index=persons.index), cast=True)
-
+    persons = update_local_scope(persons, "job_id", 
+                                    np.where(~persons.index.isin(orig_pers_index), -1, persons.job_id))
     # dont know their work at home status yet, set to 0:
-    persons.update_col_from_series("work_at_home",
-                                   pd.Series(np.where
-                                             (~persons.index.isin
-                                              (orig_pers_index), 0,
-                                              persons.work_at_home),
-                                             index=persons.index), cast=True)
+    persons = update_local_scope(persons, "work_at_home", 
+                                    np.where(~persons.index.isin(orig_pers_index), 0, persons.work_at_home))    
     # set non-worker job_id to -2
-    persons.update_col_from_series("job_id",
-                                   pd.Series(np.where
-                                             (persons.employment_status > 0,
-                                              persons.job_id, -2),
-                                             index=persons.index), cast=True)
-    #orca.clear_cache()
+    persons = update_local_scope(persons, "job_id", 
+                                    np.where(persons.employment_status > 0, persons.job_id, -2)) 
+
+    if is_allocation:
+        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        # In allocation mode the subreg_id column is there twice, once as a local column and once as a computed column.
+        # Turn it into computed column and delete the local column.
+        subreg_values = households.local[subreg_geo_id].copy()
+        households.local.drop(subreg_geo_id, axis = 1, inplace = True)
+        orca.add_column("households", subreg_geo_id, subreg_values, cache_scope = "iteration") # ? need to be visible to the developer model
     return res
 
+def update_local_scope(table, column, values):
+    table.update_col_from_series(column, pd.Series(values, index=table.index), cast=True)
+    return table
 
 @orca.step('jobs_transition')
 def jobs_transition(jobs, employment_controls, year, settings):
+    return run_jobs_transition(jobs, employment_controls, year, settings)
+    
+def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation = False):
     orig_size = jobs.local.shape[0]
     config = settings['jobs_transition']
     if len(config.get('remove_columns', [])) > 0:
@@ -299,6 +296,13 @@ def jobs_transition(jobs, employment_controls, year, settings):
     res = utils.full_transition(jobs, employment_controls, year, config, "building_id")
     print "Net change: %s jobs" % (orca.get_table("jobs").local.shape[0]-
                                    orig_size)
+    if is_allocation:
+        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        # In allocation mode the subreg_id column is there twice, once as a local column and once as a computed column.
+        # Turn it into computed column and delete the local column.
+        subreg_values = orca.get_table("jobs").local[subreg_geo_id].copy()
+        orca.get_table("jobs").local.drop(subreg_geo_id, axis = 1, inplace = True)
+        orca.add_column("jobs", subreg_geo_id, subreg_values, cache_scope = "iteration") # ? need to be visible to the developer model    
     return res
 
 
@@ -489,3 +493,11 @@ def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selectio
                         custom_selection_func = proposal_selection,
                         building_sqft_per_job = building_sqft_per_job
                         )
+
+@orca.step('households_transition_alloc')
+def households_transition_alloc(households, household_controls, year, settings, persons):
+    return run_households_transition(households, household_controls, year, settings, persons, is_allocation = True)
+
+@orca.step('jobs_transition_alloc')
+def jobs_transition_alloc(jobs, employment_controls, year, settings):
+    return run_jobs_transition(jobs, employment_controls, year, settings, is_allocation = True)
