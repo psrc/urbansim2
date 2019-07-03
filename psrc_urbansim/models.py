@@ -65,7 +65,7 @@ def hlcm_estimate(households_for_estimation, buildings, parcels, zones):
 
 @orca.step('hlcm_simulate')
 def hlcm_simulate(households, buildings, persons, settings):
-    movers = households.to_frame()
+    movers = households.to_frame(households.local_columns)
     movers = movers[movers.building_id == -1]
     relocated = movers[movers.is_inmigrant < 1]
     res = utils.lcm_simulate("hlcmcoef.yaml", households, buildings,
@@ -457,7 +457,7 @@ def update_household_previous_building_id(households):
 
 @orca.step('update_buildings_lag1')
 def update_buildings_lag1(buildings):
-    df = buildings.to_frame()
+    df = buildings.to_frame(buildings.local_columns)
     orca.add_table('buildings_lag1', df, cache=True)
 
 

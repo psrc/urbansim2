@@ -31,7 +31,7 @@ def household_district_id(persons, zones):
 def household_income_category(persons):
     # calling households_for_estimation.income_category returns an non-indexed  
     # array, so converting to df for now. 
-    df = orca.get_raw_table('households').to_frame()
+    df = orca.get_raw_table('households').to_frame(orca.get_raw_table('households').local_columns + ['income_category'])
     return misc.reindex(df.income_category, persons.household_id)
 
 @orca.column('persons', 'parcel_id', cache=True)

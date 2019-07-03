@@ -123,7 +123,7 @@ def wahcm_simulate(persons, jobs, households, zones):
 @orca.step('wplcm_simulate')
 def wplcm_simulate(persons, households, jobs):
     # can only send in jobs that have a valid building_id, so remove unlocated jobs for now
-    jobs_df = jobs.to_frame()
+    jobs_df = jobs.to_frame(jobs.local_columns)
     jobs_df = jobs_df[jobs_df.building_id>0]
     jobs_df.index.name = 'job_id'
     orca.add_table('located_jobs', jobs_df)
