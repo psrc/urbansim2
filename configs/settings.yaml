@@ -2,6 +2,7 @@
 #store: psrc_estimation_2014.h5
 store: psrc_base_year_2014.h5
 #store: psrc_base_year_2014_buildings_prior_2005.h5
+#store: psrc_base_year_2014.h5
 
 base_year: 2014
 
@@ -30,3 +31,5 @@ income_breaks: [34000, 64000, 102000]
 near_arterial_threshold: 300
 
 abs_min_year_built: 1800
+
+min_overfull_buildings: 2

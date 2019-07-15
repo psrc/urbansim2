@@ -108,7 +108,7 @@ def hlcm_simulate(households, buildings, persons, settings):
 def hlcm_simulate_sample(households, buildings, persons, settings):
 
     res = psrc_dcm.lcm_simulate_sample("hlcmcoef.yaml", households, 'prev_residence_large_area_id', buildings,
-                             None, "building_id", "residential_units",
+                             None, settings['min_overfull_buildings'], "building_id", "residential_units",
                              "vacant_residential_units", cast=True)
     
     # Determine which relocated persons get disconnected from their job
@@ -148,7 +148,7 @@ def hlcm_estimate_sample(households_for_estimation, buildings, persons, settings
     res = psrc_dcm.lcm_estimate_sample("hlcm.yaml", households_for_estimation, 'prev_residence_large_area_id',
                               "building_id", buildings, None,
                               out_cfg="hlcmcoef.yaml")
-    orca.clear_cache()
+    #orca.clear_cache()
 
 # WPLCM
 @orca.step('wplcm_estimate')
@@ -313,7 +313,7 @@ def governmental_jobs_scaling(jobs, buildings, year):
     alloc = AgentAllocationModel('existing', 'number_of_governmental_jobs',
                                  as_delta=False)
     jobs_to_place = jobs.local[np.logical_and(np.in1d(jobs.sector_id,
-                                              [18, 19]), jobs.building_id < 0)]
+                                              [12, 13]), jobs.building_id < 0)]
     print "Locating %s governmental jobs" % len(jobs_to_place)
     loc_ids, loc_allo = alloc.locate_agents(orca.get_table
                                             ("buildings").to_frame
@@ -324,6 +324,7 @@ def governmental_jobs_scaling(jobs, buildings, year):
     jobs.local.loc[loc_ids.index, buildings.index.name] = loc_ids
     print "Number of unplaced governmental jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()
     orca.add_table(jobs.name, jobs.local)
+    orca
 
 @orca.step('create_proforma_config')
 def create_proforma_config(proforma_settings):
@@ -422,6 +423,10 @@ def add_lag_tables(lag, year, base_year, filename, table_names):
                        store[key_template.format(table)], cache=True)
     store.close()
 
+@orca.step('update_misc_building_columns')
+def update_misc_building_columns(buildings):
+    orca.add_column('buildings', 'existing', np.zeros(len(buildings),
+                    dtype="int32"))
 
 @orca.step('update_household_previous_building_id')
 def update_household_previous_building_id(households):
@@ -501,3 +506,4 @@ def households_transition_alloc(households, household_controls, year, settings, 
 @orca.step('jobs_transition_alloc')
 def jobs_transition_alloc(jobs, employment_controls, year, settings):
     return run_jobs_transition(jobs, employment_controls, year, settings, is_allocation = True)
+

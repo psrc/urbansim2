@@ -76,7 +76,7 @@ def lcm_estimate_sample(cfg, choosers, choosers_filter, chosen_fname, buildings,
     return dcm_weighted.fit(choosers, alternatives, chosen_fname, out_cfg)
     
 
-def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, out_fname,
+def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, min_overfull_buildings, out_fname,
                  supply_fname, vacant_fname,
                  enable_supply_correction=None, cast=False):
     """
@@ -194,7 +194,7 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, ou
         print "There are now %d empty units" % vacant_units.sum()
         print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
         # exit early when simulated households are not resulting in any overfull buildings
-        if len(vacant_units[vacant_units < 0]) == existing_overfull_buildings:
+        if len(vacant_units[vacant_units < 0]) <= min_overfull_buildings:
             break
         overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[buildings[vacant_fname] < 0]], columns=['amount'])
         overfull_buildings['amount'] = abs(overfull_buildings['amount']).astype(int)
