@@ -39,7 +39,12 @@ datasets = {'DU_and_HH_by_bld_type_by_faz_by_year': ['DU_SF_19', 'DU_MF_12', 'DU
                                                          'Group3_75_100K','Group4_Over100K'],
             'eoy_vacancy_by_building_type': ['res_4_VR','res_12_VR','res_19_VR','nonres_3_VR',
                                              'nonres_8_VR','nonres_13_VR','nonres_20_VR',
-                                             'nonres_21_VR']
+                                             'nonres_21_VR'],
+            'units_and_nonres_sqft_by_building_type': ['res_4_units','res_12_units','res_19_units',
+                                                       'nonres_3_spaces','nonres_8_spaces','nonres_13_spaces',
+                                                       'nonres_20_spaces','nonres_21_spaces','nonres_3_sqft',
+                                                       'nonres_8_sqft','nonres_13_sqft','nonres_20_sqft',
+                                                       'nonres_21_sqft']
             }
 
 

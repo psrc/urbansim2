@@ -7,11 +7,25 @@ import urbansim_defaults.utils
 #####################
 # COUNTIES VARIABLES (in alphabetic order)
 #####################
-
+# ,,res_19_units,
+# ,,,
+# ,
+# ,,,,
+# 
 
 @orca.column('counties', 'nonres_3_all', cache=True, cache_scope='iteration')
 def nonres_3_all(counties, buildings):
     return ((buildings.job_spaces) * (buildings.building_type_id == 3)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'nonres_3_spaces', cache=True, cache_scope='iteration')
+def nonres_3_spaces(counties, buildings):
+    return (buildings.job_spaces * (buildings.building_type_id == 3)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'nonres_3_sqft', cache=True, cache_scope='iteration')
+def nonres_3_sqft(counties, buildings):
+    return (buildings.non_residential_sqft * (buildings.building_type_id == 3)).\
 	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
 
 @orca.column('counties', 'nonres_3_vac', cache=True, cache_scope='iteration')
@@ -29,6 +43,16 @@ def nonres_8_all(counties, buildings):
     return ((buildings.job_spaces) * (buildings.building_type_id == 8)).\
 	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
 
+@orca.column('counties', 'nonres_8_spaces', cache=True, cache_scope='iteration')
+def nonres_8_spaces(counties, buildings):
+    return (buildings.job_spaces * (buildings.building_type_id == 8)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'nonres_8_sqft', cache=True, cache_scope='iteration')
+def nonres_8_sqft(counties, buildings):
+    return (buildings.non_residential_sqft * (buildings.building_type_id == 8)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
 @orca.column('counties', 'nonres_8_vac', cache=True, cache_scope='iteration')
 def nonres_8_vac(counties, buildings):
     return ((buildings.vacant_job_spaces) * (buildings.building_type_id == 8)).\
@@ -42,6 +66,16 @@ def nonres_8_VR(counties):
 @orca.column('counties', 'nonres_13_all', cache=True, cache_scope='iteration')
 def nonres_13_all(counties, buildings):
     return ((buildings.job_spaces) * (buildings.building_type_id == 13)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'nonres_13_spaces', cache=True, cache_scope='iteration')
+def nonres_13_spaces(counties, buildings):
+    return (buildings.job_spaces * (buildings.building_type_id == 13)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'nonres_13_sqft', cache=True, cache_scope='iteration')
+def nonres_13_sqft(counties, buildings):
+    return (buildings.non_residential_sqft * (buildings.building_type_id == 13)).\
 	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
 
 @orca.column('counties', 'nonres_13_vac', cache=True, cache_scope='iteration')
@@ -59,6 +93,16 @@ def nonres_20_all(counties, buildings):
     return ((buildings.job_spaces) * (buildings.building_type_id == 20)).\
 	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
 
+@orca.column('counties', 'nonres_20_spaces', cache=True, cache_scope='iteration')
+def nonres_20_spaces(counties, buildings):
+    return (buildings.job_spaces * (buildings.building_type_id == 20)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'nonres_20_sqft', cache=True, cache_scope='iteration')
+def nonres_20_sqft(counties, buildings):
+    return (buildings.non_residential_sqft * (buildings.building_type_id == 20)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
 @orca.column('counties', 'nonres_20_vac', cache=True, cache_scope='iteration')
 def nonres_20_vac(counties, buildings):
     return ((buildings.vacant_job_spaces) * (buildings.building_type_id == 20)).\
@@ -72,6 +116,16 @@ def nonres_20_VR(counties):
 @orca.column('counties', 'nonres_21_all', cache=True, cache_scope='iteration')
 def nonres_21_all(counties, buildings):
     return ((buildings.job_spaces) * (buildings.building_type_id == 21)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'nonres_21_spaces', cache=True, cache_scope='iteration')
+def nonres_21_spaces(counties, buildings):
+    return (buildings.job_spaces * (buildings.building_type_id == 21)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'nonres_21_sqft', cache=True, cache_scope='iteration')
+def nonres_21_sqft(counties, buildings):
+    return (buildings.non_residential_sqft * (buildings.building_type_id == 21)).\
 	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
 
 @orca.column('counties', 'nonres_21_vac', cache=True, cache_scope='iteration')
@@ -89,6 +143,11 @@ def res_4_all(counties, buildings):
     return ((buildings.residential_units) * (buildings.building_type_id == 4)).\
 	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
 
+@orca.column('counties', 'res_4_units', cache=True, cache_scope='iteration')
+def res_4_units(counties, buildings):
+    return (buildings.residential_units * (buildings.building_type_id == 4)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
 @orca.column('counties', 'res_4_vac', cache=True, cache_scope='iteration')
 def res_4_vac(counties, buildings):
     return ((buildings.vacant_residential_units) * (buildings.building_type_id == 4)).\
@@ -104,6 +163,11 @@ def res_12_all(counties, buildings):
     return ((buildings.residential_units) * (buildings.building_type_id == 12)).\
 	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
 
+@orca.column('counties', 'res_12_units', cache=True, cache_scope='iteration')
+def res_12_units(counties, buildings):
+    return (buildings.residential_units * (buildings.building_type_id == 12)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
 @orca.column('counties', 'res_12_vac', cache=True, cache_scope='iteration')
 def res_12_vac(counties, buildings):
     return ((buildings.vacant_residential_units) * (buildings.building_type_id == 12)).\
@@ -117,6 +181,11 @@ def res_12_VR(counties, buildings):
 @orca.column('counties', 'res_19_all', cache=True, cache_scope='iteration')
 def res_19_all(counties, buildings):
     return ((buildings.residential_units) * (buildings.building_type_id == 19)).\
+	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'res_19_units', cache=True, cache_scope='iteration')
+def res_19_units(counties, buildings):
+    return (buildings.residential_units * (buildings.building_type_id == 19)).\
 	groupby(buildings.county_id).sum().reindex(counties.index).fillna(0)
 
 @orca.column('counties', 'res_19_vac', cache=True, cache_scope='iteration')
