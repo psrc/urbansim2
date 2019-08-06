@@ -1,4 +1,6 @@
 import os
+os.sys.path.append(r'D:\udst\developer\developer')
+os.sys.path.append(r'D:\udst\developer')
 import numpy as np
 import pandas as pd
 import orca
@@ -341,14 +343,15 @@ def disaggregate_buildings(buildings, bt_units, building_types, forms):
             ratio_name = "res_ratio"
         else:
             ratio_name = "nonres_ratio"
-        subblds = dbuildings.xs(use, level = "building_type_name")
-        if len(subblds) == 0: 
-            continue
-        btdistr = frms.loc[subblds.form, [use, ratio_name]]
-        btdistr.index = subblds.index
-        idx = idx_obj[btdistr.index.values, use, subblds.form]
-        ratio.loc[idx, "ratio"] = btdistr[use].values
-        ratio.loc[idx, "total_ratio"] = btdistr[ratio_name].values
+        if use in dbuildings.index.get_level_values('building_type_name'):
+            subblds = dbuildings.xs(use, level = "building_type_name")
+            if len(subblds) == 0: 
+                continue
+            btdistr = frms.loc[subblds.form, [use, ratio_name]]
+            btdistr.index = subblds.index
+            idx = idx_obj[btdistr.index.values, use, subblds.form]
+            ratio.loc[idx, "ratio"] = btdistr[use].values
+            ratio.loc[idx, "total_ratio"] = btdistr[ratio_name].values
         
     ratio.index = ratio.index.droplevel("form")
     

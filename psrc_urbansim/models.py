@@ -108,7 +108,7 @@ def hlcm_simulate(households, buildings, persons, settings):
 def hlcm_simulate_sample(households, buildings, persons, settings):
 
     res = psrc_dcm.lcm_simulate_sample("hlcmcoef.yaml", households, 'prev_residence_large_area_id', buildings,
-                             None, "building_id", "residential_units",
+                             None, settings['min_overfull_buildings'], "building_id", "residential_units",
                              "vacant_residential_units", cast=True)
     
     # Determine which relocated persons get disconnected from their job
@@ -148,7 +148,7 @@ def hlcm_estimate_sample(households_for_estimation, buildings, persons, settings
     res = psrc_dcm.lcm_estimate_sample("hlcm.yaml", households_for_estimation, 'prev_residence_large_area_id',
                               "building_id", buildings, None,
                               out_cfg="hlcmcoef.yaml")
-    orca.clear_cache()
+    #orca.clear_cache()
 
 # WPLCM
 @orca.step('wplcm_estimate')
@@ -225,17 +225,22 @@ def update_persons_jobs(jobs, persons):
                                           (persons.job_id), 0, 1),
                                           index=jobs.index), cast=True)
 
-
 @orca.step('households_transition')
 def households_transition(households, household_controls,
                           year, settings, persons):
+    return run_households_transition(households, household_controls,
+                              year, settings, persons)    
+
+def run_households_transition(households, household_controls,
+                          year, settings, persons, is_allocation = False):
     orig_size_hh = households.local.shape[0]
     orig_size_pers = persons.local.shape[0]
     orig_pers_index = persons.index
     orig_hh_index = households.index
-    res = utils.full_transition(households, household_controls, year,
-                                settings['households_transition'],
-                                "building_id",
+    config = settings['households_transition']
+    if len(config.get('remove_columns', [])) > 0:
+        household_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)
+    res = utils.full_transition(households, household_controls, year, config, "building_id",
                                 linked_tables={"persons":
                                                (persons.local,
                                                 'household_id')})
@@ -251,54 +256,53 @@ def households_transition(households, household_controls,
     persons = orca.get_table("persons")
 
     # need to make some updates to the persons & households table
-    households.update_col_from_series("is_inmigrant",
-                                      pd.Series(np.where
-                                                (~households.index.isin
-                                                 (orig_hh_index), 1, 0),
-                                                index=households.index),
-                                      cast=True)
-
-    households.update_col_from_series("previous_building_id",
-                                      pd.Series(np.where
-                                                (~households.index.isin
-                                                 (orig_hh_index), -1, households.previous_building_id),
-                                                index=households.index),
-                                      cast=True)
-
+    households = update_local_scope(households, "is_inmigrant", 
+                                    np.where(~households.index.isin (orig_hh_index), 1, 0))
+    households = update_local_scope(households, "previous_building_id", 
+                                    np.where(~households.index.isin (orig_hh_index), -1, households.previous_building_id))
+    
     # new workers dont have jobs yet, set job_id to -1
-    persons.update_col_from_series("job_id",
-                                   pd.Series(np.where(~persons.index.isin
-                                             (orig_pers_index), -1,
-                                             persons.job_id),
-                                             index=persons.index), cast=True)
-
+    persons = update_local_scope(persons, "job_id", 
+                                    np.where(~persons.index.isin(orig_pers_index), -1, persons.job_id))
     # dont know their work at home status yet, set to 0:
-    persons.update_col_from_series("work_at_home",
-                                   pd.Series(np.where
-                                             (~persons.index.isin
-                                              (orig_pers_index), 0,
-                                              persons.work_at_home),
-                                             index=persons.index), cast=True)
+    persons = update_local_scope(persons, "work_at_home", 
+                                    np.where(~persons.index.isin(orig_pers_index), 0, persons.work_at_home))    
     # set non-worker job_id to -2
-    persons.update_col_from_series("job_id",
-                                   pd.Series(np.where
-                                             (persons.employment_status > 0,
-                                              persons.job_id, -2),
-                                             index=persons.index), cast=True)
-    #orca.clear_cache()
+    persons = update_local_scope(persons, "job_id", 
+                                    np.where(persons.employment_status > 0, persons.job_id, -2)) 
+
+    if is_allocation:
+        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        # In allocation mode the subreg_id column is there twice, once as a local column and once as a computed column.
+        # Turn it into computed column and delete the local column.
+        subreg_values = households.local[subreg_geo_id].copy()
+        households.local.drop(subreg_geo_id, axis = 1, inplace = True)
+        orca.add_column("households", subreg_geo_id, subreg_values, cache_scope = "iteration") # ? need to be visible to the developer model
     return res
 
+def update_local_scope(table, column, values):
+    table.update_col_from_series(column, pd.Series(values, index=table.index), cast=True)
+    return table
 
 @orca.step('jobs_transition')
 def jobs_transition(jobs, employment_controls, year, settings):
+    return run_jobs_transition(jobs, employment_controls, year, settings)
+    
+def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation = False):
     orig_size = jobs.local.shape[0]
-    res = utils.full_transition(jobs,
-                                employment_controls,
-                                year,
-                                settings['jobs_transition'],
-                                "building_id")
+    config = settings['jobs_transition']
+    if len(config.get('remove_columns', [])) > 0:
+        employment_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)    
+    res = utils.full_transition(jobs, employment_controls, year, config, "building_id")
     print "Net change: %s jobs" % (orca.get_table("jobs").local.shape[0]-
                                    orig_size)
+    if is_allocation:
+        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        # In allocation mode the subreg_id column is there twice, once as a local column and once as a computed column.
+        # Turn it into computed column and delete the local column.
+        subreg_values = orca.get_table("jobs").local[subreg_geo_id].copy()
+        orca.get_table("jobs").local.drop(subreg_geo_id, axis = 1, inplace = True)
+        orca.add_column("jobs", subreg_geo_id, subreg_values, cache_scope = "iteration") # ? need to be visible to the developer model    
     return res
 
 
@@ -309,7 +313,7 @@ def governmental_jobs_scaling(jobs, buildings, year):
     alloc = AgentAllocationModel('existing', 'number_of_governmental_jobs',
                                  as_delta=False)
     jobs_to_place = jobs.local[np.logical_and(np.in1d(jobs.sector_id,
-                                              [18, 19]), jobs.building_id < 0)]
+                                              [12, 13]), jobs.building_id < 0)]
     print "Locating %s governmental jobs" % len(jobs_to_place)
     loc_ids, loc_allo = alloc.locate_agents(orca.get_table
                                             ("buildings").to_frame
@@ -320,6 +324,7 @@ def governmental_jobs_scaling(jobs, buildings, year):
     jobs.local.loc[loc_ids.index, buildings.index.name] = loc_ids
     print "Number of unplaced governmental jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()
     orca.add_table(jobs.name, jobs.local)
+    orca
 
 @orca.step('create_proforma_config')
 def create_proforma_config(proforma_settings):
@@ -328,21 +333,13 @@ def create_proforma_config(proforma_settings):
     config = psrcdev.update_sqftproforma(user_cfg, proforma_settings)
     yamlio.convert_to_yaml(config, "proforma.yaml")
     
+
 @orca.step('proforma_feasibility')
 def proforma_feasibility(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func, set_ave_unit_size_func, settings):
 
     return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                              parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model", {}))
-
-@orca.step('proforma_feasibility_CY') # for running in control years
-def proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
-                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
-
-    return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
-                             parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model_CY", {}))
-
-
 
 def run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func, set_ave_unit_size_func, model_settings):
@@ -392,29 +389,7 @@ def developer_picker(feasibility, buildings, parcels, year, target_vacancy, prop
                         building_sqft_per_job = building_sqft_per_job
                         )
     
-@orca.step('developer_picker_CY') # for running in control years
-def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selection_probabilities, 
-                        proposal_selection, building_sqft_per_job, settings):
-    subreg_geo_id = settings.get("control_geography_id", "city_id")
-    new_buildings = psrcdev.run_developer_CY(
-        subreg_geo_id = subreg_geo_id,
-        forms = [],
-                        agents = None,
-                        buildings = buildings,
-                        supply_fname = ["residential_units", "job_spaces"],
-                        feasibility = feasibility,
-                        parcel_size = parcels.parcel_size,
-                        ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
-                                         "multi_family_residential": parcels.ave_unit_size_mf,
-                                         "condo_residential": parcels.ave_unit_size_condo},
-                        cfg = 'developer_CY.yaml',
-                        year = year,
-                        add_more_columns_callback = add_extra_columns,
-                        #profit_to_prob_func = proposal_selection_probabilities,
-                        custom_selection_func = proposal_selection,
-                        building_sqft_per_job = building_sqft_per_job
-                        )
-    
+ 
 
 def random_type(form):
     form_to_btype = orca.get_injectable("form_to_btype")
@@ -448,6 +423,10 @@ def add_lag_tables(lag, year, base_year, filename, table_names):
                        store[key_template.format(table)], cache=True)
     store.close()
 
+@orca.step('update_misc_building_columns')
+def update_misc_building_columns(buildings):
+    orca.add_column('buildings', 'existing', np.zeros(len(buildings),
+                    dtype="int32"))
 
 @orca.step('update_household_previous_building_id')
 def update_household_previous_building_id(households):
@@ -464,3 +443,67 @@ def update_buildings_lag1(buildings):
 #@orca.step('clear_cache')
 ##def clear_cache():
 #    orca.clear_cache()
+
+##############################
+### Models for ALLOCATION mode
+##############################
+@orca.step('proforma_feasibility_alloc')
+def proforma_feasibility_alloc(isCY, parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
+    if isCY:
+        print "Running proforma_feasibility for control year"
+        return proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings)
+    print "Running proforma_feasibility for non-control year"
+    return proforma_feasibility(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings)
+
+@orca.step('proforma_feasibility_CY') # for running in control years, should have relaxed redevelopment filter
+def proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
+
+    return run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
+                             parcel_is_allowed_func, set_ave_unit_size_func, settings.get("feasibility_model_CY", {}))
+
+@orca.step('developer_picker_alloc') 
+def developer_picker_alloc(isCY, feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, 
+                        proposal_selection, building_sqft_per_job, settings):
+    if isCY:
+        print "Running developer_picker for control year"
+        return developer_picker_CY(feasibility, buildings, parcels, year, proposal_selection_probabilities, 
+                        proposal_selection, building_sqft_per_job, settings)
+    print "Running developer_picker for non-control year"
+    return developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, 
+                        proposal_selection, building_sqft_per_job)
+    
+@orca.step('developer_picker_CY') # for running in control years, runs for each subreg separately
+def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selection_probabilities, 
+                        proposal_selection, building_sqft_per_job, settings):
+    subreg_geo_id = settings.get("control_geography_id", "city_id")
+    new_buildings = psrcdev.run_developer_CY(
+        subreg_geo_id = subreg_geo_id,
+        forms = [],
+                        agents = None,
+                        buildings = buildings,
+                        supply_fname = ["residential_units", "job_spaces"],
+                        feasibility = feasibility,
+                        parcel_size = parcels.parcel_size,
+                        ave_unit_size = {"single_family_residential": parcels.ave_unit_size_sf, 
+                                         "multi_family_residential": parcels.ave_unit_size_mf,
+                                         "condo_residential": parcels.ave_unit_size_condo},
+                        cfg = 'developer_CY.yaml',
+                        year = year,
+                        add_more_columns_callback = add_extra_columns,
+                        #profit_to_prob_func = proposal_selection_probabilities,
+                        custom_selection_func = proposal_selection,
+                        building_sqft_per_job = building_sqft_per_job
+                        )
+
+@orca.step('households_transition_alloc')
+def households_transition_alloc(households, household_controls, year, settings, persons):
+    return run_households_transition(households, household_controls, year, settings, persons, is_allocation = True)
+
+@orca.step('jobs_transition_alloc')
+def jobs_transition_alloc(jobs, employment_controls, year, settings):
+    return run_jobs_transition(jobs, employment_controls, year, settings, is_allocation = True)
+

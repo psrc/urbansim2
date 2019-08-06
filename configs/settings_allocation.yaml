@@ -1,5 +1,15 @@
+store: psrc_base_year_2014_alloc.h5
 control_geography_id: city_id
 
 feasibility_model_CY:
   development_filter: capacity_opportunity_non_gov_relaxed
   config_file: proforma.yaml
+
+households_transition:
+  remove_columns: []
+  add_columns: ["city_id"] # non-local (computed) columns
+
+jobs_transition:
+  remove_columns: []
+  add_columns: ["city_id"] # non-local (computed) columns 
+  

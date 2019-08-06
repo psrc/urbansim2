@@ -29,11 +29,25 @@ def tables_in_base_year():
                          yamlio.yaml_to_dict(str_or_buffer=os.path.join(misc.configs_dir(), 
                                                             "settings.yaml"))['store']), mode="r")
      store_table_names = orca.get_injectable('store_table_names_dict')
-     return [t for t in orca.list_tables() if t in h5store or store_table_names.get(t, None) in h5store]
+     return [t for t in orca.list_tables() if t in h5store or store_table_names.get(t, ' ') in h5store]
 
 
 orca.run([
 #    "add_lag1_tables",
+    "proforma_feasibility",
+    "developer_picker",
+    #"clear_cache",
+    #"wahcm_estimate",
+    #"delete_invalid_households_persons",
+    #"base_year_wplcm_simulate",
+    "update_misc_building_columns",
+    "update_household_previous_building_id",
+    "update_buildings_lag1",
+    "repmres_simulate",          # residential REPM
+    "repmnr_simulate",          # non-residential REPM           
+    "households_transition",     # households transition
+    "households_relocation",     # households relocation model
+    "hlcm_simulate_sample",
 #    "proforma_feasibility",
 #    "developer_picker",
     #"wahcm_estimate",
@@ -50,12 +64,14 @@ orca.run([
     "jobs_transition",           # jobs transition
     "jobs_relocation",
     #'update_persons_jobs',           # jobs relocation model
-    #"elcm_simulate",             # employment location choice
+    "elcm_simulate",             # employment location choice
     #"governmental_jobs_scaling",
-    #"wahcm_simulate",
-    #"wplcm_simulate",
+    "wahcm_simulate",
+    "wplcm_simulate",
     #"clear_cache"
-], iter_vars=[2015, 2017, 2020, 2025, 2030, 2035, 2040, 2045, 2050], data_out=outfile, out_base_tables=tables_in_base_year(),
+
+    ##"clear_cache"
+], iter_vars= range(2015, 2041), data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 
 
