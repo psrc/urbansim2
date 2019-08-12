@@ -507,3 +507,44 @@ def households_transition_alloc(households, household_controls, year, settings, 
 def jobs_transition_alloc(jobs, employment_controls, year, settings):
     return run_jobs_transition(jobs, employment_controls, year, settings, is_allocation = True)
 
+@orca.step('households_relocation_alloc')
+def households_relocation_alloc(isCY, households, household_relocation_rates):
+    if isCY:
+        print "No households relocation in control year"
+        print "%s households are unplaced in total." % ((households.local["building_id"] <= 0).sum())
+    else:
+        print "Running households relocation for non-control year"
+        households_relocation(households, household_relocation_rates)
+
+@orca.step('jobs_relocation_alloc')
+def jobs_relocation_alloc(isCY, jobs, job_relocation_rates):
+    if isCY:
+        print "No jobs relocation in control year"
+        print "%s jobs are unplaced in total." % ((jobs.local["building_id"] <= 0).sum())
+    else:
+        print "Running jobs relocation for non-control year"
+        jobs_relocation(jobs, job_relocation_rates)
+
+@orca.step('hlcm_simulate_alloc')
+def hlcm_simulate_alloc(isCY, households, buildings, persons, settings):
+    if isCY:
+        print "Running HLCM for control year"
+        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        psrcutils.lcm_simulate_CY(subreg_geo_id, "hlcmcoef.yaml", households, buildings, None, "building_id", "residential_units",
+                             "vacant_residential_units", cast=True)
+    else:
+        print "Running HLCM for non-control year"
+        hlcm_simulate_sample(households, buildings, persons, settings)
+
+
+@orca.step('elcm_simulate_alloc')
+def elcm_simulate_alloc(isCY, jobs, buildings, parcels, zones, gridcells, settings):
+    if isCY:
+        print "Running ELCM for control year"
+        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        psrcutils.lcm_simulate_CY(subreg_geo_id, "elcmcoef.yaml", jobs, buildings, [parcels, zones, gridcells], 
+                                  "building_id", "job_spaces", "vacant_job_spaces", cast=True)
+    else:
+        print "Running ELCM for non-control year"
+        elcm_simulate(jobs, buildings, parcels, zones, gridcells)
+

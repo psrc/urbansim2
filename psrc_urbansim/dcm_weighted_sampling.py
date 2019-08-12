@@ -202,9 +202,12 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
         new_buildings_units = pd.DataFrame(new_buildings, columns=['building_id'])
 
         overfull_buildings_units = new_buildings_units[new_buildings_units.building_id.isin(overfull_buildings.building_id)]
-
+        print "    with %d overfull new units" % len(overfull_buildings_units)
+        if len(overfull_buildings_units) == 0:
+            break
         resim_choosers = bootstrap(overfull_buildings_units, overfull_buildings, 'building_id', 'amount')
         multi_index = pd.MultiIndex.from_arrays([resim_choosers.index, resim_choosers['building_id']])
+        # HS: Does this sets probabilities for all overfilled buildings to 0?
         s = pd.Series(0, index=multi_index)
         probabilities.update(s)
         resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(resim_choosers.index)]
