@@ -95,6 +95,10 @@ def buildings(store, year, base_year):
 def zones(store, year, base_year):
     return find_table_in_store('zones', store, year, base_year)
 
+@orca.table('zoning_heights', cache=True, cache_scope='iteration')
+def zoning_heights(store, year, base_year):
+    return find_table_in_store('zoning_heights', store, year, base_year)
+
 @orca.table('households', cache=True, cache_scope='iteration')
 def households(store, year, base_year):
     return find_table_in_store('households', store, year, base_year)

@@ -190,6 +190,24 @@ def max_developable_capacity(parcels, parcel_zoning):
     values.loc[:, "max_far_from_dua"] = values.max_du / 43560.0 * med_bld_sqft_per_du
     return (values[["max_far", "max_far_from_dua"]].max(axis = 1)*parcels.parcel_sqft).reindex(parcels.index).fillna(0)
 
+@orca.column('parcels', 'max_developable_nonresidential_capacity', cache=True, cache_scope='forever')
+def max_developable_nonresidential_capacity(parcels, parcel_zoning):
+    #med_bld_sqft_per_du = int((parcels.building_sqft_pcl / parcels.residential_units).quantile())
+    #med_bld_sqft_per_du = 1870 # median of building sqft per unit in 2014
+    #values = parcel_zoning.local.loc[:, ["max_du", "max_far"]]
+    values = parcel_zoning.local.loc[:, ["max_far"]]
+    #values.loc[:, "max_far_from_dua"] = values.max_du / 43560.0 * med_bld_sqft_per_du
+    return (values.max_far * parcels.parcel_sqft).reindex(parcels.index).fillna(0)
+	#return (parcel_zoning.max_far * parcels.parcel_sqft).reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'max_developable_residential_capacity', cache=True, cache_scope='forever')
+def max_developable_residential_capacity(parcels, parcel_zoning):
+    #med_bld_sqft_per_du = int((parcels.building_sqft_pcl / parcels.residential_units).quantile())
+    med_bld_sqft_per_du = 1870 # median of building sqft per unit in 2014
+    values = parcel_zoning.local.loc[:, ["max_du"]]
+    values.loc[:, "max_far_from_dua"] = values.max_du / 43560.0 * med_bld_sqft_per_du
+    return (values.max_far_from_dua * parcels.parcel_sqft).reindex(parcels.index).fillna(0)
+
 @orca.column('parcels', 'max_dua', cache=True, cache_scope='forever')
 def max_dua(parcels, zoning_heights):
     return misc.reindex(zoning_heights.max_du, parcels.plan_type_id)

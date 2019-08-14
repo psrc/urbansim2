@@ -51,7 +51,10 @@ datasets = {'DU_and_HH_by_bld_type_by_faz_by_year': ['DU_SF_19', 'DU_MF_12', 'DU
 geography_alias = {'cities': 'city', 'zones': 'zone', 'fazes': 'faz',
                    'counties': 'county', 'growth_centers': 'growth_center'}
 
-table_alias = {'number_of_jobs': 'employment', 'number_of_households': 'households'}
+table_alias = {'number_of_jobs': 'employment', 'number_of_households': 'households',
+               'max_developable_capacity': 'max_dev_capacity',
+               'max_developable_nonresidential_capacity': 'max_dev_nonresidential_capacity',
+               'max_developable_residential_capacity': 'max_dev_residential_capacity'}
 
 # create_csv() will export the a .csv file from the given data and with the
 # given file name.
