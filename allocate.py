@@ -56,32 +56,45 @@ def tables_in_base_year():
 # models for control years
 orca.run([
      # REPM
+     #######
      #"repmres_simulate",          # residential REPM
      #"repmnr_simulate",           # non-residential REPM
      
      # Transition
+     #######
      # (Must run hh/job transition models first in order to 
      # determine the demand for the developer model.)
      "households_transition_alloc",     # 
      "jobs_transition_alloc",           #
      
      # Developer 
+     #######
      #"proforma_feasibility_alloc",
      #"developer_picker_alloc",
      
      # Misc
+     #######
      "update_misc_building_columns",
      "update_household_previous_building_id",
      "update_buildings_lag1",
      
      # Relocate and place households
+     #######
      #"households_relocation_alloc",
      #"hlcm_simulate_alloc",
     
     # Relocate and place jobs
+    #######
      "jobs_relocation_alloc",     
     # "elcm_simulate_alloc",             # ELCM
-    "governmental_jobs_scaling_alloc",
+    #"governmental_jobs_scaling_alloc",
+
+    # scaling of unplaced HHs and jobs in control years
+    'scaling_unplaced_households',
+    'scaling_unplaced_jobs',
+    
+    # Workplace models
+    #######
     #"wahcm_simulate",
     #"wplcm_simulate",
     #"clear_cache"

@@ -532,7 +532,6 @@ def households_relocation_alloc(isCY, households, household_relocation_rates):
         print "No households relocation in control year"
         print "%s households are unplaced in total." % ((households.local["building_id"] <= 0).sum())
     else:
-        print "Running households relocation for non-control year"
         households_relocation(households, household_relocation_rates)
 
 @orca.step('jobs_relocation_alloc')
@@ -541,41 +540,50 @@ def jobs_relocation_alloc(isCY, jobs, job_relocation_rates):
         print "No jobs relocation in control year"
         print "%s jobs are unplaced in total." % ((jobs.local["building_id"] <= 0).sum())
     else:
-        print "Running jobs relocation for non-control year"
         jobs_relocation(jobs, job_relocation_rates)
 
 @orca.step('hlcm_simulate_alloc')
 def hlcm_simulate_alloc(isCY, households, buildings, persons, settings):
     if isCY:
-        print "Running HLCM for control year"
         subreg_geo_id = settings.get("control_geography_id", "city_id")
         psrcutils.lcm_simulate_CY(subreg_geo_id, "hlcmcoef.yaml", households, buildings, None, "building_id", "residential_units",
                              "vacant_residential_units", cast=True)
     else:
-        print "Running HLCM for non-control year"
         hlcm_simulate_sample(households, buildings, persons, settings)
 
 
 @orca.step('elcm_simulate_alloc')
 def elcm_simulate_alloc(isCY, jobs, buildings, parcels, zones, gridcells, settings):
     if isCY:
-        print "Running ELCM for control year"
         subreg_geo_id = settings.get("control_geography_id", "city_id")
         psrcutils.lcm_simulate_CY(subreg_geo_id, "elcmcoef.yaml", jobs, buildings, [parcels, zones, gridcells], 
                                   "building_id", "job_spaces", "vacant_job_spaces", cast=True)
     else:
-        print "Running ELCM for non-control year"
         elcm_simulate(jobs, buildings, parcels, zones, gridcells)
 
 @orca.step('governmental_jobs_scaling_alloc')
 def governmental_jobs_scaling_alloc(isCY, jobs, buildings, year, settings):
     if isCY:
-        print "Running governmental scaling for control year"
         jobs_to_place_bool = np.logical_and(np.in1d(jobs.sector_id,
                                                   [12, 13]), jobs.building_id < 0)
-        print "Locating %s governmental jobs" % sum(jobs_to_place_bool)
+        print "Locating %s governmental jobs by subregion" % sum(jobs_to_place_bool)
         loc_ids = run_scaling('number_of_governmental_jobs', jobs, jobs_to_place_bool, buildings, year, settings, is_allocation = True)
         print "Number of unplaced governmental jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()        
     else:
-        print "Running governmental scaling for non-control year"
         governmental_jobs_scaling(jobs, buildings, year, settings)
+
+@orca.step('scaling_unplaced_jobs')
+def scaling_unplaced_jobs(isCY, jobs, buildings, year, settings):
+    if isCY:
+        jobs_to_place_bool = jobs.building_id < 0
+        print "Locating %s unplaced jobs by subregion" % sum(jobs_to_place_bool)
+        loc_ids = run_scaling('number_of_jobs', jobs, jobs_to_place_bool, buildings, year, settings, is_allocation = True)
+        print "Number of unplaced jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()        
+
+@orca.step('scaling_unplaced_households')
+def scaling_unplaced_households(isCY, households, buildings, year, settings):
+    if isCY:
+        hhs_to_place_bool = households.building_id < 0
+        print "Locating %s unplaced households by subregion" % sum(hhs_to_place_bool)
+        loc_ids = run_scaling('number_of_households', households, hhs_to_place_bool, buildings, year, settings, is_allocation = True)
+        print "Number of unplaced households: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()        
