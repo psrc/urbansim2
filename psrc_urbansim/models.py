@@ -239,7 +239,9 @@ def run_households_transition(households, household_controls,
     orig_hh_index = households.index
     config = settings['households_transition']
     if len(config.get('remove_columns', [])) > 0:
-        household_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)
+        for column in [config.get('remove_columns', [])]:
+            if column in household_controls.local.columns:
+                household_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)
     res = utils.full_transition(households, household_controls, year, config, "building_id",
                                 linked_tables={"persons":
                                                (persons.local,
@@ -292,7 +294,10 @@ def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation
     orig_size = jobs.local.shape[0]
     config = settings['jobs_transition']
     if len(config.get('remove_columns', [])) > 0:
-        employment_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)    
+            for column in [config.get('remove_columns', [])]:
+                if column in employment_controls.local.columns:
+                    employment_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)
+        #employment_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)    
     res = utils.full_transition(jobs, employment_controls, year, config, "building_id")
     print "Net change: %s jobs" % (orca.get_table("jobs").local.shape[0]-
                                    orig_size)

@@ -26,6 +26,7 @@ from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_n
 import logging
 from urbansim.utils.logutil import log_start_finish
 import timeit
+from psrc_urbansim.utils import resim_overfull
 
 logger = logging.getLogger(__name__)
 
@@ -186,7 +187,7 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
                               index=new_units.index)
     choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
 
-# re-simulate households that are in overfull buildings
+## re-simulate households that are in overfull buildings
     for x in range(0, 100):
         vacant_units = buildings[vacant_fname]
         print "Re-simulating housholds in overfull buildings"
@@ -203,11 +204,11 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
 
         overfull_buildings_units = new_buildings_units[new_buildings_units.building_id.isin(overfull_buildings.building_id)]
 
-        resim_choosers = bootstrap(overfull_buildings_units, overfull_buildings, 'building_id', 'amount')
-        multi_index = pd.MultiIndex.from_arrays([resim_choosers.index, resim_choosers['building_id']])
-        s = pd.Series(0, index=multi_index)
-        probabilities.update(s)
-        resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(resim_choosers.index)]
+        overfull_buildings_units['prob'] = 0
+        overfull_buildings_units.reset_index(inplace = True)
+        overfull_buildings_units.set_index(['chooser_id', 'building_id'], inplace = True)
+        probabilities.update(overfull_buildings_units.prob)
+        resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(overfull_buildings_units.index.get_level_values('chooser_id'))]
 
         def mkchoice(probs):
                 probs.reset_index(0, drop=True, inplace=True)
@@ -218,8 +219,18 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
         
         new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
                               index=new_units.index)
-        
         choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
+    #for x in range(0, 100):
+    #    vacant_units = buildings[vacant_fname] 
+    #    if len(vacant_units[vacant_units < 0]) <= min_overfull_buildings:
+    #        break   
+    #    choices = resim_overfull(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities)
+    #    new_units.update(choices)
+       
+    #    new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
+    #                          index=new_units.index)
+    #    choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
+    #resim_overfull(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units)
 
     if enable_supply_correction is not None:
         new_prices = buildings[price_col]
@@ -235,35 +246,6 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
     print "    and there are now %d empty units" % vacant_units.sum()
     print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
 
-def bootstrap(data, freq, class_fname, freq_fname):
-    freq = freq.set_index(class_fname)
-
-    # This function will be applied on each group of instances of the same
-    # class in `data`.
-    def sampleClass(classgroup):
-        #print classgroup
-        cls = classgroup[class_fname].iloc[0]
-        
-        nDesired = freq[freq_fname][cls]
-        nRows = len(classgroup)
-
-        nSamples = min(nRows, nDesired)
-        return classgroup.sample(nSamples)
-
-    samples = data.groupby(class_fname).apply(sampleClass)
-
-    # If you want a new index with ascending values
-    # samples.index = range(len(samples))
-
-    # If you want an index which is equal to the row in `data` where the sample
-    # came from
-    samples.index = samples.index.get_level_values(1)
-
-    # If you don't change it then you'll have a multiindex with level 0
-    # being the class and level 1 being the row in `data` where
-    # the sample came from.
-
-    return samples
 
 def large_area_sample_weights(units, movers):
 
