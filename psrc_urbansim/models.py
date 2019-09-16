@@ -68,7 +68,8 @@ def hlcm_simulate(households, buildings, persons, settings):
     movers = households.to_frame(households.local_columns)
     movers = movers[movers.building_id == -1]
     relocated = movers[movers.is_inmigrant < 1]
-    res = utils.lcm_simulate("hlcmcoef.yaml", households, buildings,
+    res = psrc_dcm.lcm_simulate("hlcmcoef.yaml", households, buildings,
+                                settings['min_overfull_buildings'],
                              None, "building_id", "residential_units",
                              "vacant_residential_units", cast=True)
     #orca.clear_cache()
