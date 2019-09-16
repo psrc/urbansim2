@@ -99,10 +99,12 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
                  cast=False,
                  alternative_ratio=2.0):
     """
-    Simulate the location choices for the specified choosers
+    Simulate the location choices for the specified choosers for each subregion separately
 
     Parameters
     ----------
+    subreg_geo_id: string
+        Name of the subregion's identifier.
     cfg : string
         The name of the yaml config file from which to read the location
         choice model
@@ -174,6 +176,8 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
     subregs = np.unique(all_movers[subreg_geo_id])
     lcm = yaml_to_class(cfg).from_yaml(str_or_buffer=cfg)
     orig_sample_size = lcm.prediction_sample_size
+    
+    # run LCM for each subregion
     for subreg in subregs:
         movers = choosers_df[np.logical_and(choosers_df[out_fname] == -1, choosers_df[subreg_geo_id] == subreg)]
         this_sreg_units = units[units[subreg_geo_id] == subreg]
@@ -187,11 +191,14 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
             print "Skipping LCM"
             next
 
-        # adjust sampling size if two few alternatives
+        # adjust sampling size if too few alternatives
         if len(this_sreg_units) < orig_sample_size:
             _update_prediction_sample_size(lcm, len(this_sreg_units))
         else:
             _update_prediction_sample_size(lcm, orig_sample_size)
+            
+        # predict
+        # TODO: need to include repeated choice for overfilled buildings
         new_units = lcm.predict(movers, this_sreg_units)
         print("Assigned %d choosers to new units" % len(new_units.dropna()))        
 
