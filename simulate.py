@@ -34,8 +34,8 @@ def tables_in_base_year():
 
 orca.run([
 #    "add_lag1_tables",
-    "proforma_feasibility",
-    "developer_picker",
+    #"proforma_feasibility",
+    #"developer_picker",
     #"clear_cache",
     #"wahcm_estimate",
     #"delete_invalid_households_persons",
@@ -47,7 +47,7 @@ orca.run([
     "repmnr_simulate",          # non-residential REPM           
     "households_transition",     # households transition
     "households_relocation",     # households relocation model
-    "hlcm_simulate_sample",
+    "hlcm_simulate",
 #    "proforma_feasibility",
 #    "developer_picker",
     #"wahcm_estimate",
