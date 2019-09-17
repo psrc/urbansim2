@@ -1,15 +1,63 @@
-store: simresult20190625.h5
+store: simresult20190218.h5
 
 base_year: 2014
-years: [2014, 2017, 2020]
+years: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050]
 
 indicators:
+    number_of_households:
+        dataset: [zones, fazes, cities, alldata, growth_centers]
+        
+    population:
+        dataset: [zones, fazes, cities, alldata, growth_centers]
+
+    number_of_jobs:
+        dataset: [zones, fazes, cities, alldata, growth_centers]
+
+    residential_units:
+        dataset: [zones, fazes, cities, alldata, growth_centers]
+
+    building_sqft:
+        dataset: [zones, fazes, cities, growth_centers]
+
     nonres_sqft:
         dataset: [zones, fazes, cities, growth_centers]
 
     max_developable_capacity:
-        dataset: [cities]
+        dataset: [zones, fazes, cities, growth_centers]
         
+    max_developable_nonresidential_capacity:
+        dataset: [zones, fazes, cities, growth_centers]
+
+    max_developable_residential_capacity:
+        dataset: [zones, fazes, cities, growth_centers]
+
 dataset_tables:
     DU_and_HH_by_bld_type_by_faz_by_year:
         dataset: [fazes]
+
+    employment_by_aggr_sector:
+        dataset: [zones, cities]
+
+    persons_by_5year_age_groups:
+        dataset: [alldata]
+
+    persons_by_age_groups_of_interest:
+        dataset: [alldata]
+
+    regional_total_hhs_by_30_60_90_in_14dollars_groups:
+        dataset: [alldata]
+
+    regional_total_hhs_by_new_14incomegroups:
+        dataset: [alldata]
+
+    pwtyp:
+        dataset: [alldata]
+
+    pptyp:
+        dataset: [alldata]
+
+    eoy_vacancy_by_building_type:
+        dataset: [counties]
+
+    units_and_nonres_sqft_by_building_type:
+        dataset: [counties]

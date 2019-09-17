@@ -1,5 +1,6 @@
 import os
 import orca
+import numpy as np
 import pandas as pd
 from urbansim.utils import misc
 
@@ -57,8 +58,8 @@ def find_table_in_store(table, store, year, base_year):
 #        else:
 ##        if year <> base_year:
 ##            print 'Could not find table /%s/%s. Instead using the base table' % (year, table)
-##        print 'returning /%s/%s' % ("base", table) #for debugging purposes only
-##        print store['%s/%s' % ("base", table)].head()
+#        print 'returning /%s/%s' % ("base", table) #for debugging purposes only
+#        print store['%s/%s' % ("base", table)].head()
 #            return store['/%s/%s' % ("base", table)]
         return store['/%s/%s' % ("base", table)]
     
@@ -74,12 +75,12 @@ def find_cities_in_store(table, store, year, base_year, csv_store):
     else:
         if (table == 'cities') and (('/%s/%s' % ("base", table)) not in store_table_list(store)):
             # Return table cities from look up table
-            print 'returning Cities table from parcels_geo'
+            #print 'returning Cities table from parcels_geo'
             df_parcels_geo = pd.read_csv(os.path.join(csv_store, 'parcels_geos.csv'),
                    index_col='parcel_id')
             return df_parcels_geo.groupby(df_parcels_geo.city_id).first()
         else:
-            print 'returning cities from simresults'
+            #print 'returning cities from simresults'
 #        if year <> base_year:
 #            print 'Could not find table /%s/%s. Instead using the base table' % (year, table)
 #        print 'returning /%s/%s' % ("base", table) #for debugging purposes only
@@ -97,6 +98,8 @@ def zones(store, year, base_year):
 
 @orca.table('zoning_heights', cache=True, cache_scope='iteration')
 def zoning_heights(store, year, base_year):
+#    zoning_heights_table = find_table_in_store('zoning_heights', store, year, base_year)
+#    print zoning_heights_table.head()
     return find_table_in_store('zoning_heights', store, year, base_year)
 
 @orca.table('households', cache=True, cache_scope='iteration')
@@ -110,6 +113,24 @@ def jobs(store, year, base_year):
 @orca.table('parcels', cache=True, cache_scope='iteration')
 def parcels(store, year, base_year):
     return find_table_in_store('parcels', store, year, base_year)
+
+@orca.table('parcel_zoning', cache=True, cache_scope='iteration')
+def parcel_zoning(store, parcels, zoning_heights):
+    pcl = pd.DataFrame(parcels['plan_type_id'])
+    pcl['parcel_id'] = pcl.index
+    zh = pd.DataFrame(zoning_heights.local)
+    zh['plan_type_id'] = zh.index
+    #print zh['plan_type_id'].head()
+    # merge parcels with zoning_heights
+    zoning = pd.merge(pcl, zh, how='left', on=['plan_type_id']) 
+    #zoning = pd.merge(pcl, zh, how='left', left_on=['plan_type_id'], right_index=True) 
+#    print 'zoning table in parcel_zoning'
+#    print zoning.head()
+#    print zoning.info()
+    # replace NaNs with 0 for records not found in zoning_heights (e.g. plan_type_id 1000) or constraints (e.g. plan_type_id 0)
+    for col in zoning.columns:
+        zoning[col] = np.nan_to_num(zoning[col])
+    return zoning.set_index(['parcel_id'])
 
 @orca.table('fazes', cache=True, cache_scope='iteration')
 def fazes(store, year, base_year):

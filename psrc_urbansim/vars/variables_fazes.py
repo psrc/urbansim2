@@ -71,6 +71,21 @@ def HH_MH_11(fazes, households):
 def HH_Total(fazes):
    return fazes.number_of_households
 
+@orca.column('fazes', 'max_developable_capacity', cache=True, cache_scope='iteration')
+def max_developable_capacity(fazes, parcels):
+    return parcels.max_developable_capacity.groupby(parcels.faz_id).sum().\
+	        reindex(fazes.index).fillna(0)
+
+@orca.column('fazes', 'max_developable_nonresidential_capacity', cache=True, cache_scope='iteration')
+def max_developable_nonresidential_capacity(fazes, parcels):
+    return parcels.max_developable_nonresidential_capacity.groupby(parcels.faz_id).sum().\
+	        reindex(fazes.index).fillna(0)
+
+@orca.column('fazes', 'max_developable_residential_capacity', cache=True, cache_scope='iteration')
+def max_developable_residential_capacity(fazes, parcels):
+    return parcels.max_developable_residential_capacity.groupby(parcels.faz_id).sum().\
+	        reindex(fazes.index).fillna(0)
+
 @orca.column('fazes', 'nonres_sqft', cache=True, cache_scope='iteration')
 def nonres_sqft(fazes, buildings):
     return buildings.non_residential_sqft.groupby(buildings.faz_id).sum().\

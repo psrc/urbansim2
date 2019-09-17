@@ -134,6 +134,21 @@ def Manuf(zones, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 3)).groupby(jobs.job_zone_id).sum().\
 	        reindex(zones.index).fillna(0)
 
+@orca.column('zones', 'max_developable_capacity', cache=True, cache_scope='iteration')
+def max_developable_capacity(zones, parcels):
+    return parcels.max_developable_capacity.groupby(parcels.zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
+@orca.column('zones', 'max_developable_nonresidential_capacity', cache=True, cache_scope='iteration')
+def max_developable_nonresidential_capacity(zones, parcels):
+    return parcels.max_developable_nonresidential_capacity.groupby(parcels.zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
+@orca.column('zones', 'max_developable_residential_capacity', cache=True, cache_scope='iteration')
+def max_developable_residential_capacity(zones, parcels):
+    return parcels.max_developable_residential_capacity.groupby(parcels.zone_id).sum().\
+	        reindex(zones.index).fillna(0)
+
 @orca.column('zones', 'median_income')
 def median_income(zones, households):
     s = households.income.groupby(households.zone_id).quantile()
