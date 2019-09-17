@@ -85,7 +85,7 @@ def wahcm_simulate(persons, jobs, households, zones):
     
     work_at_home_prob = work_at_home_simulate("wahcmcoeff.yaml", persons, 
                                  [households, zones])[1]
-    jobs_df = jobs.to_frame()
+    jobs_df = jobs.to_frame(jobs.local_columns)
     home_based_jobs = jobs_df[(jobs_df.home_based_status == 1) & (jobs_df.vacant_jobs>0)]
 
     # sample home workers using the exact number of vacant home based jobs, weighted by the probablities from the wachm:

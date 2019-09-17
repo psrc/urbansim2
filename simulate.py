@@ -40,14 +40,14 @@ orca.run([
     #"wahcm_estimate",
     #"delete_invalid_households_persons",
     #"base_year_wplcm_simulate",
-    #"update_misc_building_columns",
-    #"update_household_previous_building_id",
-    #"update_buildings_lag1",
-    #"repmres_simulate",          # residential REPM
-    #"repmnr_simulate",          # non-residential REPM           
-    #"households_transition",     # households transition
-    #"households_relocation",     # households relocation model
-    #"hlcm_simulate_sample",
+    "update_misc_building_columns",
+    "update_household_previous_building_id",
+    "update_buildings_lag1",
+    "repmres_simulate",          # residential REPM
+    "repmnr_simulate",          # non-residential REPM           
+    "households_transition",     # households transition
+    "households_relocation",     # households relocation model
+    "hlcm_simulate",
 #    "proforma_feasibility",
 #    "developer_picker",
     #"wahcm_estimate",

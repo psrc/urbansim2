@@ -2,8 +2,9 @@ import pandas as pd
 import orca
 import numpy as np
 from urbansim.utils import misc, yamlio
-from urbansim_defaults.utils import to_frame, yaml_to_class
+from urbansim_defaults.utils import to_frame, yaml_to_class, check_nas, _print_number_unplaced
 from urbansim.models.regression import YTRANSFORM_MAPPING
+from urbansim.models import util
 import os
 
 def change_store(store_name):
@@ -87,3 +88,131 @@ def hedonic_simulate(cfg, tbl, join_tbls, out_fname, cast=False,
     if ytransform_back is not None:
         price_or_rent = ytransform_back(price_or_rent)
     tbl.update_col_from_series(out_fname, price_or_rent, cast=cast)
+
+def _update_prediction_sample_size(cls, sample_size):
+    cls.prediction_sample_size = sample_size
+    for _, m in cls._group.models.items():
+        m.prediction_sample_size = sample_size
+    
+def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fname,
+                 supply_fname, vacant_fname,
+                 cast=False,
+                 alternative_ratio=2.0):
+    """
+    Simulate the location choices for the specified choosers for each subregion separately
+
+    Parameters
+    ----------
+    subreg_geo_id: string
+        Name of the subregion's identifier.
+    cfg : string
+        The name of the yaml config file from which to read the location
+        choice model
+    choosers : DataFrameWrapper
+        A dataframe of agents doing the choosing
+    buildings : DataFrameWrapper
+        A dataframe of buildings which the choosers are locating in and which
+        have a supply
+    join_tbls : list of strings
+        A list of land use dataframes to give neighborhood info around the
+        buildings - will be joined to the buildings using existing broadcasts.
+    out_fname : string
+        The column name to write the simulated location to
+    supply_fname : string
+        The string in the buildings table that indicates the amount of
+        available units there are for choosers, vacant or not
+    vacant_fname : string
+        The string in the buildings table that indicates the amount of vacant
+        units there will be for choosers
+    enable_supply_correction : Python dict
+        Should contain keys "price_col" and "submarket_col" which are set to
+        the column names in buildings which contain the column for prices and
+        an identifier which segments buildings into submarkets
+    cast : boolean
+        Should the output be cast to match the existing column.
+    alternative_ratio : float, optional
+        Value to override the setting in urbansim.models.dcm.predict_from_cfg.
+        Above this ratio of alternatives to choosers (default of 2.0), the
+        alternatives will be sampled to improve computational performance
+    """
+    cfg = misc.config(cfg)
+
+    choosers_df = to_frame(choosers, [], cfg, additional_columns=[out_fname, subreg_geo_id])
+
+    additional_columns = [supply_fname, vacant_fname, subreg_geo_id]
+    locations_df = to_frame(buildings, join_tbls, cfg,
+                            additional_columns=additional_columns)
+
+    available_units = buildings[supply_fname]
+    vacant_units = buildings[vacant_fname]
+
+    all_movers = choosers_df[(choosers_df[out_fname] == -1)]
+    print "There are %d total available units" % available_units.sum()
+    print "    and %d total choosers from which %d are movers" % (len(choosers), len(all_movers))
+    print "    but there are %d overfull buildings" % \
+          len(vacant_units[vacant_units < 0])
+
+    vacant_units = vacant_units[vacant_units > 0]
+
+    # sometimes there are vacant units for buildings that are not in the
+    # locations_df, which happens for reasons explained in the warning below
+    indexes = np.repeat(vacant_units.index.values,
+                        vacant_units.values.astype('int'))
+    isin = pd.Series(indexes).isin(locations_df.index)
+    missing = len(isin[isin == False])
+    indexes = indexes[isin.values]
+    units = locations_df.loc[indexes].reset_index()
+    check_nas(units)
+
+    print "    for a total of %d temporarily empty units" % vacant_units.sum()
+    print "    in %d buildings total in the region" % len(vacant_units)
+
+    if missing > 0:
+        print "WARNING: %d indexes aren't found in the locations df -" % \
+            missing
+        print "    this is usually because of a few records that don't join "
+        print "    correctly between the locations df and the aggregations tables"
+
+    subregs = np.unique(all_movers[subreg_geo_id])
+    lcm = yaml_to_class(cfg).from_yaml(str_or_buffer=cfg)
+    orig_sample_size = lcm.prediction_sample_size
+    
+    # run LCM for each subregion
+    for subreg in subregs:
+        movers = choosers_df[np.logical_and(choosers_df[out_fname] == -1, choosers_df[subreg_geo_id] == subreg)]
+        this_sreg_units = units[units[subreg_geo_id] == subreg]
+        # need to filter alternatives now in order to modify the sample size if needed
+        this_sreg_units = util.apply_filter_query(this_sreg_units, lcm.alts_predict_filters)  
+        print("\nSubregion {}".format(subreg))
+        print("-------------")
+        print "There are %d total movers and %d alternatives for this subregion" % (len(movers), len(this_sreg_units))        
+        
+        if len(movers) == 0 or len(this_sreg_units) == 0:
+            print "Skipping LCM"
+            next
+
+        # adjust sampling size if too few alternatives
+        if len(this_sreg_units) < orig_sample_size:
+            _update_prediction_sample_size(lcm, len(this_sreg_units))
+        else:
+            _update_prediction_sample_size(lcm, orig_sample_size)
+            
+        # predict
+        # TODO: need to include repeated choice for overfilled buildings
+        new_units = lcm.predict(movers, this_sreg_units)
+        print("Assigned %d choosers to new units" % len(new_units.dropna()))        
+
+        # new_units returns nans when there aren't enough units,
+        # get rid of them and they'll stay as -1s
+        new_units = new_units.dropna()
+
+        # go from units back to buildings
+        new_buildings = pd.Series(this_sreg_units.loc[new_units.values][out_fname].values,
+                              index=new_units.index)
+
+        choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
+        _print_number_unplaced(choosers, out_fname)
+
+    vacant_units = buildings[vacant_fname]
+    print "    and there are now %d empty units" % vacant_units.sum()
+    print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])

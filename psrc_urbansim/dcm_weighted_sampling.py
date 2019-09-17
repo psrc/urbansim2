@@ -26,6 +26,7 @@ from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_n
 import logging
 from urbansim.utils.logutil import log_start_finish
 import timeit
+#from psrc_urbansim.utils import resim_overfull
 
 logger = logging.getLogger(__name__)
 
@@ -76,9 +77,7 @@ def lcm_estimate_sample(cfg, choosers, choosers_filter, chosen_fname, buildings,
     return dcm_weighted.fit(choosers, alternatives, chosen_fname, out_cfg)
     
 
-def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, min_overfull_buildings, out_fname,
-                 supply_fname, vacant_fname,
-                 enable_supply_correction=None, cast=False):
+def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, min_overfull_buildings, out_fname, supply_fname, vacant_fname, enable_supply_correction=None, cast=False):
     """
     Simulate the location choices for the specified choosers
 
@@ -172,7 +171,7 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
     
     start_time = timeit.default_timer()
    
-    new_units, probabilities = dcm_weighted.predict(movers, units)
+    new_units, probabilities = dcm_weighted.predict_weighted(movers, units)
 
     elapsed = timeit.default_timer() - start_time
     print str(elapsed/60.0)
@@ -186,7 +185,229 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
                               index=new_units.index)
     choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
 
-# re-simulate households that are in overfull buildings
+## re-simulate households that are in overfull buildings
+    #for x in range(0, 100):
+    #    vacant_units = buildings[vacant_fname]
+    #    print "Re-simulating housholds in overfull buildings"
+    #    _print_number_unplaced(choosers, out_fname)
+    #    print "There are now %d empty units" % vacant_units.sum()
+    #    print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
+    #    # exit early when simulated households are not resulting in any overfull buildings
+    #    if len(vacant_units[vacant_units < 0]) <= min_overfull_buildings:
+    #        break
+    #    overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[buildings[vacant_fname] < 0]], columns=['amount'])
+    #    overfull_buildings['amount'] = abs(overfull_buildings['amount']).astype(int)
+    #    overfull_buildings.reset_index(inplace = True)
+    #    new_buildings_units = pd.DataFrame(new_buildings, columns=['building_id'])
+
+    #    overfull_buildings_units = new_buildings_units[new_buildings_units.building_id.isin(overfull_buildings.building_id)]
+
+    #    overfull_buildings_units['prob'] = 0
+    #    overfull_buildings_units.reset_index(inplace = True)
+    #    overfull_buildings_units.set_index(['chooser_id', 'building_id'], inplace = True)
+    #    probabilities.update(overfull_buildings_units.prob)
+    #    resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(overfull_buildings_units.index.get_level_values('chooser_id'))]
+
+    #    def mkchoice(probs):
+    #            probs.reset_index(0, drop=True, inplace=True)
+    #            return np.random.choice(
+    #                probs.index.values, p=probs.values / probs.sum())
+    #    choices = resim_probabilities.groupby(level='chooser_id', sort=False).apply(mkchoice)
+    #    new_units.update(choices)
+        
+    #    new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
+    #                          index=new_units.index)
+    #    choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
+    
+    resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units)
+
+    if enable_supply_correction is not None:
+        new_prices = buildings[price_col]
+        if "clip_final_price_low" in enable_supply_correction:
+            new_prices = new_prices.clip(lower=enable_supply_correction[
+                "clip_final_price_low"])
+        if "clip_final_price_high" in enable_supply_correction:
+            new_prices = new_prices.clip(upper=enable_supply_correction[
+                "clip_final_price_high"])
+        buildings.update_col_from_series(price_col, new_prices)
+
+    vacant_units = buildings[vacant_fname]
+    print "    and there are now %d empty units" % vacant_units.sum()
+    print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
+
+def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, out_fname,
+                 supply_fname, vacant_fname,
+                 enable_supply_correction=None, cast=False):
+    """
+    Simulate the location choices for the specified choosers
+
+    Parameters
+    ----------
+    cfg : string
+        The name of the yaml config file from which to read the location
+        choice model
+    choosers : DataFrameWrapper
+        A dataframe of agents doing the choosing
+    buildings : DataFrameWrapper
+        A dataframe of buildings which the choosers are locating in and which
+        have a supply
+    join_tbls : list of strings
+        A list of land use dataframes to give neighborhood info around the
+        buildings - will be joined to the buildings using existing broadcasts.
+    out_fname : string
+        The column name to write the simulated location to
+    supply_fname : string
+        The string in the buildings table that indicates the amount of
+        available units there are for choosers, vacant or not
+    vacant_fname : string
+        The string in the buildings table that indicates the amount of vacant
+        units there will be for choosers
+    enable_supply_correction : Python dict
+        Should contain keys "price_col" and "submarket_col" which are set to
+        the column names in buildings which contain the column for prices and
+        an identifier which segments buildings into submarkets
+    cast : boolean
+        Should the output be cast to match the existing column.
+    """
+    cfg = misc.config(cfg)
+
+    choosers_df = to_frame(choosers, [], cfg, additional_columns=[out_fname])
+
+    additional_columns = [supply_fname, vacant_fname]
+    if enable_supply_correction is not None and \
+            "submarket_col" in enable_supply_correction:
+        additional_columns += [enable_supply_correction["submarket_col"]]
+    if enable_supply_correction is not None and \
+            "price_col" in enable_supply_correction:
+        additional_columns += [enable_supply_correction["price_col"]]
+    locations_df = to_frame(buildings, join_tbls, cfg,
+                            additional_columns=additional_columns)
+
+    available_units = buildings[supply_fname]
+    vacant_units = buildings[vacant_fname]
+
+    print "There are %d total available units" % available_units.sum()
+    print "    and %d total choosers" % len(choosers)
+    print "    but there are %d overfull buildings" % \
+          len(vacant_units[vacant_units < 0])
+
+    vacant_units = vacant_units[vacant_units > 0]
+
+    # sometimes there are vacant units for buildings that are not in the
+    # locations_df, which happens for reasons explained in the warning below
+    indexes = np.repeat(vacant_units.index.values,
+                        vacant_units.values.astype('int'))
+    isin = pd.Series(indexes).isin(locations_df.index)
+    missing = len(isin[isin == False])
+    indexes = indexes[isin.values]
+    units = locations_df.loc[indexes].reset_index()
+    check_nas(units)
+
+    print "    for a total of %d temporarily empty units" % vacant_units.sum()
+    print "    in %d buildings total in the region" % len(vacant_units)
+
+    if missing > 0:
+        print "WARNING: %d indexes aren't found in the locations df -" % \
+            missing
+        print "    this is usually because of a few records that don't join "
+        print "    correctly between the locations df and the aggregations tables"
+
+    movers = choosers_df[choosers_df[out_fname] == -1]
+    print "There are %d total movers for this LCM" % len(movers)
+
+    if enable_supply_correction is not None:
+        assert isinstance(enable_supply_correction, dict)
+        assert "price_col" in enable_supply_correction
+        price_col = enable_supply_correction["price_col"]
+        assert "submarket_col" in enable_supply_correction
+        submarket_col = enable_supply_correction["submarket_col"]
+
+        lcm = yaml_to_class(cfg).from_yaml(str_or_buffer=cfg)
+
+        if enable_supply_correction.get("warm_start", False) is True:
+            raise NotImplementedError()
+
+        multiplier_func = enable_supply_correction.get("multiplier_func", None)
+        if multiplier_func is not None:
+            multiplier_func = orca.get_injectable(multiplier_func)
+
+        kwargs = enable_supply_correction.get('kwargs', {})
+        new_prices, submarkets_ratios = supply_and_demand(
+            lcm,
+            movers,
+            units,
+            submarket_col,
+            price_col,
+            base_multiplier=None,
+            multiplier_func=multiplier_func,
+            **kwargs)
+
+        # we will only get back new prices for those alternatives
+        # that pass the filter - might need to specify the table in
+        # order to get the complete index of possible submarkets
+        submarket_table = enable_supply_correction.get("submarket_table", None)
+        if submarket_table is not None:
+            submarkets_ratios = submarkets_ratios.reindex(
+                orca.get_table(submarket_table).index).fillna(1)
+            # write final shifters to the submarket_table for use in debugging
+            orca.get_table(submarket_table)["price_shifters"] = submarkets_ratios
+
+        print "Running supply and demand"
+        print "Simulated Prices"
+        print buildings[price_col].describe()
+        print "Submarket Price Shifters"
+        print submarkets_ratios.describe()
+        # we want new prices on the buildings, not on the units, so apply
+        # shifters directly to buildings and ignore unit prices
+        orca.add_column(buildings.name,
+                        price_col+"_hedonic", buildings[price_col])
+        new_prices = buildings[price_col] * \
+            submarkets_ratios.loc[buildings[submarket_col]].values
+        buildings.update_col_from_series(price_col, new_prices)
+        print "Adjusted Prices"
+        print buildings[price_col].describe()
+
+    if len(movers) > vacant_units.sum():
+        print "WARNING: Not enough locations for movers"
+        print "    reducing locations to size of movers for performance gain"
+        movers = movers.head(int(vacant_units.sum()))
+    
+    segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
+    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(None, segmented_mnl, None)
+    
+    start_time = timeit.default_timer()
+   
+    new_units, probabilities = dcm_weighted.predict_with_resim(movers, units)
+    #new_units, _ = yaml_to_class(cfg).predict_from_cfg(movers, units, cfg, alternative_ratio = 10)
+
+    # new_units returns nans when there aren't enough units,
+    # get rid of them and they'll stay as -1s
+    #new_units = new_units.dropna()
+
+    # go from units back to buildings
+    new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
+                              index=new_units.index)
+
+    choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
+    _print_number_unplaced(choosers, out_fname)
+
+    resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units)
+
+    if enable_supply_correction is not None:
+        new_prices = buildings[price_col]
+        if "clip_final_price_low" in enable_supply_correction:
+            new_prices = new_prices.clip(lower=enable_supply_correction[
+                "clip_final_price_low"])
+        if "clip_final_price_high" in enable_supply_correction:
+            new_prices = new_prices.clip(upper=enable_supply_correction[
+                "clip_final_price_high"])
+        buildings.update_col_from_series(price_col, new_prices)
+
+    vacant_units = buildings[vacant_fname]
+    print "    and there are now %d empty units" % vacant_units.sum()
+    print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
+
+def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units):
     for x in range(0, 100):
         vacant_units = buildings[vacant_fname]
         print "Re-simulating housholds in overfull buildings"
@@ -203,11 +424,12 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
 
         overfull_buildings_units = new_buildings_units[new_buildings_units.building_id.isin(overfull_buildings.building_id)]
 
-        resim_choosers = bootstrap(overfull_buildings_units, overfull_buildings, 'building_id', 'amount')
-        multi_index = pd.MultiIndex.from_arrays([resim_choosers.index, resim_choosers['building_id']])
-        s = pd.Series(0, index=multi_index)
-        probabilities.update(s)
-        resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(resim_choosers.index)]
+        overfull_buildings_units['prob'] = 0
+        overfull_buildings_units.reset_index(inplace = True)
+        overfull_buildings_units.set_index(['chooser_id', 'building_id'], inplace = True)
+        probabilities.update(overfull_buildings_units.prob)
+        # 
+        resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(overfull_buildings_units.index.get_level_values('chooser_id'))]
 
         def mkchoice(probs):
                 probs.reset_index(0, drop=True, inplace=True)
@@ -217,54 +439,8 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
         new_units.update(choices)
         
         new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
-                              index=new_units.index)
-        
-        choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
-
-    if enable_supply_correction is not None:
-        new_prices = buildings[price_col]
-        if "clip_final_price_low" in enable_supply_correction:
-            new_prices = new_prices.clip(lower=enable_supply_correction[
-                "clip_final_price_low"])
-        if "clip_final_price_high" in enable_supply_correction:
-            new_prices = new_prices.clip(upper=enable_supply_correction[
-                "clip_final_price_high"])
-        buildings.update_col_from_series(price_col, new_prices)
-
-    vacant_units = buildings[vacant_fname]
-    print "    and there are now %d empty units" % vacant_units.sum()
-    print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
-
-def bootstrap(data, freq, class_fname, freq_fname):
-    freq = freq.set_index(class_fname)
-
-    # This function will be applied on each group of instances of the same
-    # class in `data`.
-    def sampleClass(classgroup):
-        #print classgroup
-        cls = classgroup[class_fname].iloc[0]
-        
-        nDesired = freq[freq_fname][cls]
-        nRows = len(classgroup)
-
-        nSamples = min(nRows, nDesired)
-        return classgroup.sample(nSamples)
-
-    samples = data.groupby(class_fname).apply(sampleClass)
-
-    # If you want a new index with ascending values
-    # samples.index = range(len(samples))
-
-    # If you want an index which is equal to the row in `data` where the sample
-    # came from
-    samples.index = samples.index.get_level_values(1)
-
-    # If you don't change it then you'll have a multiindex with level 0
-    # being the class and level 1 being the row in `data` where
-    # the sample came from.
-
-    return samples
-
+                              index=new_units.index).astype('int32')
+        choosers.update_col_from_series(out_fname, new_buildings, cast=False)
 def large_area_sample_weights(units, movers):
 
         """
@@ -561,6 +737,66 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
         logger.debug('finish: predict LCM model {}'.format(self.name))
         return choices, probabilities
 
+    def predict_with_resim(self, choosers, alternatives, debug=False):
+        """
+        Choose from among alternatives for a group of agents.
+
+        Parameters
+        ----------
+        choosers : pandas.DataFrame
+            Table describing the agents making choices, e.g. households.
+        alternatives : pandas.DataFrame
+            Table describing the things from which agents are choosing.
+        debug : bool
+            If debug is set to true, will set the variable "sim_pdf" on
+            the object to store the probabilities for mapping of the
+            outcome.
+
+        Returns
+        -------
+        choices : pandas.Series
+            Mapping of chooser ID to alternative ID. Some choosers
+            will map to a nan value when there are not enough alternatives
+            for all the choosers.
+
+        """
+        self.assert_fitted()
+        logger.debug('start: predict LCM model {}'.format(self.name))
+
+        choosers, alternatives = self.apply_predict_filters(
+            choosers, alternatives)
+
+        if len(choosers) == 0:
+            return pd.Series()
+
+        if len(alternatives) == 0:
+            return pd.Series(index=choosers.index)
+
+        probabilities = self.probabilities(
+            choosers, alternatives, filter_tables=False)
+
+        if debug:
+            self.sim_pdf = probabilities
+
+        if self.choice_mode == 'aggregate':
+            choices = unit_choice(
+                choosers.index.values,
+                probabilities.index.get_level_values('alternative_id').values,
+                probabilities.values)
+        elif self.choice_mode == 'individual':
+            def mkchoice(probs):
+                probs.reset_index(0, drop=True, inplace=True)
+                return np.random.choice(
+                    probs.index.values, p=probs.values / probs.sum())
+            choices = probabilities.groupby(level='chooser_id', sort=False)\
+                .apply(mkchoice)
+        else:
+            raise ValueError(
+                'Unrecognized choice_mode option: {}'.format(self.choice_mode))
+
+        logger.debug('finish: predict LCM model {}'.format(self.name))
+        return choices, probabilities
+
     def probabilities_weighted(self, choosers, alternatives, weights, choosers_weight_segmentation_col, filter_tables=True):
         """
         Returns the probabilities for a set of choosers to choose
@@ -749,6 +985,47 @@ class PSRC_MNLDiscreteChoiceModelGroup(dcm.MNLDiscreteChoiceModelGroup):
             'finish: predict models in LCM group {}'.format(self.name))
         return pd.concat(results) if results else pd.Series(), pd.concat(prob_results) if prob_results else pd.Series()
 
+    def predict_with_resim(self, choosers, alternatives, debug=False):
+        """
+        Choose from among alternatives for a group of agents after
+        segmenting the `choosers` table.
+
+        Parameters
+        ----------
+        choosers : pandas.DataFrame
+            Table describing the agents making choices, e.g. households.
+            Must have a column matching the .segmentation_col attribute.
+        alternatives : pandas.DataFrame
+            Table describing the things from which agents are choosing.
+        debug : bool
+            If debug is set to true, will set the variable "sim_pdf" on
+            the object to store the probabilities for mapping of the
+            outcome.
+
+        Returns
+        -------
+        choices : pandas.Series
+            Mapping of chooser ID to alternative ID. Some choosers
+            will map to a nan value when there are not enough alternatives
+            for all the choosers.
+
+        """
+        logger.debug('start: predict models in LCM group {}'.format(self.name))
+        results = []
+        results_probabilities = []
+
+
+        for name, df in self._iter_groups(choosers):
+            choices, probabilities = self.models[name].predict_with_resim(df, alternatives, debug=debug)
+            if self.remove_alts and len(alternatives) > 0:
+                alternatives = alternatives.loc[
+                    ~alternatives.index.isin(choices)]
+            results.append(choices)
+            results_probabilities.append(probabilities)
+
+        logger.debug(
+            'finish: predict models in LCM group {}'.format(self.name))
+        return pd.concat(results) if results else pd.Series(), pd.concat(results_probabilities) if results_probabilities else pd.Series()
     def add_model_from_params(
             self, name, model_expression, sample_size,
             probability_mode='full_product', choice_mode='individual',
@@ -1116,6 +1393,41 @@ class PSRC_SegmentedMNLDiscreteChoiceModel(dcm.SegmentedMNLDiscreteChoiceModel):
             'finish: predict models in segmented LCM {}'.format(self.name))
         return results
 
+    def predict_with_resim(self, choosers, alternatives, debug=False):
+        """
+        Choose from among alternatives for a group of agents after
+        segmenting the `choosers` table.
+
+        Parameters
+        ----------
+        choosers : pandas.DataFrame
+            Table describing the agents making choices, e.g. households.
+            Must have a column matching the .segmentation_col attribute.
+        alternatives : pandas.DataFrame
+            Table describing the things from which agents are choosing.
+        debug : bool
+            If debug is set to true, will set the variable "sim_pdf" on
+            the object to store the probabilities for mapping of the
+            outcome.
+
+        Returns
+        -------
+        choices : pandas.Series
+            Mapping of chooser ID to alternative ID. Some choosers
+            will map to a nan value when there are not enough alternatives
+            for all the choosers.
+
+        """
+        logger.debug(
+            'start: predict models in segmented LCM {}'.format(self.name))
+        choosers, alternatives = self._filter_choosers_alts(
+            choosers, alternatives)
+        #self._group2 = PSRC_MNLDiscreteChoiceModelGroup(self.segmentation_col, remove_alts=self.remove_alts)
+        results, probabilities = self._group.predict_with_resim(choosers, alternatives, debug=debug)
+        logger.debug(
+            'finish: predict models in segmented LCM {}'.format(self.name))
+        return results, probabilities
+
 class MNLDiscreteChoiceModelWeightedSamples(object):
     """
     Manages a group of discrete choice models that refer to different
@@ -1185,7 +1497,7 @@ class MNLDiscreteChoiceModelWeightedSamples(object):
                 if self.models else False)
 
 
-    def predict(self, choosers, alternatives, debug=False):
+    def predict_weighted(self, choosers, alternatives, debug=False):
         """
         Choose from among alternatives for a group of agents after
         segmenting the `choosers` table.
@@ -1220,4 +1532,37 @@ class MNLDiscreteChoiceModelWeightedSamples(object):
             'finish: predict models in LCM group {}'.format(self.name))
         return choices
 
-   
+    def predict_with_resim(self, choosers, alternatives, debug=False):
+        """
+        Choose from among alternatives for a group of agents after
+        segmenting the `choosers` table.
+
+        Parameters
+        ----------
+        choosers : pandas.DataFrame
+            Table describing the agents making choices, e.g. households.
+            Must have a column matching the .segmentation_col attribute.
+        alternatives : pandas.DataFrame
+            Table describing the things from which agents are choosing.
+        debug : bool
+            If debug is set to true, will set the variable "sim_pdf" on
+            the object to store the probabilities for mapping of the
+            outcome.
+
+        Returns
+        -------
+        choices : pandas.Series
+            Mapping of chooser ID to alternative ID. Some choosers
+            will map to a nan value when there are not enough alternatives
+            for all the choosers.
+
+        """
+        logger.debug('start: predict models in LCM group {}'.format(self.name))
+        results = []
+
+        choices, probabilities = self.model.predict_with_resim(choosers, alternatives, debug=debug)
+        
+
+        logger.debug(
+            'finish: predict models in LCM group {}'.format(self.name))
+        return choices, probabilities  
