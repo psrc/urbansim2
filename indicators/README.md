@@ -19,8 +19,9 @@ To create the indicator files do the following steps:
 	d. The indicators and their corresponding geography levels
 2.  Run "run_indicators.py"
 
-'''
+```
 python run_indicators.py
-'''
+
+```
 
 The resulting csv and tab files will be in the 'indicators' directory.
