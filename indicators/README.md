@@ -2,9 +2,15 @@
 
 This script creates indicator csv/tab files from an Urbansim2 Simulation output hdf5 file.
 
+
 ## Setup
 
-Create a 'csv_store' directory inside the indicators directory and place a copy of parcels_geos.csv and growth_centers.csv.  These files can be download here (coming soon).
+Create a 'csv_store' directory inside the indicators directory and place these two files in it.
+
+```
+J:\Projects\UrbanSim\Indicators\csv_store\growth_centers.csv
+J:\Projects\UrbanSim\Indicators\csv_store\parcels_geos.csv
+```
 
 
 ## Running the script
