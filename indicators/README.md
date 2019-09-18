@@ -13,10 +13,10 @@ These scripts create indicator csv/tab files from an Urbansim2 Simulation output
 To create the indicator files do the following steps:
 
 1. Edit indicators_settings.yaml with:
-	a. The urbansim output file name
-	b. The base year
-	c. The years for which to produce indicator files
-	d. The indicators and their corresponding geography levels
+ * The urbansim output file name
+ * The base year
+ * The years for which to produce indicator files
+ * The indicators and their corresponding geography levels
 2.  Run "run_indicators.py"
 
 ```
