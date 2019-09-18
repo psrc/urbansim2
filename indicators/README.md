@@ -5,7 +5,7 @@ This script creates indicator csv/tab files from an Urbansim2 Simulation output 
 
 ## Setup
 
-Create a 'csv_store' directory inside the indicators directory and place the follwing two in it.
+Create a 'csv_store' directory inside the indicators directory and place the follwing two files in it.
 
 ```
 J:\Projects\UrbanSim\Indicators\csv_store\growth_centers.csv
