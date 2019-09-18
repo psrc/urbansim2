@@ -6,6 +6,7 @@ from urbansim_defaults.utils import to_frame, yaml_to_class, check_nas, _print_n
 from urbansim.models.regression import YTRANSFORM_MAPPING
 from urbansim.models import util
 import os
+from dcm_weighted_sampling import PSRC_SegmentedMNLDiscreteChoiceModel, MNLDiscreteChoiceModelWeightedSamples, resim_overfull_buildings
 
 def change_store(store_name):
     orca.add_injectable("store",
@@ -95,7 +96,7 @@ def _update_prediction_sample_size(cls, sample_size):
         m.prediction_sample_size = sample_size
     
 def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fname,
-                 supply_fname, vacant_fname,
+                 supply_fname, vacant_fname, min_overfull_buildings=0,
                  cast=False,
                  alternative_ratio=2.0):
     """
@@ -177,9 +178,13 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
     lcm = yaml_to_class(cfg).from_yaml(str_or_buffer=cfg)
     orig_sample_size = lcm.prediction_sample_size
     
+    segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
+    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(None, segmented_mnl, None)
+    
     # run LCM for each subregion
     for subreg in subregs:
-        movers = choosers_df[np.logical_and(choosers_df[out_fname] == -1, choosers_df[subreg_geo_id] == subreg)]
+        this_filter = np.logical_and(choosers_df[out_fname] == -1, choosers_df[subreg_geo_id] == subreg)
+        movers = choosers_df[this_filter]
         this_sreg_units = units[units[subreg_geo_id] == subreg]
         # need to filter alternatives now in order to modify the sample size if needed
         this_sreg_units = util.apply_filter_query(this_sreg_units, lcm.alts_predict_filters)  
@@ -198,8 +203,7 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
             _update_prediction_sample_size(lcm, orig_sample_size)
             
         # predict
-        # TODO: need to include repeated choice for overfilled buildings
-        new_units = lcm.predict(movers, this_sreg_units)
+        new_units, probabilities = dcm_weighted.predict_with_resim(movers, this_sreg_units)
         print("Assigned %d choosers to new units" % len(new_units.dropna()))        
 
         # new_units returns nans when there aren't enough units,
@@ -209,9 +213,12 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         # go from units back to buildings
         new_buildings = pd.Series(this_sreg_units.loc[new_units.values][out_fname].values,
                               index=new_units.index)
-
+ 
         choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
         _print_number_unplaced(choosers, out_fname)
+        
+        resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, 
+                                 new_units, this_sreg_units, choosers_filter = this_filter)
 
     vacant_units = buildings[vacant_fname]
     print "    and there are now %d empty units" % vacant_units.sum()

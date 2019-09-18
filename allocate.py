@@ -57,8 +57,8 @@ def tables_in_base_year():
 orca.run([
      # REPM
      #######
-     "repmres_simulate",          # residential REPM
-     "repmnr_simulate",           # non-residential REPM
+     #"repmres_simulate",          # residential REPM
+     #"repmnr_simulate",           # non-residential REPM
      
      # Transition
      #######
@@ -69,8 +69,8 @@ orca.run([
      
      # Developer 
      #######
-     "proforma_feasibility_alloc",
-     "developer_picker_alloc",
+     #"proforma_feasibility_alloc",
+     #"developer_picker_alloc",
      
      # Misc
      #######

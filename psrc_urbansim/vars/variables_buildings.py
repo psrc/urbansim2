@@ -245,13 +245,15 @@ def unit_price_residential(buildings, parcels):
 
 @orca.column('buildings', 'vacant_job_spaces', cache=False)
 def vacant_job_spaces(buildings, jobs):
-    return buildings.job_spaces.sub(
-        jobs.building_id.value_counts(), fill_value=0)
+    counts = jobs.building_id.value_counts()
+    counts = counts[counts.index >= 0] # index can be -1 for unplaced jobs   
+    return buildings.job_spaces.sub(counts, fill_value=0)
 
 @orca.column('buildings', 'vacant_residential_units', cache=False, cache_scope='step')
 def vacant_residential_units(buildings, households):
-    return buildings.residential_units.sub(
-        households.building_id.value_counts(), fill_value=0)
+    counts = households.building_id.value_counts()
+    counts = counts[counts.index >= 0] # index can be -1 for unplaced households
+    return buildings.residential_units.sub(counts, fill_value=0)
 
 @orca.column('buildings', 'zone_id', cache=True, cache_scope='iteration')
 def zone_id(buildings, parcels):

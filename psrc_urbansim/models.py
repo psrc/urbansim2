@@ -552,8 +552,10 @@ def jobs_relocation_alloc(isCY, jobs, job_relocation_rates):
 def hlcm_simulate_alloc(isCY, households, buildings, persons, settings):
     if isCY:
         subreg_geo_id = settings.get("control_geography_id", "city_id")
-        psrcutils.lcm_simulate_CY(subreg_geo_id, "hlcmcoef.yaml", households, buildings, None, "building_id", "residential_units",
-                             "vacant_residential_units", cast=True)
+        psrcutils.lcm_simulate_CY(subreg_geo_id, "hlcmcoef.yaml", households, buildings, 
+                                  None, "building_id", "residential_units",
+                             "vacant_residential_units", 
+                             min_overfull_buildings=settings.get('min_overfull_buildings', 0), cast=True)
     else:
         hlcm_simulate_sample(households, buildings, persons, settings)
 

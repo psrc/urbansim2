@@ -1,14 +1,14 @@
 import os
-os.sys.path.append(r'D:\udst\urbansim')
-os.sys.path.append(r'D:\udst\urbansim\urbansim')
-os.sys.path.append(r'D:\udst\urbansim\urbansim\dcm')
-from urbansim.models.dcm import network_distance_from_home_to_work
-from urbansim.models.dcm import avg_network_distance_from_home_to_work
-from urbansim.models.dcm import max_logsum_hbw_am_from_home_to_work_wzone_logsum
-from urbansim.models.dcm import logsum_hbw_am_from_home_to_work_wzone_logsum
-from urbansim.models.dcm import empden_zone_sector
-from urbansim.models.dcm import generalized_cost_from_home_to_work
-from urbansim.models.dcm import ln_am_total_transit_time_walk_from_home_to_work
+#os.sys.path.append(r'D:\udst\urbansim')
+#os.sys.path.append(r'D:\udst\urbansim\urbansim')
+#os.sys.path.append(r'D:\udst\urbansim\urbansim\dcm')
+#from urbansim.models.dcm import network_distance_from_home_to_work
+#from urbansim.models.dcm import avg_network_distance_from_home_to_work
+#from urbansim.models.dcm import max_logsum_hbw_am_from_home_to_work_wzone_logsum
+#from urbansim.models.dcm import logsum_hbw_am_from_home_to_work_wzone_logsum
+#from urbansim.models.dcm import empden_zone_sector
+#from urbansim.models.dcm import generalized_cost_from_home_to_work
+#from urbansim.models.dcm import ln_am_total_transit_time_walk_from_home_to_work
 
 from patsy import dmatrix
 from prettytable import PrettyTable
@@ -407,26 +407,32 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     print "    and there are now %d empty units" % vacant_units.sum()
     print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
 
-def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units):
+def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, 
+                             new_buildings, probabilities, new_units, units, choosers_filter = None):
+    movers = choosers.to_frame(out_fname)
+    if choosers_filter is not None:
+        movers = movers[choosers_filter] # choosers_filter should be a logical array
+
     for x in range(0, 100):
         vacant_units = buildings[vacant_fname]
         print "Re-simulating housholds in overfull buildings"
-        _print_number_unplaced(choosers, out_fname)
+        _print_number_unplaced(movers, out_fname)
         print "There are now %d empty units" % vacant_units.sum()
         print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
         # exit early when simulated households are not resulting in any overfull buildings
         if len(vacant_units[vacant_units < 0]) <= min_overfull_buildings:
             break
-        overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[buildings[vacant_fname] < 0]], columns=['amount'])
+        overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[np.logical_and(buildings[vacant_fname] < 0, 
+                                                                                 buildings.index.isin(units[out_fname]))]], columns=['amount'])
         overfull_buildings['amount'] = abs(overfull_buildings['amount']).astype(int)
         overfull_buildings.reset_index(inplace = True)
         new_buildings_units = pd.DataFrame(new_buildings, columns=['building_id'])
 
-        overfull_buildings_units = new_buildings_units[new_buildings_units.building_id.isin(overfull_buildings.building_id)]
+        overfull_buildings_units = new_buildings_units[new_buildings_units[out_fname].isin(overfull_buildings[out_fname])]
 
         overfull_buildings_units['prob'] = 0
         overfull_buildings_units.reset_index(inplace = True)
-        overfull_buildings_units.set_index(['chooser_id', 'building_id'], inplace = True)
+        overfull_buildings_units.set_index(['chooser_id', out_fname], inplace = True)
         probabilities.update(overfull_buildings_units.prob)
         # 
         resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(overfull_buildings_units.index.get_level_values('chooser_id'))]
@@ -441,6 +447,7 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
                               index=new_units.index).astype('int32')
         choosers.update_col_from_series(out_fname, new_buildings, cast=False)
+        
 def large_area_sample_weights(units, movers):
 
         """
