@@ -1,12 +1,10 @@
 # Indicators script
 
-This script create indicator csv/tab files from an Urbansim2 Simulation output hdf5 file.
+This script creates indicator csv/tab files from an Urbansim2 Simulation output hdf5 file.
 
 ## Setup
 
-1. Create a 'csv_store' directory inside the indicators directory and place a copy of parcels_geos.csv and growth_centers.csv.  These files can be download here (coming soon).
-
-2. Run setpath.bat or setpath.sh has been ran to establish the home directory.
+Create a 'csv_store' directory inside the indicators directory and place a copy of parcels_geos.csv and growth_centers.csv.  These files can be download here (coming soon).
 
 
 ## Running the script
@@ -27,7 +25,7 @@ cd psrc_urbansim/indicators
 python run_indicators.py
 
 ```
- Or to run "run_indicators.py" in the command line
+ Or to run "run_indicators.py" in the command line:
 
 ```
 d:
