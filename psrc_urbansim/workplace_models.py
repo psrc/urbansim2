@@ -88,12 +88,15 @@ def wahcm_simulate(persons, jobs, households, zones):
     jobs_df = jobs.to_frame(jobs.local_columns)
     home_based_jobs = jobs_df[(jobs_df.home_based_status == 1) & (jobs_df.vacant_jobs>0)]
 
-    # sample home workers using the exact number of vacant home based jobs, weighted by the probablities from the wachm:
-    home_workers = work_at_home_prob.sample(len(home_based_jobs), weights = work_at_home_prob.values)
-
+    # If there are more vacant home based jobs than home workers, sample home workers using the exact number of vacant home based jobs, weighted by the probablities from the wachm:
+    if len(home_based_jobs) > len(work_at_home_prob):
+        home_workers = work_at_home_prob.sample(len(work_at_home_prob), weights = work_at_home_prob.values)
+    # Otherwise 
+    else:
+        home_workers = work_at_home_prob.sample(len(home_based_jobs), weights = work_at_home_prob.values)
     # update job_id on the persons table
     # should not matter which person gets which home-based job
-    combine_indexes = pd.DataFrame([home_workers.index, home_based_jobs.index]).transpose()
+    combine_indexes = pd.DataFrame([home_workers.index, home_based_jobs.index[0:len(home_workers)]]).transpose()
     combine_indexes.columns = ['person_id', 'job_id']
     combine_indexes.set_index('person_id', inplace=True)
     combine_indexes['work_at_home'] = 1

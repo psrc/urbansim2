@@ -48,6 +48,21 @@ def Manuf(cities, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 3)).groupby(jobs.city_id).sum().\
 	        reindex(cities.index).fillna(0)
 
+@orca.column('cities', 'max_developable_capacity', cache=True, cache_scope='iteration')
+def max_developable_capacity(cities, parcels):
+    return parcels.max_developable_capacity.groupby(parcels.city_id).sum().\
+	        reindex(cities.index).fillna(0)
+
+@orca.column('cities', 'max_developable_nonresidential_capacity', cache=True, cache_scope='iteration')
+def max_developable_nonresidential_capacity(cities, parcels):
+    return parcels.max_developable_nonresidential_capacity.groupby(parcels.city_id).sum().\
+	        reindex(cities.index).fillna(0)
+
+@orca.column('cities', 'max_developable_residential_capacity', cache=True, cache_scope='iteration')
+def max_developable_residential_capacity(cities, parcels):
+    return parcels.max_developable_residential_capacity.groupby(parcels.city_id).sum().\
+	        reindex(cities.index).fillna(0)
+
 @orca.column('cities', 'Natural_resources', cache=True, cache_scope='iteration')
 def Natural_resources(cities, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 1)).groupby(jobs.city_id).sum().\

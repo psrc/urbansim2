@@ -13,6 +13,21 @@ def building_sqft(growth_centers, buildings):
     return buildings.sqft_per_unit.groupby(buildings.growth_center_id).sum().\
            reindex(growth_centers.index).fillna(0)
 
+@orca.column('growth_centers', 'max_developable_capacity', cache=True, cache_scope='iteration')
+def max_developable_capacity(growth_centers, parcels):
+    return parcels.max_developable_capacity.groupby(parcels.growth_center_id).sum().\
+	        reindex(growth_centers.index).fillna(0)
+
+@orca.column('growth_centers', 'max_developable_nonresidential_capacity', cache=True, cache_scope='iteration')
+def max_developable_nonresidential_capacity(growth_centers, parcels):
+    return parcels.max_developable_nonresidential_capacity.groupby(parcels.growth_center_id).sum().\
+	        reindex(growth_centers.index).fillna(0)
+
+@orca.column('growth_centers', 'max_developable_residential_capacity', cache=True, cache_scope='iteration')
+def max_developable_residential_capacity(growth_centers, parcels):
+    return parcels.max_developable_residential_capacity.groupby(parcels.growth_center_id).sum().\
+	        reindex(growth_centers.index).fillna(0)
+
 @orca.column('growth_centers', 'nonres_sqft', cache=True, cache_scope='iteration')
 def nonres_sqft(growth_centers, buildings):
     return buildings.non_residential_sqft.groupby(buildings.growth_center_id).sum().\
