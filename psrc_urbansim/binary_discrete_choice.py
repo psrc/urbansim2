@@ -437,7 +437,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         choosers = self.apply_predict_filters(choosers)
 
         if len(choosers) == 0:
-            return pd.Series()
+            return (pd.Series(), pd.Series())
 
         probability_df = self.probabilities(
             choosers, filter_tables=False)

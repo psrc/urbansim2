@@ -526,7 +526,8 @@ def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selectio
 
 @orca.step('households_transition_alloc')
 def households_transition_alloc(households, household_controls, year, settings, persons):
-    return run_households_transition(households, household_controls, year, settings, persons, is_allocation = True)
+    run_households_transition(households, household_controls, year, settings, persons, is_allocation = True)
+    # TODO: need to put persons in sync for households that did not match any of the CT categories
 
 @orca.step('jobs_transition_alloc')
 def jobs_transition_alloc(jobs, employment_controls, year, settings):

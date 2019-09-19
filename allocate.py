@@ -81,21 +81,21 @@ orca.run([
      # Relocate and place households
      #######
      "households_relocation_alloc",
-     "hlcm_simulate_alloc",
+     #"hlcm_simulate_alloc",
     
     # Relocate and place jobs
     #######
-     "jobs_relocation_alloc",     
-     "elcm_simulate_alloc",             # ELCM
-     "governmental_jobs_scaling_alloc",
+     #"jobs_relocation_alloc",     
+     #"elcm_simulate_alloc",             # ELCM
+     #"governmental_jobs_scaling_alloc",
 
     # scaling of unplaced HHs and jobs in control years
     'scaling_unplaced_households',
-    'scaling_unplaced_jobs',
+    #'scaling_unplaced_jobs',
     
     # Workplace models
     #######
-    "wahcm_simulate",
+    "wahcm_simulate_alloc",
     "wplcm_simulate",
     #"clear_cache"
 ], iter_vars=[2017, 2018], data_out=outfile, out_base_tables=tables_in_base_year(),
