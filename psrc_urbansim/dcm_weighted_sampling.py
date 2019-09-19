@@ -1,4 +1,5 @@
 import os
+
 #os.sys.path.append(r'D:\udst\urbansim')
 #os.sys.path.append(r'D:\udst\urbansim\urbansim')
 #os.sys.path.append(r'D:\udst\urbansim\urbansim\dcm')
@@ -185,40 +186,6 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
                               index=new_units.index)
     choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
 
-## re-simulate households that are in overfull buildings
-    #for x in range(0, 100):
-    #    vacant_units = buildings[vacant_fname]
-    #    print "Re-simulating housholds in overfull buildings"
-    #    _print_number_unplaced(choosers, out_fname)
-    #    print "There are now %d empty units" % vacant_units.sum()
-    #    print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
-    #    # exit early when simulated households are not resulting in any overfull buildings
-    #    if len(vacant_units[vacant_units < 0]) <= min_overfull_buildings:
-    #        break
-    #    overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[buildings[vacant_fname] < 0]], columns=['amount'])
-    #    overfull_buildings['amount'] = abs(overfull_buildings['amount']).astype(int)
-    #    overfull_buildings.reset_index(inplace = True)
-    #    new_buildings_units = pd.DataFrame(new_buildings, columns=['building_id'])
-
-    #    overfull_buildings_units = new_buildings_units[new_buildings_units.building_id.isin(overfull_buildings.building_id)]
-
-    #    overfull_buildings_units['prob'] = 0
-    #    overfull_buildings_units.reset_index(inplace = True)
-    #    overfull_buildings_units.set_index(['chooser_id', 'building_id'], inplace = True)
-    #    probabilities.update(overfull_buildings_units.prob)
-    #    resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(overfull_buildings_units.index.get_level_values('chooser_id'))]
-
-    #    def mkchoice(probs):
-    #            probs.reset_index(0, drop=True, inplace=True)
-    #            return np.random.choice(
-    #                probs.index.values, p=probs.values / probs.sum())
-    #    choices = resim_probabilities.groupby(level='chooser_id', sort=False).apply(mkchoice)
-    #    new_units.update(choices)
-        
-    #    new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
-    #                          index=new_units.index)
-    #    choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
-    
     resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units)
 
     if enable_supply_correction is not None:
@@ -407,35 +374,52 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     print "    and there are now %d empty units" % vacant_units.sum()
     print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
 
-def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, 
-                             new_buildings, probabilities, new_units, units, choosers_filter = None):
-    movers = choosers.to_frame(out_fname)
-    if choosers_filter is not None:
-        movers = movers[choosers_filter] # choosers_filter should be a logical array
+def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units):
 
     for x in range(0, 100):
+
         vacant_units = buildings[vacant_fname]
         print "Re-simulating housholds in overfull buildings"
-        _print_number_unplaced(movers, out_fname)
+        _print_number_unplaced(choosers, out_fname)
         print "There are now %d empty units" % vacant_units.sum()
         print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
+
         # exit early when simulated households are not resulting in any overfull buildings
         if len(vacant_units[vacant_units < 0]) <= min_overfull_buildings:
             break
-        overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[np.logical_and(buildings[vacant_fname] < 0, 
-                                                                                 buildings.index.isin(units[out_fname]))]], columns=['amount'])
+        
+        # create a df of choosers and chosen alternative
+        new_units_df = pd.DataFrame(new_units, columns=['alternative_id'])
+        new_units_df.reset_index(inplace=True)
+
+        # add alternative specific data, notebably building_id
+        new_units_df = new_units_df.merge(units, how = 'left', left_on = 'alternative_id', right_index = True)
+
+        # get overfull buildings and the amount they are overfull
+        overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[buildings[vacant_fname] < 0]], columns=['amount'])
+        
+        # amount column should be positive
         overfull_buildings['amount'] = abs(overfull_buildings['amount']).astype(int)
+        
+        # make building_id a column by resetting index
         overfull_buildings.reset_index(inplace = True)
-        new_buildings_units = pd.DataFrame(new_buildings, columns=['building_id'])
+        
+        # keep only those that are overfull
+        new_units_df = new_units_df[new_units_df.building_id.isin(overfull_buildings.building_id)]
 
-        overfull_buildings_units = new_buildings_units[new_buildings_units[out_fname].isin(overfull_buildings[out_fname])]
+        # join overful_buildings so we get the amount they are over
+        new_units_df = new_units_df.merge(overfull_buildings, how = 'left')
 
-        overfull_buildings_units['prob'] = 0
-        overfull_buildings_units.reset_index(inplace = True)
-        overfull_buildings_units.set_index(['chooser_id', out_fname], inplace = True)
-        probabilities.update(overfull_buildings_units.prob)
-        # 
-        resim_probabilities = probabilities.iloc[probabilities.index.get_level_values('chooser_id').isin(overfull_buildings_units.index.get_level_values('chooser_id'))]
+        # select choosers to re-sim
+        resim_choosers = bootstrap(new_units_df, overfull_buildings, 'building_id', 'amount')
+
+        multi_index = pd.MultiIndex.from_arrays([resim_choosers['chooser_id'], resim_choosers['alternative_id']])
+
+        s = pd.Series(0, index=multi_index)
+
+        probabilities.update(s)
+
+        resim_probabilities = probabilities[probabilities.index.get_level_values('chooser_id').isin(resim_choosers['chooser_id'])]
 
         def mkchoice(probs):
                 probs.reset_index(0, drop=True, inplace=True)
@@ -447,7 +431,37 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
                               index=new_units.index).astype('int32')
         choosers.update_col_from_series(out_fname, new_buildings, cast=False)
+
+def bootstrap(data, freq, class_fname, freq_fname):
+    freq = freq.set_index(class_fname)
+
+    # This function will be applied on each group of instances of the same
+    # class in `data`.
+    def sampleClass(classgroup):
+        #print classgroup
+        cls = classgroup[class_fname].iloc[0]
         
+        nDesired = freq[freq_fname][cls]
+        nRows = len(classgroup)
+
+        nSamples = min(nRows, nDesired)
+        return classgroup.sample(nSamples)
+
+    samples = data.groupby(class_fname).apply(sampleClass)
+
+    # If you want a new index with ascending values
+    # samples.index = range(len(samples))
+
+    # If you want an index which is equal to the row in `data` where the sample
+    # came from
+    samples.index = samples.index.get_level_values(1)
+
+    # If you don't change it then you'll have a multiindex with level 0
+    # being the class and level 1 being the row in `data` where
+    # the sample came from.
+
+    return samples
+
 def large_area_sample_weights(units, movers):
 
         """
