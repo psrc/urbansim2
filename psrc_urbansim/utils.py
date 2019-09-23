@@ -223,3 +223,45 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
     vacant_units = buildings[vacant_fname]
     print "    and there are now %d empty units" % vacant_units.sum()
     print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
+
+
+def psrc_to_frame(tbl, join_tbls, cfg, additional_columns=[], check_na = True):
+    """
+    Like the original code in urbansim_defaults.utils, but checks for nas only if required.
+    
+    Leverage all the built in functionality of the sim framework to join to
+    the specified tables, only accessing the columns used in cfg (the model
+    yaml configuration file), an any additionally passed columns (the sim
+    framework is smart enough to figure out which table to grab the column
+    off of)
+
+    Parameters
+    ----------
+    tbl : DataFrameWrapper
+        The table to join other tables to
+    join_tbls : list of DataFrameWrappers or strs
+        A list of tables to join to "tbl"
+    cfg : str
+        The filename of a yaml configuration file from which to parse the
+        strings which are actually used by the model
+    additional_columns : list of strs
+        A list of additional columns to include
+
+    Returns
+    -------
+    A single DataFrame with the index from tbl and the columns used by cfg
+    and any additional columns specified
+    """
+    join_tbls = join_tbls if isinstance(join_tbls, list) else [join_tbls]
+    tables = [tbl] + join_tbls
+    cfg = yaml_to_class(cfg).from_yaml(str_or_buffer=cfg)
+    tables = [t for t in tables if t is not None]
+    columns = misc.column_list(tables, cfg.columns_used()) + additional_columns
+    if len(tables) > 1:
+        df = orca.merge_tables(target=tables[0].name,
+                               tables=tables, columns=columns)
+    else:
+        df = tables[0].to_frame(columns)
+    if check_na:
+        check_nas(df)
+    return df

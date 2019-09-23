@@ -236,6 +236,8 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     cast : boolean
         Should the output be cast to match the existing column.
     """
+    from psrc_urbansim.utils import psrc_to_frame
+    
     cfg = misc.config(cfg)
 
     choosers_df = to_frame(choosers, [], cfg, additional_columns=[out_fname])
@@ -247,8 +249,8 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     if enable_supply_correction is not None and \
             "price_col" in enable_supply_correction:
         additional_columns += [enable_supply_correction["price_col"]]
-    locations_df = to_frame(buildings, join_tbls, cfg,
-                            additional_columns=additional_columns)
+    locations_df = psrc_to_frame(buildings, join_tbls, cfg,
+                            additional_columns=additional_columns, check_na = False)
 
     available_units = buildings[supply_fname]
     vacant_units = buildings[vacant_fname]
@@ -268,7 +270,7 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     missing = len(isin[isin == False])
     indexes = indexes[isin.values]
     units = locations_df.loc[indexes].reset_index()
-    check_nas(units)
+    #check_nas(units)
 
     print "    for a total of %d temporarily empty units" % vacant_units.sum()
     print "    in %d buildings total in the region" % len(vacant_units)

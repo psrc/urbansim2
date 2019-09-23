@@ -15,6 +15,7 @@ alts_fit_filters: null
 alts_predict_filters: 
 - vacant_jobs > 0
 - home_based_status == 0
+- building_id > 0
 
 interaction_predict_filters: null
 
@@ -27,11 +28,11 @@ estimation_sample_size: 3000
 prediction_sample_size: 100
 
 model_expression: logsum_hbw_am_from_home_to_work_wzone_logsum(job_zone_id, household_zone_id,
-    household_income_category, twa_logsum_hbw_1, twa_logsum_hbw_2, twa_logsum_hbw_3,
-    twa_logsum_hbw_4) + ln_am_total_transit_time_walk_from_home_to_work(job_zone_id,
-    household_zone_id) + I(1*(household_district_id == district_id)) + I((household_district_id==19)*1):I((district_id
-    ==19)*1) + I(np.where(is_in_sector_group_basic, edu * 1, 0)) + I(np.where(is_in_sector_group_retail,
-    edu * 1, 0)) + I(np.where(is_in_sector_group_edu, edu * 1, 0))
+        household_income_category, twa_logsum_hbw_1, twa_logsum_hbw_2, twa_logsum_hbw_3,
+        twa_logsum_hbw_4) + ln_am_total_transit_time_walk_from_home_to_work(job_zone_id,
+        household_zone_id) + I(1*(household_district_id == district_id)) + I((household_district_id==19)*1):I((district_id
+        ==19)*1) + I(np.where(is_in_sector_group_basic, edu * 1, 0)) + I(np.where(is_in_sector_group_retail,
+        edu * 1, 0)) + I(np.where(is_in_sector_group_edu, edu * 1, 0))
 
 fitted: true
 

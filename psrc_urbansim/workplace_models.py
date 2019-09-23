@@ -19,7 +19,7 @@ from statsmodels.formula.api import logit, probit, poisson, ols
 import random
 from urbansim.utils import misc
 from psrc_urbansim.binary_discrete_choice import BinaryDiscreteChoiceModel
-
+import dcm_weighted_sampling as psrc_dcm
 
 def to_frame(tbl, join_tbls, cfg, additional_columns=[]):
     """
@@ -158,12 +158,13 @@ def do_wahcm_simulate(persons, jobs, households, zones, subreg_geo_id = None):
 @orca.step('wplcm_simulate')
 def wplcm_simulate(persons, households, jobs):
     # can only send in jobs that have a valid building_id, so remove unlocated jobs for now
-    jobs_df = jobs.to_frame(jobs.local_columns)
-    jobs_df = jobs_df[jobs_df.building_id>0]
-    jobs_df.index.name = 'job_id'
-    orca.add_table('located_jobs', jobs_df)
-    located_jobs =  orca.get_table('located_jobs')
-    res = utils.lcm_simulate("wplcmcoef.yaml", persons, located_jobs, None,
-                              "job_id", "number_of_jobs", "vacant_jobs", cast=True)
-        
-    #orca.clear_cache()
+    #jobs_df = jobs.to_frame(jobs.local_columns)
+    #jobs_df = jobs_df[jobs_df.building_id>0]
+    #jobs_df.index.name = 'job_id'
+    #orca.add_table('located_jobs', jobs_df)
+    #located_jobs =  orca.get_table('located_jobs')
+    res = psrc_dcm.lcm_simulate("wplcmcoef.yaml", persons, jobs,
+                             0, None, "job_id", "number_of_jobs",
+                             "vacant_jobs", cast=True)
+    
+
