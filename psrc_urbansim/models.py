@@ -527,7 +527,14 @@ def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selectio
 @orca.step('households_transition_alloc')
 def households_transition_alloc(households, household_controls, year, settings, persons):
     run_households_transition(households, household_controls, year, settings, persons, is_allocation = True)
-    # TODO: need to put persons in sync for households that did not match any of the CT categories
+    pers = orca.get_table("persons")
+    hh = orca.get_table("households")
+    if (~pers.household_id.isin(hh.index)).any(): 
+        # persons exist that do not have HHs 
+        # (because those HHs were unplaced and thus, excluded from the Transition)       
+        pers = pers.local.loc[pers["household_id"].isin(hh.index)]
+        orca.add_table("persons", pers)
+        print "Total persons after cleaning: %s" % len(pers)
 
 @orca.step('jobs_transition_alloc')
 def jobs_transition_alloc(jobs, employment_controls, year, settings):

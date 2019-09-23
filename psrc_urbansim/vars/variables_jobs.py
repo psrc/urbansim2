@@ -16,23 +16,23 @@ def is_in_sector_group(group_name, jobs, employment_sectors, employment_sector_g
     res.index = jobs.index
     return res
 
-@orca.column('jobs', 'city_id', cache=True)
+@orca.column('jobs', 'city_id', cache=True, cache_scope='step')
 def city_id(jobs, parcels):
     return misc.reindex(parcels.city_id, jobs.parcel_id)	
 
-@orca.column('jobs', 'district_id', cache=True)
-def faz_id(jobs, zones):
+@orca.column('jobs', 'district_id', cache=True, cache_scope='step')
+def district_id(jobs, zones):
     return misc.reindex(zones.district_id, jobs.job_zone_id)
 
-@orca.column('jobs', 'faz_id', cache=True)
+@orca.column('jobs', 'faz_id', cache=True, cache_scope='step')
 def faz_id(jobs, zones):
     return misc.reindex(zones.faz_id, jobs.job_zone_id)
 
-@orca.column('jobs', 'growth_center_id', cache=True)
+@orca.column('jobs', 'growth_center_id', cache=True, cache_scope='step')
 def growth_center_id(jobs, parcels_geos):
     return misc.reindex(parcels_geos.growth_center_id, jobs.parcel_id)	
 
-@orca.column('jobs', 'grid_id', cache=True)
+@orca.column('jobs', 'grid_id', cache=True, cache_scope='step')
 def grid_id(jobs, parcels):
     return misc.reindex(parcels.grid_id, jobs.parcel_id)
 
@@ -52,11 +52,11 @@ def is_in_sector_group_retail(jobs, employment_sectors, employment_sector_groups
 def parcel_id(jobs, buildings):
     return misc.reindex(buildings.parcel_id, jobs.building_id)
 
-@orca.column('jobs', 'tractcity_id', cache=True)
+@orca.column('jobs', 'tractcity_id', cache=True, cache_scope='step')
 def tractcity_id(jobs, parcels):
     return misc.reindex(parcels.tractcity_id, jobs.parcel_id)
 
-@orca.column('jobs', 'job_zone_id', cache=True)
+@orca.column('jobs', 'job_zone_id', cache=True, cache_scope='step')
 def job_zone_id(jobs, buildings):
     return misc.reindex(buildings.zone_id, jobs.building_id)
 
