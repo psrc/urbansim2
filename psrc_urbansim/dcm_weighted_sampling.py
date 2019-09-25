@@ -394,6 +394,9 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
     for x in range(0, 100):
         
         vacant_units = buildings[vacant_fname][loc_filter]
+        if (vacant_units > 0).sum() == 0:
+            break
+        
         print "Re-simulating housholds in overfull buildings"
         _print_number_unplaced(movers, out_fname)
         print "There are now %d empty units" % vacant_units.sum()
