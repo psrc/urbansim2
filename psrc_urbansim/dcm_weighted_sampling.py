@@ -376,13 +376,26 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     print "    and there are now %d empty units" % vacant_units.sum()
     print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
 
-def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units):
+def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, 
+                             new_buildings, probabilities, new_units, units, 
+                             choosers_filter = None, buildings_filter = None):
 
+    movers = choosers.to_frame(out_fname)
+    
+    # choosers_filter and buildings_filter should be logical arrays, if given
+    if choosers_filter is not None:
+        movers = movers[choosers_filter] 
+        
+    # buildings in this sample set
+    loc_filter = buildings.index.isin(units[out_fname].ix[probabilities.index.get_level_values('alternative_id')])
+    if buildings_filter is not None:
+        loc_filter = np.logical_and(loc_filter, buildings_filter)
+        
     for x in range(0, 100):
-
-        vacant_units = buildings[vacant_fname]
+        
+        vacant_units = buildings[vacant_fname][loc_filter]
         print "Re-simulating housholds in overfull buildings"
-        _print_number_unplaced(choosers, out_fname)
+        _print_number_unplaced(movers, out_fname)
         print "There are now %d empty units" % vacant_units.sum()
         print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
 
@@ -398,7 +411,11 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         new_units_df = new_units_df.merge(units, how = 'left', left_on = 'alternative_id', right_index = True)
 
         # get overfull buildings and the amount they are overfull
-        overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[buildings[vacant_fname] < 0]], columns=['amount'])
+        overfull_buildings = pd.DataFrame(buildings[vacant_fname][buildings.index[np.logical_and(buildings[vacant_fname] < 0, loc_filter)]], columns=['amount'])
+        
+        # exit if none of our movers is located in the overfilled locations
+        if overfull_buildings.index.isin(new_units_df[out_fname]).sum() == 0:
+            break
         
         # amount column should be positive
         overfull_buildings['amount'] = abs(overfull_buildings['amount']).astype(int)
@@ -407,13 +424,13 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         overfull_buildings.reset_index(inplace = True)
         
         # keep only those that are overfull
-        new_units_df = new_units_df[new_units_df.building_id.isin(overfull_buildings.building_id)]
+        new_units_df = new_units_df[new_units_df[out_fname].isin(overfull_buildings[out_fname])]
 
         # join overful_buildings so we get the amount they are over
         new_units_df = new_units_df.merge(overfull_buildings, how = 'left')
 
         # select choosers to re-sim
-        resim_choosers = bootstrap(new_units_df, overfull_buildings, 'building_id', 'amount')
+        resim_choosers = bootstrap(new_units_df, overfull_buildings, out_fname, 'amount')
 
         multi_index = pd.MultiIndex.from_arrays([resim_choosers['chooser_id'], resim_choosers['alternative_id']])
 
