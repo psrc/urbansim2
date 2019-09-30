@@ -278,7 +278,7 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     return new_buildings
 
 
-def run_developer_CY(subreg_geo_id, feasibility, **kwargs):
+def run_developer_CY(subreg_geo_id, feasibility, buildings, **kwargs):
     """
     Run the developer model by subarea.
 
@@ -289,6 +289,11 @@ def run_developer_CY(subreg_geo_id, feasibility, **kwargs):
 
     # loop over subregions
     subregs = np.unique(feasibility[subreg_geo_id])
+    old_size = len(buildings)
+    old_res = buildings.residential_units.sum()
+    old_non_res = buildings.non_residential_sqft.sum()
+    old_jobs = buildings.job_spaces.sum()
+    
     new_buildings = None
     for subreg in subregs:
         print("\nSubregion {}".format(subreg))
@@ -296,17 +301,23 @@ def run_developer_CY(subreg_geo_id, feasibility, **kwargs):
         target_units = compute_target_units_for_subarea(subreg, subreg_geo_id)
         feas = feasibility.local.loc[feasibility[subreg_geo_id] == subreg]
         orca.add_table("feasibility", feas) # this is to create an orca table
-        newbldgs = run_developer(feasibility = orca.get_table("feasibility"), num_units_to_build = target_units, **kwargs)
+        newbldgs = run_developer(feasibility = orca.get_table("feasibility"), num_units_to_build = target_units, 
+                                 buildings = buildings, **kwargs)
         if new_buildings is None:
             new_buildings = newbldgs
         else:
             new_buildings = pd.concat([new_buildings, newbldgs])
+        buildings = orca.get_table("buildings")
+        
     print("\nTotal: {} new buildings ({} residential, {} non-residential) on {} parcels ".format(
-        new_buildings.shape[0], (new_buildings.residential_units > 0).sum(), (new_buildings.non_residential_sqft > 0).sum(), 
+        len(new_buildings), (new_buildings.residential_units > 0).sum(), (new_buildings.non_residential_sqft > 0).sum(), 
         len(np.unique(new_buildings.parcel_id))))
+    print("\nNet change: {} buildings, {} residential units, {} non-residential sqft, {} job spaces".format(
+        len(buildings) - old_size, buildings.residential_units.sum() - old_res, buildings.non_residential_sqft.sum() - old_non_res,
+        buildings.job_spaces.sum() - old_jobs))
     print("------")
-    new_buildings[['building_type_id', 'residential_units', 'job_capacity', 'non_residential_sqft']].groupby('building_type_id').agg(['count', 'sum'])
-    new_buildings[['residential_units', 'job_capacity', 'non_residential_sqft']].agg(['sum'])
+    #new_buildings[['building_type_id', 'residential_units', 'job_capacity', 'non_residential_sqft']].groupby('building_type_id').agg(['count', 'sum'])
+    #new_buildings[['residential_units', 'job_capacity', 'non_residential_sqft']].agg(['sum'])
     return new_buildings
 
 
