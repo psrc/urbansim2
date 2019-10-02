@@ -70,8 +70,8 @@ def create_tab(column_list, column_list_headers, csv_file_name):
     
     
 # List of Indicator tables created during each iteration used in compute_indicators()
-ind_table_list = []
-    
+ind_table_dic = {} 
+   
 # Define injectables
 
 # replace this by passing yaml file name as argument
@@ -104,7 +104,7 @@ def compute_indicators(settings, iter_var):
                 ds_tablename = '%s__table__%s_%s' % (ds, ind, str(iter_var))
             #print ds_tablename
             orca.add_table(ds_tablename, df)
-            ind_table_list.append(ds_tablename)
+            ind_table_dic[ds_tablename] = value['file_type']
     orca.clear_cache()      
              
 
@@ -123,12 +123,10 @@ def compute_datasets(settings, iter_var):
                 column_list_for_csv_table.append(orca.get_table(column).to_frame())    
             if ds in geography_alias:
                 ds = geography_alias[ds]
-            if ind == 'DU_and_HH_by_bld_type_by_faz_by_year' or ind == 'employment_by_aggr_sector':
-                create_tab(column_list_for_csv_table, datasets[ind],
-                       '%s__dataset_table__%s__%s.tab' % (ds, ind, str(iter_var)))
-            else:
-                create_csv(column_list_for_csv_table, datasets[ind],
-                       '%s__dataset_table__%s__%s.csv' % (ds, ind, str(iter_var)))
+            if value['file_type'] == 'csv':
+                create_csv(column_list_for_csv_table, datasets[ind],'%s__dataset_table__%s__%s.csv' % (ds, ind, str(iter_var)))
+            elif value['file_type'] == 'tab':
+                create_tab(column_list_for_csv_table, datasets[ind],'%s__dataset_table__%s__%s.tab' % (ds, ind, str(iter_var)))
     orca.clear_cache()
             
 
@@ -141,16 +139,13 @@ def create_tables():
     # Creating a unique list of indicators from the tables added in compute_indicators 
 #    print "ind_table_list"
 #    print ind_table_list
-    unique_ind_table_list = []
-    for table in ind_table_list:
-        if table[:-5] not in unique_ind_table_list:
-            unique_ind_table_list.append(table[:-5])
-#    print "unique_ind_table_list"
-#    print unique_ind_table_list    
-    # create a CSV file for each indicator with a column per iterationn year
-    for ind_table in unique_ind_table_list:
+    unique_ind_table_dic = {}
+    for table, filetype  in ind_table_dic.iteritems():
+        if table[:-5] not in unique_ind_table_dic:
+            unique_ind_table_dic[table[:-5]] = filetype
+    for ind_table, filetype in unique_ind_table_dic.iteritems():
         ind_table_list_for_csv =[] 
-        for table in ind_table_list:
+        for table in ind_table_dic:
             if ind_table in table:
                 ind_table_list_for_csv.append(table)
         
@@ -159,9 +154,11 @@ def create_tables():
         for table in ind_table_list_for_csv:
             ind_df_list_for_csv.append(orca.get_table(table).to_frame())
             column_labels.append(table[table.find('table') + 7:])
-         
-        create_csv(ind_df_list_for_csv, column_labels, '%s.csv' % ind_table)
-
+        
+        if filetype == 'csv':
+            create_csv(ind_df_list_for_csv, column_labels, '%s.csv' % ind_table)
+        elif filetype == 'tab':
+            create_tab(ind_df_list_for_csv, column_labels, '%s.tab' % ind_table)
 
 
 create_tables()
