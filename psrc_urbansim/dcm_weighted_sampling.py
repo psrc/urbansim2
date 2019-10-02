@@ -125,7 +125,6 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
         additional_columns += [enable_supply_correction["price_col"]]
     locations_df = to_frame(buildings, join_tbls, cfg,
                             additional_columns=additional_columns)
-    #location_df = location_df[location_df[buildings_filter]==1]
 
     available_units = buildings[supply_fname]
     vacant_units = buildings[vacant_fname]
@@ -145,7 +144,6 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
     missing = len(isin[isin == False])
     indexes = indexes[isin.values]
     units = locations_df.loc[indexes].reset_index()
-    #units = units[units[buildings_filter]==1]
     check_nas(units)
 
     print "    for a total of %d temporarily empty units" % vacant_units.sum()
@@ -400,31 +398,31 @@ def yaml_to_class(cfg):
         "segmented_discretechoice": PSRC_SegmentedMNLDiscreteChoiceModel
     }[model_type]
 
+def extract_movers(choosers, out_fname, choosers_filter = None):
+    movers = choosers.to_frame(out_fname)
+    if choosers_filter is not None:
+        movers = movers[choosers_filter]     
+    
 def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, 
                              new_buildings, probabilities, new_units, units, 
-                             choosers_filter = None, buildings_filter = None, niterations = 100):
-
-    movers = choosers.to_frame(out_fname)
-    
-    # choosers_filter and buildings_filter should be logical arrays, if given
-    if choosers_filter is not None:
-        movers = movers[choosers_filter] 
+                             choosers_filter = None, location_filter = None, niterations = 100):
+    # choosers_filter and location_filter should be logical arrays, if given
         
     # buildings in this sample set
     loc_filter = buildings.index.isin(units[out_fname].ix[probabilities.index.get_level_values('alternative_id')])
-    if buildings_filter is not None:
-        loc_filter = np.logical_and(loc_filter, buildings_filter)
+    if location_filter is not None:
+        loc_filter = np.logical_and(loc_filter, location_filter)
         
-    for x in range(0, niterations):
+    print "Re-simulating agents in overfull locations"
+    for x in range(0, niterations+1):
         
         vacant_units = buildings[vacant_fname][loc_filter]
-        if (vacant_units > 0).sum() == 0:
-            break
         
-        print "Re-simulating households in overfull buildings"
+        print "Iteration %d" % (x+1)
+        movers = extract_movers(choosers, out_fname, choosers_filter = choosers_filter)
         _print_number_unplaced(movers, out_fname)
         print "There are now %d empty units" % vacant_units.sum()
-        print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
+        print "    and %d overfull locations" % len(vacant_units[vacant_units < 0])
 
         # exit early when simulated households are not resulting in any overfull buildings
         if len(vacant_units[vacant_units < 0]) <= min_overfull_buildings:
@@ -458,6 +456,16 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
 
         # select choosers to re-sim
         resim_choosers = bootstrap(new_units_df, overfull_buildings, out_fname, 'amount')
+        
+        # If we are in the last iteration or no vacant unist available, leave agents unplaced and exit 
+        if (vacant_units > 0).sum() == 0 or x >= niterations:
+            choosers.update_col_from_series(out_fname, 
+                                            pd.Series(-np.ones(len(resim_choosers), dtype = "int32"), 
+                                                      index = resim_choosers['chooser_id']), 
+                                            cast=False)
+            movers = extract_movers(choosers, out_fname, choosers_filter = choosers_filter)
+            _print_number_unplaced(movers, out_fname)
+            break
 
         multi_index = pd.MultiIndex.from_arrays([resim_choosers['chooser_id'], resim_choosers['alternative_id']])
 

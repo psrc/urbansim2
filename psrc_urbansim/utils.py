@@ -97,7 +97,7 @@ def _update_prediction_sample_size(cls, sample_size):
     
 def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fname,
                  supply_fname, vacant_fname, min_overfull_buildings=0,
-                 cast=False,
+                 settings = {}, cast=False,
                  alternative_ratio=2.0):
     """
     Simulate the location choices for the specified choosers for each subregion separately
@@ -178,6 +178,9 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
 
     subregs = np.unique(all_movers[subreg_geo_id])
     lcm = dcmsampl.yaml_to_class(cfg).from_yaml(str_or_buffer=cfg)
+    
+    # modify sample size if needed
+    lcm.prediction_sample_size = settings.get("prediction_sample_size", lcm.prediction_sample_size)
     orig_sample_size = lcm.prediction_sample_size
     
     dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(None, lcm, None)
@@ -203,6 +206,7 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         else:
             _update_prediction_sample_size(dcm_weighted.model, orig_sample_size)
             
+        print "Sampling", dcm_weighted.model.prediction_sample_size, "alternatives"
         # predict
         new_units, probabilities = dcm_weighted.predict_with_resim(movers, this_sreg_units)
         print("Assigned %d choosers to new units" % len(new_units.dropna()))        
@@ -220,7 +224,7 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         
         resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, 
                                  new_units, this_sreg_units, 
-                                 choosers_filter = this_filter, buildings_filter = buildings.index.isin(this_sreg_units[out_fname]),
+                                 choosers_filter = this_filter, location_filter = buildings.index.isin(this_sreg_units[out_fname]),
                                  niterations = 10)
 
     vacant_units = buildings[vacant_fname]

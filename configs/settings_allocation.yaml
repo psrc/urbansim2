@@ -13,3 +13,8 @@ jobs_transition:
   remove_columns: []
   add_columns: ["city_id"] # non-local (computed) columns 
   
+household_location_choice_model_CY:
+  prediction_sample_size: 100
+  
+employment_location_choice_model_CY:
+  prediction_sample_size: 100

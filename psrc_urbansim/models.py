@@ -563,7 +563,9 @@ def hlcm_simulate_alloc(isCY, households, buildings, persons, settings):
         psrcutils.lcm_simulate_CY(subreg_geo_id, "hlcmcoef.yaml", households, buildings, 
                                   None, "building_id", "residential_units",
                              "vacant_residential_units", 
-                             min_overfull_buildings=settings.get('min_overfull_buildings', 0), cast=True)
+                             min_overfull_buildings=settings.get('min_overfull_buildings', 0), 
+                             settings = settings.get("household_location_choice_model_CY", {}),
+                             cast=True)
     else:
         hlcm_simulate_sample(households, buildings, persons, settings)
 
@@ -573,7 +575,9 @@ def elcm_simulate_alloc(isCY, jobs, buildings, parcels, zones, gridcells, settin
     if isCY:
         subreg_geo_id = settings.get("control_geography_id", "city_id")
         psrcutils.lcm_simulate_CY(subreg_geo_id, "elcmcoef.yaml", jobs, buildings, [parcels, zones, gridcells], 
-                                  "building_id", "job_spaces", "vacant_job_spaces", cast=True)
+                                  "building_id", "job_spaces", "vacant_job_spaces", 
+                                  settings = settings.get("employment_location_choice_model_CY", {}),
+                                  cast=True)
     else:
         elcm_simulate(jobs, buildings, parcels, zones, gridcells)
 
