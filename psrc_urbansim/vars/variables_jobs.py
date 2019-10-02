@@ -48,6 +48,10 @@ def is_in_sector_group_retail(jobs, employment_sectors, employment_sector_groups
 def is_in_sector_group_retail(jobs, employment_sectors, employment_sector_groups, employment_sector_group_definitions):
     return is_in_sector_group("edu", jobs, employment_sectors, employment_sector_groups, employment_sector_group_definitions)
 
+@orca.column('jobs', 'number_of_jobs', cache=False, cache_scope='step')
+def number_of_jobs(jobs):
+    return pd.Series(np.ones(len(jobs)), index=jobs.index)
+
 @orca.column('jobs', 'parcel_id', cache=True, cache_scope='step')
 def parcel_id(jobs, buildings):
     return misc.reindex(buildings.parcel_id, jobs.building_id)
@@ -75,5 +79,20 @@ def twa_logsum_hbw_3(jobs, zones):
 @orca.column('jobs', 'twa_logsum_hbw_4', cache=True, cache_scope='iteration')
 def twa_logsum_hbw_4(jobs, zones):
     return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_4, jobs.job_zone_id)
+
+@orca.column('jobs', 'vacant_jobs', cache=False, cache_scope='step')
+def vacant_jobs(jobs, persons):
+    # For some reason the commented out code can result in an orca column that is not the same size as the other columns in the table.
+    # Need to look into this. 
+    #counts = persons.job_id.value_counts()
+    #counts = counts[counts.index > 0] # index can be -1 for unplaced jobs   
+    #return jobs.number_of_jobs.sub(counts, fill_value=0)
+
+    vacant = pd.Series(np.zeros(len(jobs)), index=jobs.index)
+    counts = persons.job_id.value_counts()
+    counts = counts[counts.index >= 0] # index can be -1 for unplaced households
+    vacant.update(counts)
+    vacant = jobs.number_of_jobs - vacant
+    return vacant 
 
 

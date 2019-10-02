@@ -27,6 +27,8 @@ from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_n
 import logging
 from urbansim.utils.logutil import log_start_finish
 import timeit
+
+
 #from psrc_urbansim.utils import resim_overfull
 
 logger = logging.getLogger(__name__)
@@ -340,9 +342,10 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
         print "WARNING: Not enough locations for movers"
         print "    reducing locations to size of movers for performance gain"
         movers = movers.head(int(vacant_units.sum()))
-    
-    segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
-    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(None, segmented_mnl, None)
+
+    mnl = yaml_to_class(cfg).from_yaml(None, cfg)
+    #segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
+    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(None, mnl, None)
     
     start_time = timeit.default_timer()
    
@@ -376,6 +379,27 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     print "    and there are now %d empty units" % vacant_units.sum()
     print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
 
+def yaml_to_class(cfg):
+    """
+    Convert the name of a yaml file and get the Python class of the model
+    associated with the configuration
+
+    Parameters
+    ----------
+    cfg : str
+        The name of the yaml configuration file
+
+    Returns
+    -------
+    Nothing
+    """
+    import yaml
+    model_type = yaml.load(open(cfg))["model_type"]
+    return {
+        "discretechoice": PSRC_MNLDiscreteChoiceModel,
+        "segmented_discretechoice": PSRC_SegmentedMNLDiscreteChoiceModel
+    }[model_type]
+
 def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, 
                              new_buildings, probabilities, new_units, units, 
                              choosers_filter = None, buildings_filter = None):
@@ -397,7 +421,7 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         if (vacant_units > 0).sum() == 0:
             break
         
-        print "Re-simulating housholds in overfull buildings"
+        print "Re-simulating households in overfull buildings"
         _print_number_unplaced(movers, out_fname)
         print "There are now %d empty units" % vacant_units.sum()
         print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])

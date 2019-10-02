@@ -21,6 +21,10 @@ from urbansim.utils import misc
 from psrc_urbansim.binary_discrete_choice import BinaryDiscreteChoiceModel
 import dcm_weighted_sampling as psrc_dcm
 
+def update_local_scope(table, column, values):
+    table.update_col_from_series(column, pd.Series(values, index=table.index), cast=True)
+    return table
+
 def to_frame(tbl, join_tbls, cfg, additional_columns=[]):
     """
     Leverage all the built in functionality of the sim framework to join to
@@ -157,14 +161,8 @@ def do_wahcm_simulate(persons, jobs, households, zones, subreg_geo_id = None):
   
 @orca.step('wplcm_simulate')
 def wplcm_simulate(persons, households, jobs):
-    # can only send in jobs that have a valid building_id, so remove unlocated jobs for now
-    #jobs_df = jobs.to_frame(jobs.local_columns)
-    #jobs_df = jobs_df[jobs_df.building_id>0]
-    #jobs_df.index.name = 'job_id'
-    #orca.add_table('located_jobs', jobs_df)
-    #located_jobs =  orca.get_table('located_jobs')
+    jobs.index.name = 'job_id'
     res = psrc_dcm.lcm_simulate("wplcmcoef.yaml", persons, jobs,
                              0, None, "job_id", "number_of_jobs",
                              "vacant_jobs", cast=True)
-    
 

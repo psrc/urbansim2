@@ -266,3 +266,4 @@ def psrc_to_frame(tbl, join_tbls, cfg, additional_columns=[], check_na = True):
     if check_na:
         check_nas(df)
     return df
+

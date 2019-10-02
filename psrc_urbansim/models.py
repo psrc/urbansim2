@@ -18,6 +18,7 @@ import sqftproforma
 from urbansim.utils import misc, yamlio
 import os
 from psrc_urbansim.vars.variables_interactions import network_distance_from_home_to_work
+import dcm_weighted_sampling as psrc_dcm
 
 
 # Residential REPM
@@ -168,11 +169,11 @@ def elcm_estimate(jobs, buildings, parcels, zones, gridcells):
 
 @orca.step('elcm_simulate')
 def elcm_simulate(jobs, buildings, parcels, zones, gridcells):
-    res = utils.lcm_simulate("elcmcoef.yaml", jobs, buildings,
+    res = psrc_dcm.lcm_simulate("elcmcoef.yaml", jobs, buildings, 0,
                              [parcels, zones, gridcells],
                              "building_id", "job_spaces", "vacant_job_spaces",
                              cast=True)
-    #orca.clear_cache()
+
 
 
 @orca.step('households_relocation')
@@ -220,11 +221,6 @@ def update_persons_jobs(jobs, persons):
                                                persons.work_at_home),
                                              index=persons.index), cast=True)
 
-    # Update jobs available column to reflect which jobs are taken, available:
-    jobs.update_col_from_series("vacant_jobs",
-                                pd.Series(np.where(jobs.index.isin
-                                          (persons.job_id), 0, 1),
-                                          index=jobs.index), cast=True)
 
 @orca.step('households_transition')
 def households_transition(households, household_controls,
