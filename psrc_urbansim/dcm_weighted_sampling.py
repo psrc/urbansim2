@@ -401,7 +401,8 @@ def yaml_to_class(cfg):
 def extract_movers(choosers, out_fname, choosers_filter = None):
     movers = choosers.to_frame(out_fname)
     if choosers_filter is not None:
-        movers = movers[choosers_filter]     
+        movers = movers[choosers_filter]
+    return movers
     
 def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, 
                              new_buildings, probabilities, new_units, units, 
