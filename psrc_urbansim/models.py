@@ -243,7 +243,9 @@ def run_households_transition(households, household_controls,
                                 linked_tables={"persons":
                                                (persons.local,
                                                 'household_id')})
-
+    # the transition model removes index name, so put it back
+    orca.get_table("households").index.name = households.index.name
+    orca.get_table("persons").index.name = persons.index.name
     print "Net change: %s households" % (orca.get_table("households").
                                          local.shape[0] - orig_size_hh)
     print "Net change: %s persons" % (orca.get_table("persons").
@@ -296,6 +298,8 @@ def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation
                     employment_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)
         #employment_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)    
     res = utils.full_transition(jobs, employment_controls, year, config, "building_id")
+    # the transition model removes index name, so put it back
+    orca.get_table("jobs").index.name = jobs.index.name
     print "Net change: %s jobs" % (orca.get_table("jobs").local.shape[0]-
                                    orig_size)
     if is_allocation:

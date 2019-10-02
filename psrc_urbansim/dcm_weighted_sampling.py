@@ -402,7 +402,7 @@ def yaml_to_class(cfg):
 
 def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, 
                              new_buildings, probabilities, new_units, units, 
-                             choosers_filter = None, buildings_filter = None):
+                             choosers_filter = None, buildings_filter = None, niterations = 100):
 
     movers = choosers.to_frame(out_fname)
     
@@ -415,7 +415,7 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
     if buildings_filter is not None:
         loc_filter = np.logical_and(loc_filter, buildings_filter)
         
-    for x in range(0, 100):
+    for x in range(0, niterations):
         
         vacant_units = buildings[vacant_fname][loc_filter]
         if (vacant_units > 0).sum() == 0:

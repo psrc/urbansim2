@@ -161,7 +161,7 @@ def do_wahcm_simulate(persons, jobs, households, zones, subreg_geo_id = None):
   
 @orca.step('wplcm_simulate')
 def wplcm_simulate(persons, households, jobs):
-    jobs.index.name = 'job_id'
+    #jobs.index.name = 'job_id'
     res = psrc_dcm.lcm_simulate("wplcmcoef.yaml", persons, jobs,
                              0, None, "job_id", "number_of_jobs",
                              "vacant_jobs", cast=True)

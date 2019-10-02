@@ -69,8 +69,8 @@ orca.run([
      
      # Developer 
      #######
-     "proforma_feasibility_alloc",
-     "developer_picker_alloc",
+     #"proforma_feasibility_alloc",
+     #"developer_picker_alloc",
      
      # Misc
      #######
