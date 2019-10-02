@@ -466,14 +466,16 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         #s = pd.Series(0, index=multi_index)
         #probabilities.update(s)
         
-        idx = pd.IndexSlice
-        probabilities.loc[idx[:, selected_units]] = 0
-
+        #idx = pd.IndexSlice
+        #probabilities.loc[idx[:, selected_units]] = 0 # slow
+        probabilities[probabilities.index.get_level_values('alternative_id').isin(selected_units)] = 0 # might be faster than IndexSlice
+        
         # get probabilities for new choosers only
         resim_probabilities = probabilities[probabilities.index.get_level_values('chooser_id').isin(resim_choosers['chooser_id'])]
         # get probabilities for choosers that have at least one option to choose from
         probsums = resim_probabilities.groupby(level=0).sum()
-        resim_probabilities = resim_probabilities.loc[idx[probsums[probsums > 0].index.values,:]]
+        #resim_probabilities = resim_probabilities.loc[idx[probsums[probsums > 0].index,:]] # very slow
+        resim_probabilities = resim_probabilities[resim_probabilities.index.get_level_values('chooser_id').isin(probsums[probsums > 0].index.values)]
         
         # If we are in the last iteration or no vacant units available or no choosers left to resample, leave agents unplaced and exit 
         if (x >= niterations or vacant_units > 0).sum() == 0 or len(resim_probabilities) == 0:
