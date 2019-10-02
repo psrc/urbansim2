@@ -406,7 +406,7 @@ def extract_movers(choosers, out_fname, choosers_filter = None):
     
 def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, 
                              new_buildings, probabilities, new_units, units, 
-                             choosers_filter = None, location_filter = None, niterations = 100):
+                             choosers_filter = None, location_filter = None, niterations = 10):
     # choosers_filter and location_filter should be logical arrays, if given
         
     # buildings in this sample set
@@ -449,33 +449,42 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         # make building_id a column by resetting index
         overfull_buildings.reset_index(inplace = True)
         
+        # keep taken units in order to set the probabilities of choosing them again to 0
+        selected_units = np.unique(new_units_df.alternative_id)
+        
         # keep only those that are overfull
         new_units_df = new_units_df[new_units_df[out_fname].isin(overfull_buildings[out_fname])]
 
-        # join overful_buildings so we get the amount they are over
+        # join overfull_buildings so we get the amount they are over
         new_units_df = new_units_df.merge(overfull_buildings, how = 'left')
 
         # select choosers to re-sim
         resim_choosers = bootstrap(new_units_df, overfull_buildings, out_fname, 'amount')
         
-        # If we are in the last iteration or no vacant unist available, leave agents unplaced and exit 
-        if (vacant_units > 0).sum() == 0 or x >= niterations:
+        # set probabilities of all selected units to 0
+        #multi_index = pd.MultiIndex.from_arrays([resim_choosers['chooser_id'], resim_choosers['alternative_id']])
+        #s = pd.Series(0, index=multi_index)
+        #probabilities.update(s)
+        
+        idx = pd.IndexSlice
+        probabilities.loc[idx[:, selected_units]] = 0
+
+        # get probabilities for new choosers only
+        resim_probabilities = probabilities[probabilities.index.get_level_values('chooser_id').isin(resim_choosers['chooser_id'])]
+        # get probabilities for choosers that have at least one option to choose from
+        probsums = resim_probabilities.groupby(level=0).sum()
+        resim_probabilities = resim_probabilities.loc[idx[probsums[probsums > 0].index.values,:]]
+        
+        # If we are in the last iteration or no vacant units available or no choosers left to resample, leave agents unplaced and exit 
+        if (x >= niterations or vacant_units > 0).sum() == 0 or len(resim_probabilities) == 0:
             choosers.update_col_from_series(out_fname, 
                                             pd.Series(-np.ones(len(resim_choosers), dtype = "int32"), 
                                                       index = resim_choosers['chooser_id']), 
                                             cast=False)
             movers = extract_movers(choosers, out_fname, choosers_filter = choosers_filter)
             _print_number_unplaced(movers, out_fname)
-            break
-
-        multi_index = pd.MultiIndex.from_arrays([resim_choosers['chooser_id'], resim_choosers['alternative_id']])
-
-        s = pd.Series(0, index=multi_index)
-
-        probabilities.update(s)
-
-        resim_probabilities = probabilities[probabilities.index.get_level_values('chooser_id').isin(resim_choosers['chooser_id'])]
-
+            break        
+        
         def mkchoice(probs):
                 probs.reset_index(0, drop=True, inplace=True)
                 return np.random.choice(
