@@ -336,10 +336,10 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
         print "Adjusted Prices"
         print buildings[price_col].describe()
 
-    if len(movers) > vacant_units.sum():
-        print "WARNING: Not enough locations for movers"
-        print "    reducing locations to size of movers for performance gain"
-        movers = movers.head(int(vacant_units.sum()))
+    #if len(movers) > vacant_units.sum():
+    #    print "WARNING: Not enough locations for movers"
+    #    print "    reducing locations to size of movers for performance gain"
+    #    movers = movers.head(int(vacant_units.sum()))
 
     mnl = yaml_to_class(cfg).from_yaml(None, cfg)
     #segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)

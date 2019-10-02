@@ -202,11 +202,18 @@ def jobs_relocation(jobs, job_relocation_rates):
 @orca.step('update_persons_jobs')
 def update_persons_jobs(jobs, persons):
 
-    # Persons whoose jobs have relocated no longer have those jobs
+    # Persons whose jobs have relocated no longer have those jobs
     persons.update_col_from_series("job_id",
                                    pd.Series(np.where(persons.job_id.isin
                                              (jobs.building_id[jobs.building_id == -1].
                                               index), -1, persons.job_id),
+                                             index=persons.index),
+                                             cast=True)
+
+    # Persons whose job no longer exists should have their job_id set to  -1
+    persons.update_col_from_series("job_id",
+                                   pd.Series(np.where(persons.job_id.isin
+                                             (jobs.index), persons.job_id, -1),
                                              index=persons.index),
                                              cast=True)
 
