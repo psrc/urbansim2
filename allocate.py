@@ -64,7 +64,7 @@ orca.run([
      #######
      # (Must run hh/job transition models first in order to 
      # determine the demand for the developer model.)
-     "households_transition_alloc",     # 
+     #"households_transition_alloc",     # 
      "jobs_transition_alloc",           #
      
      # Developer 
@@ -80,8 +80,8 @@ orca.run([
      
      # Relocate and place households
      #######
-     "households_relocation_alloc",
-     "hlcm_simulate_alloc",
+     #"households_relocation_alloc",
+     #"hlcm_simulate_alloc",
     
     # Relocate and place jobs
     #######

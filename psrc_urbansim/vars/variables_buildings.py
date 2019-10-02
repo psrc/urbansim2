@@ -117,9 +117,11 @@ def is_warehouse(buildings):
 @orca.column('buildings', 'job_spaces', cache=False)
 def job_spaces(buildings):
     # TODO: get base year as an argument
+    base_year = 2014
     results = np.zeros(buildings.local.shape[0],dtype=np.int32)
-    iexisting = np.where(buildings.year_built <= 2014)[0]
-    ifuture = np.where(buildings.year_built > 2014)[0]
+    is_existing = np.logical_or(buildings.year_built <= base_year, buildings.job_capacity > 0)
+    iexisting = np.where(is_existing)[0]
+    ifuture = np.where(np.logical_not(is_existing))[0]
     results[iexisting] = buildings.job_capacity.iloc[iexisting]
     results[ifuture] = ((buildings.non_residential_sqft /
             buildings.sqft_per_job).fillna(0).astype('int')).iloc[ifuture]
@@ -169,7 +171,7 @@ def number_of_households(buildings, households):
 def number_of_jobs(buildings, jobs):
     return jobs.sector_id.groupby(jobs.building_id).size().reindex(buildings.index).fillna(0).astype("int32")
 
-@orca.column('buildings', 'number_of_jobs', cache=True, cache_scope='step')
+@orca.column('buildings', 'number_of_non_home_based_jobs', cache=True, cache_scope='step')
 def number_of_non_home_based_jobs(buildings, jobs):
     return (jobs['home_based_status']==0).groupby(jobs.building_id).sum().reindex(buildings.index).fillna(0).astype("int32")
 
@@ -244,10 +246,8 @@ def unit_price_residential(buildings, parcels):
     return misc.reindex(parcels.unit_price_residential, buildings.parcel_id)
 
 @orca.column('buildings', 'vacant_job_spaces', cache=False)
-def vacant_job_spaces(buildings, jobs):
-    counts = jobs.building_id.value_counts()
-    counts = counts[counts.index >= 0] # index can be -1 for unplaced jobs   
-    return buildings.job_spaces.sub(counts, fill_value=0)
+def vacant_job_spaces(buildings):
+    return buildings.job_spaces.sub(buildings.number_of_non_home_based_jobs, fill_value=0)
 
 @orca.column('buildings', 'vacant_residential_units', cache=False, cache_scope='step')
 def vacant_residential_units(buildings, households):
