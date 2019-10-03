@@ -198,7 +198,7 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         
         if len(movers) == 0 or len(this_sreg_units) == 0:
             print "Skipping LCM"
-            next
+            continue
 
         # adjust sampling size if too few alternatives
         if len(this_sreg_units) < orig_sample_size:
@@ -206,6 +206,7 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         else:
             _update_prediction_sample_size(dcm_weighted.model, orig_sample_size)
             
+        
         print "Sampling", dcm_weighted.model.prediction_sample_size, "alternatives"
         # predict
         new_units, probabilities = dcm_weighted.predict_with_resim(movers, this_sreg_units)

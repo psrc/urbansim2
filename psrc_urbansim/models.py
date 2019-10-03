@@ -277,7 +277,7 @@ def run_households_transition(households, household_controls,
                                     np.where(~persons.index.isin(orig_pers_index), 0, persons.work_at_home))    
     # set non-worker job_id to -2
     persons = update_local_scope(persons, "job_id", 
-                                    np.where(persons.employment_status > 0, persons.job_id, -2)) 
+                                    np.where(persons.employment_status > 0, persons.job_id, -2))
 
     if is_allocation:
         subreg_geo_id = settings.get("control_geography_id", "city_id")

@@ -4,7 +4,7 @@ model_type: discretechoice
 
 choosers_fit_filters: [job_id > 0, work_at_home == 0]
 
-choosers_predict_filters: [work_at_home == 0, employment_status > 0]
+choosers_predict_filters: [work_at_home == 0, employment_status > 0, building_id > 0]
 
 alts_fit_filters:
 
