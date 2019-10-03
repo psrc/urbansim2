@@ -240,7 +240,7 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     
     cfg = misc.config(cfg)
 
-    choosers_df = to_frame(choosers, [], cfg, additional_columns=[out_fname])
+    choosers_df = psrc_to_frame(choosers, [], cfg, additional_columns=[out_fname], check_na = False)
 
     additional_columns = [supply_fname, vacant_fname]
     if enable_supply_correction is not None and \
@@ -257,7 +257,7 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
 
     print "There are %d total available units" % available_units.sum()
     print "    and %d total choosers" % len(choosers)
-    print "    but there are %d overfull buildings" % \
+    print "    but there are %d overfull locations" % \
           len(vacant_units[vacant_units < 0])
 
     vacant_units = vacant_units[vacant_units > 0]
@@ -273,7 +273,7 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     #check_nas(units)
 
     print "    for a total of %d temporarily empty units" % vacant_units.sum()
-    print "    in %d buildings total in the region" % len(vacant_units)
+    print "    in %d locations total in the region" % len(vacant_units)
 
     if missing > 0:
         print "WARNING: %d indexes aren't found in the locations df -" % \
@@ -348,6 +348,10 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     start_time = timeit.default_timer()
    
     new_units, probabilities = dcm_weighted.predict_with_resim(movers, units)
+    if len(new_units) == 0:
+        print "No choosers or alternatives after applying LCM filter. Skipping LCM."
+        return
+    
     #new_units, _ = yaml_to_class(cfg).predict_from_cfg(movers, units, cfg, alternative_ratio = 10)
 
     # new_units returns nans when there aren't enough units,
@@ -854,10 +858,10 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
             choosers, alternatives)
 
         if len(choosers) == 0:
-            return pd.Series()
+            return pd.Series(), pd.Series()
 
         if len(alternatives) == 0:
-            return pd.Series(index=choosers.index)
+            return pd.Series(index=choosers.index), pd.Series()
 
         probabilities = self.probabilities(
             choosers, alternatives, filter_tables=False)
