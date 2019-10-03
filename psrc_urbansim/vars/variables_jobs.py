@@ -82,10 +82,11 @@ def twa_logsum_hbw_4(jobs, zones):
 
 @orca.column('jobs', 'vacant_jobs', cache=False, cache_scope='step')
 def vacant_jobs(jobs, persons):
-    # For some reason the commented out code can result in an orca column that is not the same size as the other columns in the table.
-    # Need to look into this. 
+    vacant = pd.Series(np.zeros(len(jobs)), index=jobs.index)
     counts = persons.job_id.value_counts()
-    counts = counts[counts.index > 0] # index can be -1 for unplaced jobs   
-    return jobs.number_of_jobs.sub(counts, fill_value=0)
+    counts = counts[counts.index > 0] # index can be -1 for unplaced households
+    vacant.update(counts)
+    vacant = jobs.number_of_jobs - vacant
+    return vacant 
 
 
