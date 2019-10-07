@@ -15,7 +15,7 @@ from urbansim.urbanchoice import interaction, mnl
 from urbansim.utils import yamlio
 from urbansim.utils.logutil import log_start_finish
 
-from choicemodels import choicemodels
+import choicemodels
 
 logger = logging.getLogger(__name__)
 

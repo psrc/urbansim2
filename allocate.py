@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "allocresult20190610.h5"
+     return "results_alloc_stc_20191007.h5"
 
 @orca.injectable('settings', cache=True)
 def settings():
