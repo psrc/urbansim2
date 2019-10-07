@@ -1,15 +1,6 @@
 import os
 
-#os.sys.path.append(r'D:\udst\urbansim')
-#os.sys.path.append(r'D:\udst\urbansim\urbansim')
-#os.sys.path.append(r'D:\udst\urbansim\urbansim\dcm')
-#from urbansim.models.dcm import network_distance_from_home_to_work
-#from urbansim.models.dcm import avg_network_distance_from_home_to_work
-#from urbansim.models.dcm import max_logsum_hbw_am_from_home_to_work_wzone_logsum
-#from urbansim.models.dcm import logsum_hbw_am_from_home_to_work_wzone_logsum
-#from urbansim.models.dcm import empden_zone_sector
-#from urbansim.models.dcm import generalized_cost_from_home_to_work
-#from urbansim.models.dcm import ln_am_total_transit_time_walk_from_home_to_work
+from vars.variables_interactions import *
 
 from patsy import dmatrix
 from prettytable import PrettyTable

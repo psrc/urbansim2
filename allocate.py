@@ -50,7 +50,7 @@ settings = settings()
 def tables_in_base_year():
      h5store = pd.HDFStore(os.path.join(misc.data_dir(), settings['store']), mode="r")
      store_table_names = orca.get_injectable('store_table_names_dict')
-     return [t for t in orca.list_tables() if t in h5store or store_table_names.get(t, "") in h5store]
+     return [t for t in orca.list_tables() if t in h5store or store_table_names.get(t, "UnknownTable") in h5store]
 
 
 # models for control years

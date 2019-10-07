@@ -222,7 +222,7 @@ def persons(store):
     return df
 
 @orca.table('persons_for_estimation', cache=True)
-def persons(store):
+def persons_for_estimation(store):
     df = store['persons_for_estimation']
     # job_id = -1 is used for workers that have not been assigned a job, so coding non-workers to -2
     df.job_id = np.where(df.employment_status>0, df.job_id, -2)
