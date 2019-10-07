@@ -13,7 +13,6 @@ import urbansim.developer as dev
 import developer_models as psrcdev
 import os 
 from urbansim.utils import misc
-from choicemodels import choicemodels
 import statsmodels.api as sm
 from statsmodels.formula.api import logit, probit, poisson, ols
 import random
