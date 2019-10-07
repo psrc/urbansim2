@@ -33,7 +33,7 @@ def settings():
 
 @orca.injectable('control_years', cache=True)
 def control_years():
-     return [2017] + range(2020, 2050)
+     return [2017] + range(2020, 2051, 5)
 
 @orca.injectable('isCY', cache=False)
 def isCY(year, control_years):
@@ -57,8 +57,8 @@ def tables_in_base_year():
 orca.run([
      # REPM
      #######
-     #"repmres_simulate",          # residential REPM
-     #"repmnr_simulate",           # non-residential REPM
+     "repmres_simulate",          # residential REPM
+     "repmnr_simulate",           # non-residential REPM
      
      # Transition
      #######
@@ -69,36 +69,37 @@ orca.run([
      
      # Developer 
      #######
-     #"proforma_feasibility_alloc",
-     #"developer_picker_alloc",
+     "proforma_feasibility_alloc",
+     "developer_picker_alloc",
      
      # Misc
      #######
      "update_misc_building_columns",
      "update_household_previous_building_id",
      "update_buildings_lag1",
+     "update_persons_jobs",
      
      # Relocate and place households
      #######
-     #"households_relocation_alloc",
-     #"hlcm_simulate_alloc",
+     "households_relocation_alloc",
+     "hlcm_simulate_alloc",
     
     # Relocate and place jobs
     #######
      "jobs_relocation_alloc",     
-     #"elcm_simulate_alloc",             # ELCM
-     #"governmental_jobs_scaling_alloc",
+     "elcm_simulate_alloc",             # ELCM
+     "governmental_jobs_scaling_alloc",
 
     # scaling of unplaced HHs and jobs in control years
-    #'scaling_unplaced_households',
-    #'scaling_unplaced_jobs',
+    'scaling_unplaced_households',
+    'scaling_unplaced_jobs',
     
     # Workplace models
     #######
     "wahcm_simulate_alloc",
     "wplcm_simulate",
     #"clear_cache"
-], iter_vars=[2017, 2018], data_out=outfile, out_base_tables=tables_in_base_year(),
+], iter_vars=range(2015,2051), data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 
 
