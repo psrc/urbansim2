@@ -11,23 +11,27 @@ def is_worker_n(n, persons):
 # PERSONS VARIABLES (in alphabetic order)
 #####################
 
-@orca.column('persons', 'faz_id', cache=True)
+@orca.column('persons', 'city_id', cache=True, cache_scope='step')
+def city_id(persons, households):
+    return misc.reindex(households.city_id, persons.household_id)
+
+@orca.column('persons', 'faz_id', cache=True, cache_scope='step')
 def faz_id(persons, zones):
     return misc.reindex(zones.faz_id, persons.household_zone_id)
 
-@orca.column('persons', 'household_building_id', cache=True)
+@orca.column('persons', 'household_building_id', cache=True, cache_scope='step')
 def household_building_id(persons, households):
     return misc.reindex(households.building_id, persons.household_id)
 
-@orca.column('persons', 'prev_household_building_id', cache=True)
+@orca.column('persons', 'prev_household_building_id', cache=True, cache_scope='step')
 def prev_household_building_id(persons, households):
     return misc.reindex(households.previous_building_id, persons.household_id)
 
-@orca.column('persons', 'household_district_id', cache=True)
+@orca.column('persons', 'household_district_id', cache=False)
 def household_district_id(persons, zones):
     return misc.reindex(zones.district_id, persons.household_zone_id)
 
-@orca.column('persons', 'household_income_category', cache=True)
+@orca.column('persons', 'household_income_category', cache=True, cache_scope='step')
 def household_income_category(persons):
     # calling households_for_estimation.income_category returns an non-indexed  
     # array, so converting to df for now. 

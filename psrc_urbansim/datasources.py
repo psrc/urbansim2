@@ -205,7 +205,7 @@ def parcel_zoning(store, parcels, zoning_heights):
     pcl = pd.DataFrame(parcels['plan_type_id'])
     pcl['parcel_id'] = pcl.index
     # merge parcels with zoning_heights
-    zoning = pd.merge(pcl, zoning_heights.local, how='left', on=['plan_type_id']) 
+    zoning = pd.merge(pcl, zoning_heights.local, how='left', left_on='plan_type_id', right_index = True)
     # replace NaNs with 0 for records not found in zoning_heights (e.g. plan_type_id 1000) or constraints (e.g. plan_type_id 0)
     for col in zoning.columns:
         zoning[col] = np.nan_to_num(zoning[col])
@@ -222,7 +222,7 @@ def persons(store):
     return df
 
 @orca.table('persons_for_estimation', cache=True)
-def persons(store):
+def persons_for_estimation(store):
     df = store['persons_for_estimation']
     # job_id = -1 is used for workers that have not been assigned a job, so coding non-workers to -2
     df.job_id = np.where(df.employment_status>0, df.job_id, -2)

@@ -97,7 +97,7 @@ def _update_prediction_sample_size(cls, sample_size):
     
 def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fname,
                  supply_fname, vacant_fname, min_overfull_buildings=0,
-                 cast=False,
+                 settings = {}, cast=False,
                  alternative_ratio=2.0):
     """
     Simulate the location choices for the specified choosers for each subregion separately
@@ -136,6 +136,8 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         Above this ratio of alternatives to choosers (default of 2.0), the
         alternatives will be sampled to improve computational performance
     """
+    import dcm_weighted_sampling as dcmsampl
+    
     cfg = misc.config(cfg)
 
     choosers_df = to_frame(choosers, [], cfg, additional_columns=[out_fname, subreg_geo_id])
@@ -175,11 +177,13 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         print "    correctly between the locations df and the aggregations tables"
 
     subregs = np.unique(all_movers[subreg_geo_id])
-    lcm = yaml_to_class(cfg).from_yaml(str_or_buffer=cfg)
+    lcm = dcmsampl.yaml_to_class(cfg).from_yaml(str_or_buffer=cfg)
+    
+    # modify sample size if needed
+    lcm.prediction_sample_size = settings.get("prediction_sample_size", lcm.prediction_sample_size)
     orig_sample_size = lcm.prediction_sample_size
     
-    segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
-    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(None, segmented_mnl, None)
+    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(None, lcm, None)
     
     # run LCM for each subregion
     for subreg in subregs:
@@ -194,21 +198,23 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         
         if len(movers) == 0 or len(this_sreg_units) == 0:
             print "Skipping LCM"
-            next
+            continue
 
         # adjust sampling size if too few alternatives
         if len(this_sreg_units) < orig_sample_size:
-            _update_prediction_sample_size(lcm, len(this_sreg_units))
+            _update_prediction_sample_size(dcm_weighted.model, len(this_sreg_units))
         else:
-            _update_prediction_sample_size(lcm, orig_sample_size)
+            _update_prediction_sample_size(dcm_weighted.model, orig_sample_size)
             
+        
+        print "Sampling", dcm_weighted.model.prediction_sample_size, "alternatives"
         # predict
         new_units, probabilities = dcm_weighted.predict_with_resim(movers, this_sreg_units)
         print("Assigned %d choosers to new units" % len(new_units.dropna()))        
 
         # new_units returns nans when there aren't enough units,
         # get rid of them and they'll stay as -1s
-        new_units = new_units.dropna()
+        #new_units = new_units.dropna()
 
         # go from units back to buildings
         new_buildings = pd.Series(this_sreg_units.loc[new_units.values][out_fname].values,
@@ -218,8 +224,53 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         _print_number_unplaced(choosers, out_fname)
         
         resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, 
-                                 new_units, this_sreg_units, choosers_filter = this_filter)
+                                 new_units, this_sreg_units, 
+                                 choosers_filter = this_filter, location_filter = buildings.index.isin(this_sreg_units[out_fname]),
+                                 niterations = 10)
 
     vacant_units = buildings[vacant_fname]
     print "    and there are now %d empty units" % vacant_units.sum()
     print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
+
+
+def psrc_to_frame(tbl, join_tbls, cfg, additional_columns=[], check_na = True):
+    """
+    Like the original code in urbansim_defaults.utils, but checks for nas only if required.
+    
+    Leverage all the built in functionality of the sim framework to join to
+    the specified tables, only accessing the columns used in cfg (the model
+    yaml configuration file), an any additionally passed columns (the sim
+    framework is smart enough to figure out which table to grab the column
+    off of)
+
+    Parameters
+    ----------
+    tbl : DataFrameWrapper
+        The table to join other tables to
+    join_tbls : list of DataFrameWrappers or strs
+        A list of tables to join to "tbl"
+    cfg : str
+        The filename of a yaml configuration file from which to parse the
+        strings which are actually used by the model
+    additional_columns : list of strs
+        A list of additional columns to include
+
+    Returns
+    -------
+    A single DataFrame with the index from tbl and the columns used by cfg
+    and any additional columns specified
+    """
+    join_tbls = join_tbls if isinstance(join_tbls, list) else [join_tbls]
+    tables = [tbl] + join_tbls
+    cfg = yaml_to_class(cfg).from_yaml(str_or_buffer=cfg)
+    tables = [t for t in tables if t is not None]
+    columns = misc.column_list(tables, cfg.columns_used()) + additional_columns
+    if len(tables) > 1:
+        df = orca.merge_tables(target=tables[0].name,
+                               tables=tables, columns=columns)
+    else:
+        df = tables[0].to_frame(columns)
+    if check_na:
+        check_nas(df)
+    return df
+

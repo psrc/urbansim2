@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "allocresult20190610.h5"
+     return "results_alloc_stc_20191007.h5"
 
 @orca.injectable('settings', cache=True)
 def settings():
@@ -33,7 +33,7 @@ def settings():
 
 @orca.injectable('control_years', cache=True)
 def control_years():
-     return [2017] + range(2020, 2050)
+     return [2017] + range(2020, 2051, 5)
 
 @orca.injectable('isCY', cache=False)
 def isCY(year, control_years):
@@ -50,15 +50,15 @@ settings = settings()
 def tables_in_base_year():
      h5store = pd.HDFStore(os.path.join(misc.data_dir(), settings['store']), mode="r")
      store_table_names = orca.get_injectable('store_table_names_dict')
-     return [t for t in orca.list_tables() if t in h5store or store_table_names.get(t, None) in h5store]
+     return [t for t in orca.list_tables() if t in h5store or store_table_names.get(t, "UnknownTable") in h5store]
 
 
 # models for control years
 orca.run([
      # REPM
      #######
-     #"repmres_simulate",          # residential REPM
-     #"repmnr_simulate",           # non-residential REPM
+     "repmres_simulate",          # residential REPM
+     "repmnr_simulate",           # non-residential REPM
      
      # Transition
      #######
@@ -69,14 +69,15 @@ orca.run([
      
      # Developer 
      #######
-     #"proforma_feasibility_alloc",
-     #"developer_picker_alloc",
+     "proforma_feasibility_alloc",
+     "developer_picker_alloc",
      
      # Misc
      #######
      "update_misc_building_columns",
      "update_household_previous_building_id",
      "update_buildings_lag1",
+     "update_persons_jobs",
      
      # Relocate and place households
      #######
@@ -95,10 +96,10 @@ orca.run([
     
     # Workplace models
     #######
-    "wahcm_simulate",
+    "wahcm_simulate_alloc",
     "wplcm_simulate",
     #"clear_cache"
-], iter_vars=[2017, 2018], data_out=outfile, out_base_tables=tables_in_base_year(),
+], iter_vars=range(2015,2051), data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 
 

@@ -1,5 +1,8 @@
 store: psrc_base_year_2014_alloc_stc.h5
+
 control_geography_id: city_id
+
+min_overfull_buildings: 0
 
 feasibility_model_CY:
   development_filter: capacity_opportunity_non_gov_relaxed
@@ -13,3 +16,8 @@ jobs_transition:
   remove_columns: []
   add_columns: ["city_id"] # non-local (computed) columns 
   
+household_location_choice_model_CY:
+  prediction_sample_size: 100
+  
+employment_location_choice_model_CY:
+  prediction_sample_size: 100
