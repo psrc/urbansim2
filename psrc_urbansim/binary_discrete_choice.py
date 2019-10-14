@@ -14,11 +14,9 @@ from urbansim.exceptions import ModelEvaluationError
 from urbansim.urbanchoice import interaction, mnl
 from urbansim.utils import yamlio
 from urbansim.utils.logutil import log_start_finish
-
-from choicemodels import choicemodels
-
+import pylogit
+import statsmodels.api as sm
 logger = logging.getLogger(__name__)
-
 
 class DiscreteChoiceModel(object):
     """
@@ -252,7 +250,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
                 'Estimated data does not have the same length as input.  '
                 'This suggests there are null values in one or more of '
                 'the input columns.')
-        logit = choicemodels.Logit(current_choice, model_design)
+        logit = sm.Logit(current_choice, model_design)
         results = logit.fit()
 
         self.log_likelihoods = {
@@ -372,7 +370,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
                   for x in model_design.columns]
 
         # Constructor requires and observation column, but since we are not estimating any will do so using constant. 
-        logit = choicemodels.Logit(model_design.ix[:,0], model_design)
+        logit = sm.Logit(model_design.ix[:,0], model_design)
 
         # Get the prediction probabilities for each chooser
         return pd.DataFrame(logit.predict(coeffs), columns=['probability'], index=model_design.index)
