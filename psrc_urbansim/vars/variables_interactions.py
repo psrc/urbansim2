@@ -48,8 +48,10 @@ def max_logsum_hbw_am_from_home_to_work(work1_zones, work2_zones, location_zones
                3: travel_data["logsum_hbw_am_income_3"], 4: travel_data["logsum_hbw_am_income_4"]}
     worker1 = abstract_logsum_interaction_variable(tm_dict, agent_income_categories, work1_zones, location_zones, direction_from_home = False)
     worker2 = abstract_logsum_interaction_variable(tm_dict, agent_income_categories, work2_zones, location_zones, direction_from_home = False)
-    worker2 = set_worker2_to_worker1_if_needed(worker1, worker2)
-    worker1 = set_worker2_to_worker1_if_needed(worker2, worker1)
+    fillidx = np.where(np.logical_and(np.isnan(worker2), np.isnan(worker1)==False))
+    worker2[fillidx] = worker1[fillidx]
+    fillidx = np.where(np.logical_and(np.isnan(worker1), np.isnan(worker2)==False))
+    worker1[fillidx] = worker2[fillidx]
     res = np.maximum.reduce([worker1, worker2])
     return res
 
