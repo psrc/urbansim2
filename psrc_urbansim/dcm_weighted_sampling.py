@@ -177,7 +177,7 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
                               index=new_units.index)
     choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
 
-    resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units)
+    resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units, cast = cast)
 
     if enable_supply_correction is not None:
         new_prices = buildings[price_col]
@@ -401,7 +401,7 @@ def extract_movers(choosers, out_fname, choosers_filter = None):
     
 def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, 
                              new_buildings, probabilities, new_units, units, 
-                             choosers_filter = None, location_filter = None, niterations = 10):
+                             choosers_filter = None, location_filter = None, niterations = 10, cast = False):
     # choosers_filter and location_filter should be logical arrays, if given
         
     # buildings in this sample set
@@ -477,7 +477,7 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
             choosers.update_col_from_series(out_fname, 
                                             pd.Series(-np.ones(len(resim_choosers), dtype = "int32"), 
                                                       index = resim_choosers['chooser_id']), 
-                                            cast=False)
+                                            cast=cast)
             movers = extract_movers(choosers, out_fname, choosers_filter = choosers_filter)
             _print_number_unplaced(movers, out_fname)
             break        
@@ -491,7 +491,7 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         
         new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
                               index=new_units.index).astype('int32')
-        choosers.update_col_from_series(out_fname, new_buildings, cast=False)
+        choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
 
 def bootstrap(data, freq, class_fname, freq_fname):
     freq = freq.set_index(class_fname)
