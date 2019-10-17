@@ -356,7 +356,7 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
     _print_number_unplaced(choosers, out_fname)
 
-    resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units)
+    resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units, cast = cast)
 
     if enable_supply_correction is not None:
         new_prices = buildings[price_col]

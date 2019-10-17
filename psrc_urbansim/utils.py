@@ -226,7 +226,7 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, 
                                  new_units, this_sreg_units, 
                                  choosers_filter = this_filter, location_filter = buildings.index.isin(this_sreg_units[out_fname]),
-                                 niterations = 10)
+                                 niterations = 10, cast = cast)
 
     vacant_units = buildings[vacant_fname]
     print "    and there are now %d empty units" % vacant_units.sum()
