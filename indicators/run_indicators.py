@@ -110,6 +110,9 @@ def compute_indicators(settings, iter_var):
 
 @orca.step()
 def compute_datasets(settings, iter_var):
+    outdir = settings.get("output_directory", ".")
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
     # Loops over dataset_tables and datasets from settings and store into file
     for ind, value in settings['dataset_tables'].iteritems():
         for ds in value['dataset']:
@@ -124,9 +127,9 @@ def compute_datasets(settings, iter_var):
             if ds in geography_alias:
                 ds = geography_alias[ds]
             if value['file_type'] == 'csv':
-                create_csv(column_list_for_csv_table, datasets[ind],'%s__dataset_table__%s__%s.csv' % (ds, ind, str(iter_var)))
+                create_csv(column_list_for_csv_table, datasets[ind], os.path.join(outdir, '%s__dataset_table__%s__%s.csv' % (ds, ind, str(iter_var))))
             elif value['file_type'] == 'tab':
-                create_tab(column_list_for_csv_table, datasets[ind],'%s__dataset_table__%s__%s.tab' % (ds, ind, str(iter_var)))
+                create_tab(column_list_for_csv_table, datasets[ind], os.path.join(outdir, '%s__dataset_table__%s__%s.tab' % (ds, ind, str(iter_var))))
     orca.clear_cache()
             
 

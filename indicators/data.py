@@ -122,8 +122,8 @@ def parcel_zoning(store, parcels, zoning_heights):
     zh['plan_type_id'] = zh.index
     #print zh['plan_type_id'].head()
     # merge parcels with zoning_heights
-    zoning = pd.merge(pcl, zh, how='left', on=['plan_type_id']) 
-    #zoning = pd.merge(pcl, zh, how='left', left_on=['plan_type_id'], right_index=True) 
+    #zoning = pd.merge(pcl, zh, how='left', on=['plan_type_id']) 
+    zoning = pd.merge(pcl, zh, how='left', left_on=['plan_type_id'], right_index=True) 
 #    print 'zoning table in parcel_zoning'
 #    print zoning.head()
 #    print zoning.info()
