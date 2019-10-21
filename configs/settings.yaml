@@ -32,4 +32,6 @@ near_arterial_threshold: 300
 
 abs_min_year_built: 1800
 
-min_overfull_buildings: 2
+min_overfull_buildings: 10
+
+large_area_sample : 40.0
