@@ -109,8 +109,7 @@ def hlcm_simulate(households, buildings, persons, settings):
 @orca.step('hlcm_simulate_sample')
 def hlcm_simulate_sample(households, buildings, persons, settings):
 
-    res = psrc_dcm.lcm_simulate_sample("hlcmcoef.yaml", households, 'prev_residence_large_area_id', buildings,
-                             None, settings['min_overfull_buildings'], "building_id", "residential_units",
+    res = psrc_dcm.lcm_simulate_sample("hlcmcoef.yaml", households, 'prev_residence_large_area_id', buildings, settings['min_overfull_buildings'], settings['large_area_sample'], None, "building_id", "residential_units",
                              "vacant_residential_units", cast=True)
     
     # Determine which relocated persons get disconnected from their job

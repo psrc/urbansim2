@@ -53,7 +53,7 @@ def lcm_estimate_sample(cfg, choosers, choosers_filter, chosen_fname, buildings,
     alternatives = to_frame(buildings, join_tbls, cfg)
     #segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
     #dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(choosers_filter, segmented_mnl)
-    alternatives, choosers = large_area_sample_weights(alternatives, choosers)
+    alternatives, choosers = sample_weights(alternatives, choosers)
 
     weight_columns_map = {}
     for large_area in choosers.prev_residence_large_area_id.unique():
@@ -69,9 +69,8 @@ def lcm_estimate_sample(cfg, choosers, choosers_filter, chosen_fname, buildings,
         out_cfg = misc.config(out_cfg)
 
     return dcm_weighted.fit(choosers, alternatives, chosen_fname, out_cfg)
-    
 
-def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, min_overfull_buildings, out_fname, supply_fname, vacant_fname, enable_supply_correction=None, cast=False):
+def lcm_simulate_sample(cfg, choosers, sample_field, buildings, min_overfull_buildings, percent_sample, join_tbls, out_fname, supply_fname, vacant_fname, enable_supply_correction=None, cast=False):
     """
     Simulate the location choices for the specified choosers
 
@@ -103,6 +102,8 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
     cast : boolean
         Should the output be cast to match the existing column.
     """
+    from psrc_urbansim.utils import psrc_to_frame
+    
     cfg = misc.config(cfg)
 
     choosers_df = to_frame(choosers, [], cfg, additional_columns=[out_fname])
@@ -114,12 +115,12 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
     if enable_supply_correction is not None and \
             "price_col" in enable_supply_correction:
         additional_columns += [enable_supply_correction["price_col"]]
-    locations_df = to_frame(buildings, join_tbls, cfg,
-                            additional_columns=additional_columns)
+    locations_df = psrc_to_frame(buildings, join_tbls, cfg,
+                            additional_columns=additional_columns, check_na = False)
 
     available_units = buildings[supply_fname]
     vacant_units = buildings[vacant_fname]
-    existing_overfull_buildings = len(vacant_units[vacant_units < 0])
+
     print "There are %d total available units" % available_units.sum()
     print "    and %d total choosers" % len(choosers)
     print "    but there are %d overfull buildings" % \
@@ -135,7 +136,7 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
     missing = len(isin[isin == False])
     indexes = indexes[isin.values]
     units = locations_df.loc[indexes].reset_index()
-    check_nas(units)
+    #check_nas(units)
 
     print "    for a total of %d temporarily empty units" % vacant_units.sum()
     print "    in %d buildings total in the region" % len(vacant_units)
@@ -145,37 +146,29 @@ def lcm_simulate_sample(cfg, choosers, choosers_filter, buildings, join_tbls, mi
             missing
         print "    this is usually because of a few records that don't join "
         print "    correctly between the locations df and the aggregations tables"
-   
+
     movers = choosers_df[choosers_df[out_fname] == -1]
-    #movers = movers[movers[choosers_filter] == 1]
     print "There are %d total movers for this LCM" % len(movers)
 
-    if len(movers) > vacant_units.sum():
-        print "WARNING: Not enough locations for movers"
-        print "    reducing locations to size of movers for performance gain"
-        movers = movers.head(int(vacant_units.sum()))
-    units, movers = large_area_sample_weights(units, movers)
+    units, movers = sample_weights(units, movers, sample_field, percent_sample)
     weight_columns_map = {}
-    for large_area in movers.prev_residence_large_area_id.unique():
-        weight_columns_map[large_area] = 'sample_filter_' + str(int(large_area))         
-    segmented_mnl  = PSRC_SegmentedMNLDiscreteChoiceModel.from_yaml(None, cfg)
-    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(choosers_filter, segmented_mnl, weight_columns_map)
+
+    for large_area in movers[sample_field].unique():
+        weight_columns_map[large_area] = 'sample_filter_' + str(int(large_area))
+        
+    mnl = yaml_to_class(cfg).from_yaml(None, cfg)
+    dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(sample_field, mnl, weight_columns_map)
     
     start_time = timeit.default_timer()
    
     new_units, probabilities = dcm_weighted.predict_weighted(movers, units)
 
-    elapsed = timeit.default_timer() - start_time
-    print str(elapsed/60.0)
-    #.predict_from_cfg(movers, units, cfg, alternative_ratio = 5)
-    # new_units returns nans when there aren't enough units,
-    # get rid of them and they'll stay as -1s
-    new_units = new_units.dropna()
-
     # go from units back to buildings
     new_buildings = pd.Series(units.loc[new_units.values][out_fname].values,
                               index=new_units.index)
+
     choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
+    _print_number_unplaced(choosers, out_fname)
 
     resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units, cast = cast)
 
@@ -473,7 +466,8 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         resim_probabilities = resim_probabilities[resim_probabilities.index.get_level_values('chooser_id').isin(probsums[probsums > 0].index.values)]
         
         # If we are in the last iteration or no vacant units available or no choosers left to resample, leave agents unplaced and exit 
-        if x >= niterations or (vacant_units > 0).sum() == 0 or len(resim_probabilities) == 0::
+        if x >= niterations or (vacant_units > 0).sum() == 0 or len(resim_probabilities) == 0:
+
             choosers.update_col_from_series(out_fname, 
                                             pd.Series(-np.ones(len(resim_choosers), dtype = "int32"), 
                                                       index = resim_choosers['chooser_id']), 
@@ -523,7 +517,7 @@ def bootstrap(data, freq, class_fname, freq_fname):
 
     return samples
 
-def large_area_sample_weights(units, movers):
+def sample_weights(units, movers, sample_field, percent_sample):
 
         """
         For every large area, creates a column in the units table and assigns a weight to each record. 
@@ -546,17 +540,17 @@ def large_area_sample_weights(units, movers):
 
         
         vacant = len(units)
-        for large_area in movers.prev_residence_large_area_id.unique():
-            this_area_index = units[units['large_area_id'] == large_area].index
+        for item in movers[sample_field].unique():
+            this_area_index = units[units['large_area_id'] == item].index
             vacant_this_area = len(units.ix[this_area_index])
             # only use weights if there area units in/outside large area
             if (vacant_this_area > 0) and (vacant-vacant_this_area > 0):
-                units['sample_filter_' + str(int(large_area))] = 60.0/(vacant-vacant_this_area)
-                units['sample_filter_' + str(int(large_area))].update(pd.Series(40.0/vacant_this_area, this_area_index))
+                units['sample_filter_' + str(int(item))] = (100-percent_sample)/(vacant-vacant_this_area)
+                units['sample_filter_' + str(int(item))].update(pd.Series(percent_sample/vacant_this_area, this_area_index))
             # give every unit an equal weight
             else:
-                print "with %d units in large area %d and %d outside, weights will be the same for all samples." % (vacant_this_area, large_area, (vacant-vacant_this_area))
-                units['sample_filter_' + str(int(large_area))] = 100.0/len(units)
+                print "with %d units in large area %d and %d outside, weights will be the same for all samples." % (vacant_this_area, item, (vacant-vacant_this_area))
+                units['sample_filter_' + str(int(item))] = 100.0/len(units)
 
         return units, movers
 
