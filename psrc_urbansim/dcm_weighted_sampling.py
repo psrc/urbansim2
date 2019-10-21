@@ -473,7 +473,7 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         resim_probabilities = resim_probabilities[resim_probabilities.index.get_level_values('chooser_id').isin(probsums[probsums > 0].index.values)]
         
         # If we are in the last iteration or no vacant units available or no choosers left to resample, leave agents unplaced and exit 
-        if (x >= niterations or vacant_units > 0).sum() == 0 or len(resim_probabilities) == 0:
+        if x >= niterations or (vacant_units > 0).sum() == 0 or len(resim_probabilities) == 0::
             choosers.update_col_from_series(out_fname, 
                                             pd.Series(-np.ones(len(resim_choosers), dtype = "int32"), 
                                                       index = resim_choosers['chooser_id']), 
