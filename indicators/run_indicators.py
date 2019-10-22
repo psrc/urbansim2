@@ -138,8 +138,10 @@ orca.run(['compute_indicators', 'compute_datasets'], iter_vars=settings(settings
 #orca.run(['compute_indicators'], iter_vars=settings(settings_file())['years'])
 
 # Create tables to output as CSV files
-def create_tables():
+def create_tables(outdir):
     # Creating a unique list of indicators from the tables added in compute_indicators 
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)    
 #    print "ind_table_list"
 #    print ind_table_list
     unique_ind_table_dic = {}
@@ -159,12 +161,12 @@ def create_tables():
             column_labels.append(table[table.find('table') + 7:])
         
         if filetype == 'csv':
-            create_csv(ind_df_list_for_csv, column_labels, '%s.csv' % ind_table)
+            create_csv(ind_df_list_for_csv, column_labels, os.path.join(outdir, '%s.csv' % ind_table))
         elif filetype == 'tab':
-            create_tab(ind_df_list_for_csv, column_labels, '%s.tab' % ind_table)
+            create_tab(ind_df_list_for_csv, column_labels, os.path.join(outdir, '%s.tab' % ind_table))
 
 
-create_tables()
+create_tables(settings(settings_file()).get("output_directory", "."))
 
 # test find_table_in_store()
 #print orca.get_table('land_use_types').to_frame().head()

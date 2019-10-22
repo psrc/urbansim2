@@ -95,11 +95,11 @@ def hlcm_simulate(households, buildings, persons, settings):
         persons.update_col_from_series("job_id", relocated_workers.job_id,
                                    cast=True)
 
-        # Update is_inmigrant- I think this it is ok to do this now,
-        # but perhaps this should be part of a clean up step
-        # at the end of the sim year.
+    # Update is_inmigrant- I think this it is ok to do this now,
+    # but perhaps this should be part of a clean up step
+    # at the end of the sim year.
 
-        households.update_col_from_series("is_inmigrant", pd.Series(0,
+    households.update_col_from_series("is_inmigrant", pd.Series(0,
                                       index=households.index), cast=True)
 
     #orca.clear_cache()
@@ -132,11 +132,11 @@ def hlcm_simulate_sample(households, buildings, persons, settings):
         persons.update_col_from_series("job_id", relocated_workers.job_id,
                                    cast=True)
 
-        # Update is_inmigrant- I think this it is ok to do this now,
-        # but perhaps this should be part of a clean up step
-        # at the end of the sim year.
+    # Update is_inmigrant- I think this it is ok to do this now,
+    # but perhaps this should be part of a clean up step
+    # at the end of the sim year.
 
-        households.update_col_from_series("is_inmigrant", pd.Series(0,
+    households.update_col_from_series("is_inmigrant", pd.Series(0,
                                       index=households.index), cast=True)
 
     #orca.clear_cache()
