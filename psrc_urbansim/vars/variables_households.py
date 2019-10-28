@@ -31,7 +31,9 @@ def grid_id(households, parcels):
     return misc.reindex(parcels.grid_id, households.parcel_id)
 
 @orca.column('households', 'growth_center_id', cache=True)
-def growth_center_id(households, parcels_geos):
+def growth_center_id(households, parcels, parcels_geos):
+    if "growth_center_id" in parcels.columns:
+        return misc.reindex(parcels.growth_center_id, households.parcel_id)	
     return misc.reindex(parcels_geos.growth_center_id, households.parcel_id)	
 
 @orca.column('households', 'income_category', cache=True, cache_scope='step')

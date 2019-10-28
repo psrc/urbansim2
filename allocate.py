@@ -90,7 +90,8 @@ orca.run([
      "elcm_simulate_alloc",             # ELCM
      "governmental_jobs_scaling_alloc",
 
-    # scaling of unplaced HHs and jobs in control years
+    # Scaling of unplaced HHs and jobs in control years
+    #######
     'scaling_unplaced_households',
     'scaling_unplaced_jobs',
     
@@ -98,7 +99,12 @@ orca.run([
     #######
     "wahcm_simulate_alloc",
     "wplcm_simulate",
-    #"clear_cache"
+    
+    # Cleanup city_id
+    #######
+    "delete_subreg_geo_from_households",
+    "delete_subreg_geo_from_jobs"
+
 ], iter_vars=range(2015,2051), data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 

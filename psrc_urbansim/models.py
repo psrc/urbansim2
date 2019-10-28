@@ -240,6 +240,8 @@ def run_households_transition(households, household_controls,
     orig_size_pers = persons.local.shape[0]
     orig_pers_index = persons.index
     orig_hh_index = households.index
+    orig_hh_local_columns = households.local_columns
+    
     config = settings['households_transition']
     if len(config.get('remove_columns', [])) > 0:
         for column in [config.get('remove_columns', [])]:
@@ -250,8 +252,23 @@ def run_households_transition(households, household_controls,
                                                (persons.local,
                                                 'household_id')})
     # the transition model removes index name, so put it back
-    orca.get_table("households").index.name = households.index.name
     orca.get_table("persons").index.name = persons.index.name
+    orca.get_table("households").index.name = households.index.name
+        
+    if is_allocation:
+        # In allocation mode the subreg_id column is there twice, once as a local column and once as a computed column.
+        # Turn it into computed column and delete the local column.        
+        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        # Keep the subreg_id column 
+        subreg_values = orca.get_table("households").local[subreg_geo_id].copy()
+        
+    # Need to resave the table in orca because computed columns became local columns and thus, they would be never recomputed 
+    resave_table_in_orca(orca.get_table("households"), orig_hh_local_columns)
+
+    if is_allocation:
+        # Add the subreg_id column
+        orca.add_column("households", subreg_geo_id, subreg_values, cache_scope = "iteration") # need to be visible to the developer model
+            
     print "Net change: %s households" % (orca.get_table("households").
                                          local.shape[0] - orig_size_hh)
     print "Net change: %s persons" % (orca.get_table("persons").
@@ -260,8 +277,8 @@ def run_households_transition(households, household_controls,
     # changes to households/persons table are not reflected in local scope
     # need to reset vars to get changes.
     households = orca.get_table('households')
-    persons = orca.get_table("persons")
-
+    persons = orca.get_table("persons") 
+    
     # need to make some updates to the persons & households table
     households = update_local_scope(households, "is_inmigrant", 
                                     np.where(~households.index.isin (orig_hh_index), 1, 0))
@@ -278,13 +295,6 @@ def run_households_transition(households, household_controls,
     persons = update_local_scope(persons, "job_id", 
                                     np.where(persons.employment_status > 0, persons.job_id, -2))
 
-    if is_allocation:
-        subreg_geo_id = settings.get("control_geography_id", "city_id")
-        # In allocation mode the subreg_id column is there twice, once as a local column and once as a computed column.
-        # Turn it into computed column and delete the local column.
-        subreg_values = households.local[subreg_geo_id].copy()
-        households.local.drop(subreg_geo_id, axis = 1, inplace = True)
-        orca.add_column("households", subreg_geo_id, subreg_values, cache_scope = "iteration") # ? need to be visible to the developer model
     return res
 
 def update_local_scope(table, column, values):
@@ -297,24 +307,31 @@ def jobs_transition(jobs, employment_controls, year, settings):
     
 def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation = False):
     orig_size = jobs.local.shape[0]
+    orig_job_local_columns = jobs.local_columns
     config = settings['jobs_transition']
     if len(config.get('remove_columns', [])) > 0:
             for column in [config.get('remove_columns', [])]:
                 if column in employment_controls.local.columns:
                     employment_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)
-        #employment_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)    
+ 
     res = utils.full_transition(jobs, employment_controls, year, config, "building_id")
+    
     # the transition model removes index name, so put it back
     orca.get_table("jobs").index.name = jobs.index.name
     print "Net change: %s jobs" % (orca.get_table("jobs").local.shape[0]-
                                    orig_size)
+
     if is_allocation:
         subreg_geo_id = settings.get("control_geography_id", "city_id")
         # In allocation mode the subreg_id column is there twice, once as a local column and once as a computed column.
         # Turn it into computed column and delete the local column.
         subreg_values = orca.get_table("jobs").local[subreg_geo_id].copy()
-        orca.get_table("jobs").local.drop(subreg_geo_id, axis = 1, inplace = True)
-        orca.add_column("jobs", subreg_geo_id, subreg_values, cache_scope = "iteration") # ? need to be visible to the developer model    
+
+    # Need to resave the table in orca because computed columns became local columns and thus, they would be never recomputed 
+    resave_table_in_orca(orca.get_table("jobs"), orig_job_local_columns)
+
+    if is_allocation:
+        orca.add_column("jobs", subreg_geo_id, subreg_values, cache_scope = "iteration") # need to be visible to the developer model    
     return res
 
 
@@ -531,8 +548,8 @@ def developer_picker_CY(feasibility, buildings, parcels, year, proposal_selectio
                         )
 
 @orca.step('households_transition_alloc')
-def households_transition_alloc(households, household_controls, year, settings, persons):
-    run_households_transition(households, household_controls, year, settings, persons, is_allocation = True)
+def households_transition_alloc(isCY, households, household_controls, year, settings, persons):
+    run_households_transition(households, household_controls, year, settings, persons, is_allocation = isCY)
     pers = orca.get_table("persons")
     hh = orca.get_table("households")
     if (~pers.household_id.isin(hh.index)).any(): 
@@ -543,8 +560,8 @@ def households_transition_alloc(households, household_controls, year, settings, 
         print "Total persons after cleaning: %s" % len(pers)
 
 @orca.step('jobs_transition_alloc')
-def jobs_transition_alloc(jobs, employment_controls, year, settings):
-    return run_jobs_transition(jobs, employment_controls, year, settings, is_allocation = True)
+def jobs_transition_alloc(isCY, jobs, employment_controls, year, settings):
+    return run_jobs_transition(jobs, employment_controls, year, settings, is_allocation = isCY)
 
 @orca.step('households_relocation_alloc')
 def households_relocation_alloc(isCY, households, household_relocation_rates):
@@ -613,3 +630,23 @@ def scaling_unplaced_households(isCY, households, buildings, year, settings):
         print "Locating %s unplaced households by subregion" % sum(hhs_to_place_bool)
         loc_ids = run_scaling('number_of_households', households, hhs_to_place_bool, buildings, year, settings, is_allocation = True)
         print "Number of unplaced households: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()        
+
+@orca.step('delete_subreg_geo_from_households')
+def delete_subreg_geo_from_households(households, settings):
+    subreg_geo_id = settings.get("control_geography_id", "city_id")
+    if subreg_geo_id not in households.local_columns:
+        return
+    cols = [col for col in households.local_columns if col <> subreg_geo_id]
+    resave_table_in_orca(households, cols)
+
+@orca.step('delete_subreg_geo_from_jobs')
+def delete_subreg_geo_from_jobs(jobs, settings):
+    subreg_geo_id = settings.get("control_geography_id", "city_id")
+    if subreg_geo_id not in jobs.local_columns:
+        return
+    cols = [col for col in jobs.local_columns if col <> subreg_geo_id]
+    resave_table_in_orca(jobs, cols)
+    
+def resave_table_in_orca(table, cols):
+    tbl = table.to_frame(cols)
+    orca.add_table(table.name, tbl)

@@ -29,7 +29,9 @@ def faz_id(jobs, zones):
     return misc.reindex(zones.faz_id, jobs.job_zone_id)
 
 @orca.column('jobs', 'growth_center_id', cache=True, cache_scope='step')
-def growth_center_id(jobs, parcels_geos):
+def growth_center_id(jobs, parcels, parcels_geos):
+    if "growth_center_id" in parcels.columns:
+        return misc.reindex(parcels.growth_center_id, jobs.parcel_id)	
     return misc.reindex(parcels_geos.growth_center_id, jobs.parcel_id)	
 
 @orca.column('jobs', 'grid_id', cache=True, cache_scope='step')
