@@ -3,6 +3,8 @@ import orca
 import pandas as pd
 from urbansim.utils import misc
 
+# Diana's initial test
+
 @orca.injectable('store', cache=True)
 def store(settings):
     return pd.HDFStore(os.path.join(os.getenv('DATA_HOME'), settings["store"]), mode='r')
