@@ -57,15 +57,15 @@ def tables_in_base_year():
 orca.run([
      # REPM
      #######
-     #"repmres_simulate",          # residential REPM
-     #"repmnr_simulate",           # non-residential REPM
+     "repmres_simulate",          # residential REPM
+     "repmnr_simulate",           # non-residential REPM
      
-     ## Transition
-     ########
-     ## (Must run hh/job transition models first in order to 
-     ## determine the demand for the developer model.)
-     #"households_transition_alloc",     # 
-     #"jobs_transition_alloc",           #
+     # Transition
+     #######
+     # (Must run hh/job transition models first in order to 
+     # determine the demand for the developer model.)
+     "households_transition_alloc",     # 
+     "jobs_transition_alloc",           #
      
      # Developer 
      #######
