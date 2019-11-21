@@ -67,6 +67,34 @@ def development_constraints(store):
     df = store['development_constraints']#.drop_duplicates()
     return df
 
+@orca.table('planned_development', cache=True)
+def planned_development(store, parcels, development_templates, development_template_components, building_types, building_sqft_per_job):
+    from vars.variables_buildings import _bld_sqft_per_job
+    
+    if 'development_project_proposals' in [x[1:] for x in store.keys()]:
+        props = store['development_project_proposals']
+    else: 
+        return pd.DataFrame({'parcel_id': [], 'year': []})
+    templ = pd.merge(development_templates, development_template_components, on = "template_id")
+    props = pd.merge(props, templ, on = "template_id")
+    resbtypes = building_types.index.values[building_types.is_residential == True]
+    nonresbtypes = building_types.index.values[building_types.is_residential == False]    
+    props["units_proposed"] = props["units_proposed"]*props["percent_building_sqft"]
+    props["building_sqft"] = np.where(props.density_type == "units_per_acre", props["units_proposed"]*props["building_sqft_per_unit"], props["units_proposed"])
+    props["residential_units"] = np.where(props.building_type_id.isin(resbtypes), props["building_sqft"]/props["building_sqft_per_unit"], 0)
+    props["non_residential_sqft"] = np.where(props.building_type_id.isin(nonresbtypes), props["building_sqft"], 0)
+    props["zone_id"] = misc.reindex(parcels.zone_id, props.parcel_id)
+    props["sqft_per_job"] = _bld_sqft_per_job(props, building_sqft_per_job)
+    props["job_spaces"] = np.where(props.building_type_id.isin(nonresbtypes), props["non_residential_sqft"] / props.sqft_per_job, 0).fillna(0).astype('int')
+    props["improvement_value"] = props["construction_cost_per_unit"]*props["units_proposed"]
+    
+    return props
+
+@orca.table('planned_annual_development', cache=True)
+def planned_annual_development(planned_development, year):
+    df = planned_development.local[planned_development.start_year == year]
+    return df
+
 @orca.table('development_templates', cache=True)
 def development_templates(store):
     df = store['development_templates']
@@ -198,6 +226,16 @@ def jobs_for_estimation(store):
 @orca.table('land_use_types', cache=True)
 def land_use_types(store):
     df = store['land_use_types']
+    return df
+
+@orca.table('mpds', cache=True)
+def mpds(store):
+    df = store['mpds']
+    return df
+
+@orca.table('mpds_for_year', cache=True, cache_scope="iteration")
+def mpds_for_year(mpds, year):
+    df = mpds.local[mpds.year_built == year]
     return df
 
 @orca.table('parcel_zoning', cache=True)

@@ -62,10 +62,11 @@ DIRECTORIES = {
     'annual_household_relocation_rates', 'annual_job_relocation_rates',
     'buildings', 'building_sqft_per_job', 'building_types', 'cities', 'counties',
     'development_constraints', 'development_event_history',
-    'development_project_proposals', 'development_templates', 'development_template_components',
+    #'development_project_proposals', 
+    'development_templates', 'development_template_components',
     'employment_adhoc_sector_group_definitions',
     'employment_adhoc_sector_groups', 'employment_sectors',
-    'fazes', 'gridcells', 'land_use_types', 'jobs', 'households',
+    'fazes', 'gridcells', 'land_use_types', 'jobs', 'households', 'mpds',
     'parcels', 'persons', 'schools', 'target_vacancies', 'travel_data',
     'zones', 'zoning_heights', 'jobs_for_estimation', 'persons_for_estimation'
 }
@@ -183,7 +184,10 @@ def convert_dirs(base_dir, hdf_name, is_estimation=False,
 
         elif dirname == 'development_template_components':
             keys = ['component_id']
-
+            
+        elif dirname == 'mpds':
+            keys = ['building_id']
+            
         elif dirname == 'zoning_heights':
             keys = ['plan_type_id']
 

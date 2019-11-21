@@ -192,10 +192,14 @@ def residential_sqft(buildings):
 
 @orca.column('buildings', 'sqft_per_job', cache=True, cache_scope='step')
 def sqft_per_job(buildings, building_sqft_per_job):
+    return _bld_sqft_per_job(buildings, building_sqft_per_job)
+
+def _bld_sqft_per_job(buildings, building_sqft_per_job):
     series1 = building_sqft_per_job.building_sqft_per_job.to_frame()    
     series2 = pd.DataFrame({'zone_id': buildings.zone_id, 'building_type_id': buildings.building_type_id}, index=buildings.index)
     df = pd.merge(series2, series1, left_on=['zone_id', 'building_type_id'], right_index=True, how="left")   
-    return df.building_sqft_per_job
+    return df.building_sqft_per_job    
+
 
 @orca.column('buildings', 'sqft_per_unit_imputed', cache=True, cache_scope='step')
 def sqft_per_unit_imputed(buildings):

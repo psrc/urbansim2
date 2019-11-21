@@ -150,6 +150,18 @@ def compute_target_units_for_subarea(id, subreg_geo = "city_id", vacancy_factor 
     tu = tu.set_index('building_type_name')
     return tu    
 
+def do_process_mpds(mpds, buildings, remove_developed_buildings=True,
+                  unplace_agents=['households', 'jobs']):
+    old_buildings = buildings.to_frame(buildings.local_columns)
+    l1 = len(old_buildings)
+    mpds_df = mpds.to_frame(mpds.local_columns)
+    if remove_developed_buildings:
+        old_buildings = _remove_developed_buildings(
+            old_buildings, mpds_df, unplace_agents)
+    l2 = len(old_buildings)
+    all_buildings = merge_buildings(old_buildings, mpds_df)
+    print("\nAdded {} buildings as MPDs. {} buildings removed.".format(len(mpds_df), l1 - l2))
+    return 
     
 def run_developer(forms, agents, buildings, supply_fname, feasibility,
                   parcel_size, ave_unit_size, cfg, current_units = ["units", "job_spaces"], year=None,

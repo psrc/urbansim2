@@ -374,6 +374,10 @@ def run_scaling(number_of_agents_column, agents, agents_to_place_bool, buildings
     orca.add_table(agents.name, agents.local)
     return loc_ids
 
+@orca.step('process_mpds')
+def process_mpds(mpds_for_year, buildings):
+    psrcdev.do_process_mpds(mpds_for_year, buildings)
+                         
 @orca.step('create_proforma_config')
 def create_proforma_config(proforma_settings):
     yaml_file = misc.config("proforma_user.yaml")
@@ -415,7 +419,7 @@ def run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeho
     #pp.rename(columns = {'level_1':'form'}, inplace=True)
     #pp.to_csv("proforma_projects.csv")
     return
-
+    
 @orca.step('developer_picker')
 def developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, proposal_selection, building_sqft_per_job):
     target_units = psrcdev.compute_target_units(target_vacancy, unlimited = False)
