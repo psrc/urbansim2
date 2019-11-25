@@ -20,6 +20,10 @@ def building_type_id(households, buildings):
 
 @orca.column('households', 'city_id', cache=True, cache_scope='step')
 def city_id(households, parcels):
+    if "city_id" in households.local_columns:
+        # this hack is needed for allocation mode, since orca 
+        # gives priority to computed columns instead of local columns
+        return households.local.city_id
     return misc.reindex(parcels.city_id, households.parcel_id)
 
 @orca.column('households', 'faz_id', cache=True, cache_scope='step')

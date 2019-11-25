@@ -255,19 +255,10 @@ def run_households_transition(households, household_controls,
     orca.get_table("persons").index.name = persons.index.name
     orca.get_table("households").index.name = households.index.name
         
-    if is_allocation:
-        # In allocation mode the subreg_id column is there twice, once as a local column and once as a computed column.
-        # Turn it into computed column and delete the local column.        
-        subreg_geo_id = settings.get("control_geography_id", "city_id")
-        # Keep the subreg_id column 
-        subreg_values = orca.get_table("households").local[subreg_geo_id].copy()
-        
-    # Need to resave the table in orca because computed columns became local columns and thus, they would be never recomputed 
-    resave_table_in_orca(orca.get_table("households"), orig_hh_local_columns)
-
-    if is_allocation:
-        # Add the subreg_id column
-        orca.add_column("households", subreg_geo_id, subreg_values, cache_scope = "iteration") # need to be visible to the developer model
+    if not is_allocation:
+        # Need to resave the table in orca because computed columns became local columns.
+        # Not needed in allocation mode, since subregional geo id should be visible to other models.
+        resave_table_in_orca(orca.get_table("households"), orig_hh_local_columns)
             
     print "Net change: %s households" % (orca.get_table("households").
                                          local.shape[0] - orig_size_hh)
@@ -320,18 +311,11 @@ def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation
     orca.get_table("jobs").index.name = jobs.index.name
     print "Net change: %s jobs" % (orca.get_table("jobs").local.shape[0]-
                                    orig_size)
-
-    if is_allocation:
-        subreg_geo_id = settings.get("control_geography_id", "city_id")
-        # In allocation mode the subreg_id column is there twice, once as a local column and once as a computed column.
-        # Turn it into computed column and delete the local column.
-        subreg_values = orca.get_table("jobs").local[subreg_geo_id].copy()
-
-    # Need to resave the table in orca because computed columns became local columns and thus, they would be never recomputed 
-    resave_table_in_orca(orca.get_table("jobs"), orig_job_local_columns)
-
-    if is_allocation:
-        orca.add_column("jobs", subreg_geo_id, subreg_values, cache_scope = "iteration") # need to be visible to the developer model    
+    if not is_allocation:
+        # Need to resave the table in orca because computed columns became local columns.
+        # Not needed in allocation mode, since subregional geo id should be visible to other models.
+        resave_table_in_orca(orca.get_table("jobs"), orig_job_local_columns)
+   
     return res
 
 
@@ -624,7 +608,8 @@ def scaling_unplaced_jobs(isCY, jobs, buildings, year, settings):
     if isCY:
         jobs_to_place_bool = jobs.building_id < 0
         print "Locating %s unplaced jobs by subregion" % sum(jobs_to_place_bool)
-        loc_ids = run_scaling('number_of_jobs', jobs, jobs_to_place_bool, buildings, year, settings, is_allocation = True)
+        loc_ids = run_scaling('number_of_jobs', jobs, jobs_to_place_bool,
+                              buildings, year, settings, is_allocation = True)
         print "Number of unplaced jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()        
 
 @orca.step('scaling_unplaced_households')

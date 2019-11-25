@@ -18,6 +18,10 @@ def is_in_sector_group(group_name, jobs, employment_sectors, employment_sector_g
 
 @orca.column('jobs', 'city_id', cache=True, cache_scope='step')
 def city_id(jobs, parcels):
+    if "city_id" in jobs.local_columns:
+        # this hack is needed for allocation mode, since orca 
+        # gives priority to computed columns instead of local columns        
+        return jobs.local.city_id 
     return misc.reindex(parcels.city_id, jobs.parcel_id)	
 
 @orca.column('jobs', 'district_id', cache=True, cache_scope='step')
