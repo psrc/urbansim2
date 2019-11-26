@@ -338,13 +338,14 @@ def run_scaling(number_of_agents_column, agents, agents_to_place_bool, buildings
         subregs = np.unique(agents[subreg_geo_id][agents_to_place_bool])
         loc_ids = pd.Series(np.array([]))
         bldgs = orca.get_table("buildings").to_frame(buildings.local_columns +
-                                                 [number_of_agents_column,
+                                                 [number_of_agents_column, subreg_geo_id,
                                                   'existing'])
         for subreg in subregs:
             place = np.logical_and(agents_to_place_bool, agents[subreg_geo_id] == subreg)
             if place.sum() == 0:
                 continue
-            this_loc_ids, loc_allo = alloc.locate_agents(bldgs, agents.local[place], year=year)
+            this_loc_ids, loc_allo = alloc.locate_agents(bldgs.loc[bldgs[subreg_geo_id] == subreg], 
+                                                         agents.local[place], year=year)
             loc_ids = pd.concat((loc_ids, this_loc_ids))
     else:
         agents_to_place =  agents.local[agents_to_place_bool]
@@ -608,7 +609,7 @@ def scaling_unplaced_jobs(isCY, jobs, buildings, year, settings):
     if isCY:
         jobs_to_place_bool = jobs.building_id < 0
         print "Locating %s unplaced jobs by subregion" % sum(jobs_to_place_bool)
-        loc_ids = run_scaling('number_of_jobs', jobs, jobs_to_place_bool,
+        loc_ids = run_scaling('number_of_non_home_based_jobs', jobs, jobs_to_place_bool,
                               buildings, year, settings, is_allocation = True)
         print "Number of unplaced jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()        
 
