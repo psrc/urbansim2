@@ -444,8 +444,8 @@ def get_ave_unit_size_by_zone(is_in, buildings, parcels):
     # using the regional median.
     bsu = buildings.building_sqft_per_unit[is_in].replace(0, np.nan) # so that zeros are not counted
     reg_median = bsu.median()
-    return buildings.building_sqft_per_unit[is_in].groupby(buildings.zone_id[is_in]).median().\
-           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+    return misc.reindex(buildings.building_sqft_per_unit[is_in].groupby(buildings.zone_id[is_in]).median(), parcels.zone_id).\
+           fillna(reg_median).replace(0, reg_median)
 
 #def get_ave_parcel_res_value_by_zone(is_in, parcels):
 #    # Median building sqft per residential unit over zones
