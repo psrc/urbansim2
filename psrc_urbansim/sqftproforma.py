@@ -278,11 +278,11 @@ def run_feasibility(parcels, parcel_price_callback,
     feasibility['parcel_size'] = df.parcel_size
     #feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.building_sqft
     feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.parcel_size
-    feasibility['max_profit_psf_parcel'] = feasibility.groupby(feasibility.index)['max_profit_psf'].transform(max)
+    feasibility['max_profit_psf_parcel'] = feasibility.groupby([feasibility.index, 'group'])['max_profit_psf'].transform(max)
     feasibility['max_profit_orig'] = feasibility['max_profit']
     if (feasibility.max_profit_psf_parcel < 0).any():
         feasibility.loc[feasibility.max_profit_psf < feasibility.max_profit_psf_parcel, 'max_profit_psf'] = np.nan
-        feasibility.loc[feasibility.max_profit_psf_parcel < -100, 'max_profit_psf_parcel'] = -100        
+        feasibility.loc[feasibility.max_profit_psf_parcel < -100, 'max_profit_psf_parcel'] = -100
         max_neg_profit_psf = feasibility.loc[feasibility.max_profit_psf_parcel < 0].max_profit_psf_parcel.min() - 0.001
         #feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.building_sqft
         feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.parcel_size

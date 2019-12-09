@@ -241,10 +241,10 @@ def twa_logsum_hbw_3(buildings, zones):
 def twa_logsum_hbw_4(buildings, zones):
     return misc.reindex(zones.trip_weighted_average_logsum_hbw_am_income_4, buildings.zone_id)
 
-#@orca.column('buildings', 'unit_price', cache=True)
-#def unit_price(buildings, parcels):
-#    """total parcel value per unit (either building_sqft or DU)"""
-#    return misc.reindex(parcels.unit_price, buildings.parcel_id)
+@orca.column('buildings', 'unit_price', cache=True) # needed for indicators (new development shiny app)
+def unit_price(buildings, parcels):
+    """total parcel value per unit (either building_sqft or DU)"""
+    return misc.reindex(parcels.unit_price, buildings.parcel_id)
 
 @orca.column('buildings', 'unit_price_residential', cache=True)
 def unit_price_residential(buildings, parcels):

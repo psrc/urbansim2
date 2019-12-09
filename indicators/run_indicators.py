@@ -44,12 +44,13 @@ datasets = {'DU_and_HH_by_bld_type_by_faz_by_year': ['DU_SF_19', 'DU_MF_12', 'DU
                                                        'nonres_3_spaces','nonres_8_spaces','nonres_13_spaces',
                                                        'nonres_20_spaces','nonres_21_spaces','nonres_3_sqft',
                                                        'nonres_8_sqft','nonres_13_sqft','nonres_20_sqft',
-                                                       'nonres_21_sqft']
+                                                       'nonres_21_sqft'],
+            'new_buildings': ['building_type_id', 'parcel_id', 'residential_units', 'non_residential_sqft', 'year_built', 'building_sqft', 'unit_price']
             }
 
 
 geography_alias = {'cities': 'city', 'zones': 'zone', 'fazes': 'faz',
-                   'counties': 'county', 'growth_centers': 'growth_center'}
+                   'counties': 'county', 'growth_centers': 'growth_center', 'buildings': 'building'}
 
 table_alias = {'number_of_jobs': 'employment', 'number_of_households': 'households',
                'max_developable_capacity': 'max_dev_capacity',
@@ -88,9 +89,9 @@ def settings(settings_file):
 @orca.step()
 def compute_indicators(settings, iter_var):
     # loop over indicators and datasets from settings and store into file
-    for ind, value in settings['indicators'].iteritems():
-        for ds in value['dataset']:          
-            df = orca.get_table(ds)[ind]
+    for ind, value in settings.get('indicators', {}).iteritems():
+        for ds in value.get('dataset', {}):
+            df = orca.get_table(ds)[ind].to_frame()
             #print 'ds is %s, ind is %s and iter_var is %s' % (ds, ind, iter_var)
             #print orca.get_table(ds)[ind].to_frame().head()
             if ds in geography_alias:
@@ -115,15 +116,21 @@ def compute_datasets(settings, iter_var):
         os.makedirs(outdir)
     # Loops over dataset_tables and datasets from settings and store into file
     for ind, value in settings['dataset_tables'].iteritems():
+        if iter_var not in value.get('year', settings['years']):
+            continue
         for ds in value['dataset']:
             #print 'ds is %s and ind is %s' % (ds, ind)
             column_list_for_csv_table = []
+            if value.get("include_condition", None) is not None:
+                subset = orca.get_table(ds).local.query(value.get("include_condition"))
             for column in datasets[ind]:
-                df = orca.get_table(ds)[column]
+                df = orca.get_table(ds)[column].to_frame()
+                if value.get("include_condition", None) is not None:
+                    df = df.ix[subset.index]
                 #print orca.get_table(ds)[column].to_frame().head()
                 orca.add_table(column, df)
                 #print column
-                column_list_for_csv_table.append(orca.get_table(column).to_frame())    
+                column_list_for_csv_table.append(orca.get_table(column).to_frame())
             if ds in geography_alias:
                 ds = geography_alias[ds]
             if value['file_type'] == 'csv':
