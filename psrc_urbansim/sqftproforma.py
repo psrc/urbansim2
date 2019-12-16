@@ -278,10 +278,14 @@ def run_feasibility(parcels, parcel_price_callback,
     feasibility['parcel_size'] = df.parcel_size
     #feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.building_sqft
     feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.parcel_size
+    feasibility['building_sqft_parcel'] = feasibility.groupby([feasibility.index, 'group'])['building_sqft'].transform(max)
     feasibility['max_profit_psf_parcel'] = feasibility.groupby([feasibility.index, 'group'])['max_profit_psf'].transform(max)
+    feasibility['max_profit_psf_parcel'].where(~(feasibility.building_sqft_parcel == feasibility.building_sqft), feasibility.max_profit_psf, inplace = True)
     feasibility['max_profit_orig'] = feasibility['max_profit']
     if (feasibility.max_profit_psf_parcel < 0).any():
-        feasibility.loc[feasibility.max_profit_psf < feasibility.max_profit_psf_parcel, 'max_profit_psf'] = np.nan
+        feasibility.loc[np.logical_and(feasibility.max_profit_psf < feasibility.max_profit_psf_parcel, feasibility.building_sqft < feasibility.building_sqft_parcel), 'max_profit_psf'] = np.nan
+        #feasibility.loc[feasibility.building_sqft < feasibility.building_sqft_parcel, 'max_profit_psf'] = np.nan
+        
         feasibility.loc[feasibility.max_profit_psf_parcel < -100, 'max_profit_psf_parcel'] = -100
         max_neg_profit_psf = feasibility.loc[feasibility.max_profit_psf_parcel < 0].max_profit_psf_parcel.min() - 0.001
         #feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.building_sqft
@@ -292,7 +296,7 @@ def run_feasibility(parcels, parcel_price_callback,
         #feasibility.loc[iadj, 'max_profit'] = 0.001 * feasibility.loc[iadj, 'building_sqft']
         feasibility.loc[iadj, 'max_profit'] = 0.001 * feasibility.loc[iadj, 'parcel_size']
         
-    feasibility.drop(['max_profit_psf_parcel', 'max_profit_psf'], axis=1, inplace = True)
+    feasibility.drop(['max_profit_psf_parcel', 'max_profit_psf', 'building_sqft_parcel'], axis=1, inplace = True)
 
     # remove proposals with negative adjusted profit
     feasibility = feasibility[feasibility.max_profit > 0]

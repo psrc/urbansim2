@@ -129,6 +129,10 @@ def jobs_within_30_min_tt_hbw_am_transit_walk(zones, travel_data):
 def jobs_within_30_min_tt_hbw_am_drive_alone(zones, travel_data):
     return abstract_access_within_threshold_variable_from_origin(travel_data.am_single_vehicle_to_work_travel_time, zones.number_of_jobs, 30)
 
+@orca.column('zones', 'large_area_id', cache=True, cache_scope='iteration')
+def large_area_id(zones, fazes):
+    return misc.reindex(fazes.large_area_id, zones.faz_id)
+
 @orca.column('zones', 'Manuf', cache=True, cache_scope='iteration')
 def Manuf(zones, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 3)).groupby(jobs.job_zone_id).sum().\
