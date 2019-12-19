@@ -676,18 +676,17 @@ class PSRCDeveloper(develop.Developer):
         
         units = self.feasibility_bt.copy()
         
-        # compute residential units by building type
-        for bt in self.building_types.name[self.building_types.is_residential == 1]:
-            units.loc[:, bt] = units.loc[:, bt]/self.ave_unit_size[bt]
-        units.loc[:, "residential_units"] = units.loc[:, self.building_types.name[self.building_types.is_residential == 1].values.tolist()].sum(axis = 1)
-        self.feasibility.loc[:, "residential_units"] = units.loc[:, "residential_units"].values
-        
-        # compute job_spaces by building type
         if bldg_sqft_per_job is not None:
             pcl = orca.get_table("parcels")
             series1 = bldg_sqft_per_job.building_sqft_per_job.to_frame()
             series2 = pd.merge(self.feasibility, pd.DataFrame(pcl.zone_id), left_index=True, right_index=True)
-          
+
+        # compute residential units by building type
+        for bt in self.building_types.name[self.building_types.is_residential == 1]:
+            units.loc[:, bt] = units.loc[:, bt]/self.ave_unit_size[bt]
+        units.loc[:, "residential_units"] = units.loc[:, self.building_types.name[self.building_types.is_residential == 1].values.tolist()].sum(axis = 1)
+        
+        # compute job_spaces by building type
         for bt in self.building_types.name[self.building_types.is_residential == 0].values:
             if bldg_sqft_per_job is None:
                 denom = self.bldg_sqft_per_job
@@ -696,8 +695,15 @@ class PSRCDeveloper(develop.Developer):
                 denom = pd.merge(series2, series1, left_on=['zone_id', 'building_type_id'], right_index=True, how="left").building_sqft_per_job
             units.loc[:, bt] = units.loc[:, bt]/denom.values
         units.loc[:, "job_spaces"] = units.loc[:, self.building_types.name[self.building_types.is_residential == 0].values.tolist()].sum(axis = 1)
-        self.feasibility.loc[:, "job_spaces"] = units.loc[:, "job_spaces"].values
-        self.feasibility_bt_units = units.set_index("feasibility_id")
+
+        # temporarily change index so that the dataframes can be merged easily
+        self.feasibility.set_index("feasibility_id", inplace = True)
+        unitstmp = units.set_index("feasibility_id")
+        self.feasibility.loc[:, "residential_units"] = unitstmp.loc[:, "residential_units"]
+        self.feasibility.loc[:, "job_spaces"] = unitstmp.loc[:, "job_spaces"]
+        self.feasibility_bt_units = unitstmp
+        # revert index change
+        self.feasibility = self.feasibility.reset_index().set_index("parcel_id")
         
     def _calculate_net_units(self, df):
         """
