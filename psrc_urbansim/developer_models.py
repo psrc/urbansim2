@@ -248,8 +248,9 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     if num_units_to_build is not None:
         target_units = num_units_to_build
     else:
+        #compute_units_to_build(agents, supply_fname, target_vacancy)
         compute_units_to_build(len(agents), buildings[supply_fname].sum(),
-                                              target_vacancy)
+                               target_vacancy)        
     #dev = develop.Developer.from_yaml(
     dev = PSRCDeveloper.from_yaml(
                                       feasibility.to_frame(), forms,
@@ -693,7 +694,7 @@ class PSRCDeveloper(develop.Developer):
             else:
                 series2.loc[:, "building_type_id"] = self.building_types[self.building_types.name == bt].index
                 denom = pd.merge(series2, series1, left_on=['zone_id', 'building_type_id'], right_index=True, how="left").building_sqft_per_job
-            units.loc[:, bt] = units.loc[:, bt]/denom.values
+            units.loc[:, bt] = units.loc[:, bt]/denom.loc[~denom.index.duplicated()]
         units.loc[:, "job_spaces"] = units.loc[:, self.building_types.name[self.building_types.is_residential == 0].values.tolist()].sum(axis = 1)
 
         # temporarily change index so that the dataframes can be merged easily

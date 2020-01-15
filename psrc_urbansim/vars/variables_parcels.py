@@ -25,7 +25,10 @@ def ave_unit_size_sf(parcels, buildings):
 @orca.column('parcels', 'ave_unit_size_mf', cache=True, cache_scope='step')
 def ave_unit_size_mf(parcels, buildings):
     # Median building sqft per multi-family residential unit over zones
-    return get_ave_unit_size_by_zone(buildings.is_multifamily == 1, buildings, parcels)
+    return get_ave_unit_size_by_zone(buildings.is_multifamily == 1,
+                                     buildings, parcels)
+    #return sample_ave_unit_size(buildings.is_multifamily == 1,
+    #                                     buildings, parcels, 'mf')
 
 @orca.column('parcels', 'ave_unit_size_condo', cache=True, cache_scope='step')
 def ave_unit_size_condo(parcels, buildings):
@@ -470,7 +473,23 @@ def get_ave_unit_size_by_zone(is_in, buildings, parcels):
 	zone_median[zone_median < 600] = 600 # make 600 the minimum
     return misc.reindex(zone_median, parcels.zone_id).fillna(reg_median).replace(0, reg_median)
 
-
+def sample_ave_unit_size(is_in, buildings, parcels, type):
+    zone_med = get_ave_unit_size_by_zone(is_in, buildings, parcels)
+    if type == "sf":
+	low = 1171
+	high = 3237
+    else: # MF
+	low = 600
+	high = 2214
+    choices = np.concatenate((np.linspace(low, high, num = 100), np.array([max(high, zone_med.max())+1])))
+    # index of categories
+    icats = pd.cut(zone_med, bins = choices, labels = np.arange(choices.size-1), include_lowest = True).astype("int32")
+    # affected parcels
+    pcl_is_in = is_in.groupby(buildings.parcel_id[is_in]).any()
+    # create array of weights
+    weights = np.ones((pcl_is_in.size, choices.size - 1))
+    # TODO: fill weights arary with the right weights depending on the category of each parcel
+    
 #def get_ave_parcel_res_value_by_zone(is_in, parcels):
 #    # Median building sqft per residential unit over zones
 #    # is_in is a logical Series giving the filter for subsetting the parcels
