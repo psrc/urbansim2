@@ -323,9 +323,17 @@ def run_feasibility(parcels, parcel_price_callback,
     # create a dataset with disaggregated sqft by building type
     feas_bt = pd.merge(feasibility.loc[:, ["form", "feasibility_id", "residential_sqft", "non_residential_sqft"]], pf.forms_df, left_on = "form", right_index = True)
     feas_bt.set_index(['form'], append = True, inplace = True)
-    feas_bt[pf.uses[pf.residential_uses.values == 1]] = feas_bt[pf.uses[pf.residential_uses.values == 1]].multiply(feas_bt.residential_sqft, axis = "index")
-    feas_bt[pf.uses[pf.residential_uses.values == 0]] = feas_bt[pf.uses[pf.residential_uses.values == 0]].multiply(feas_bt.non_residential_sqft, axis = "index")
-    orca.add_table('feasibility_bt', feas_bt)     
+    feas_bt[pf.uses] = feas_bt[pf.uses].multiply(feas_bt.non_residential_sqft+feas_bt.residential_sqft, axis = "index")
+    # re-weight within res and non-res
+    #w = feas_bt[pf.uses[pf.residential_uses.values == 1]]
+    #s = w.sum(axis = 1)
+    #w.loc[s > 0, :] = w.loc[s > 0, :].div(s.loc[s > 0, :], axis = 0)
+    #feas_bt[pf.uses[pf.residential_uses.values == 1]] = w.multiply(feas_bt.residential_sqft, axis = "index")
+    #w = feas_bt[pf.uses[pf.residential_uses.values == 0]]
+    #s = w.sum(axis = 1)
+    #w.loc[s > 0, :] = w.loc[s > 0, :].div(s.loc[s > 0, :], axis = 0)
+    #feas_bt[pf.uses[pf.residential_uses.values == 0]] = w.multiply(feas_bt.non_residential_sqft, axis = "index")
+    orca.add_table('feasibility_bt', feas_bt)
            
     orca.add_table('feasibility', feasibility)
     return feasibility

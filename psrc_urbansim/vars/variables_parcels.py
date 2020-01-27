@@ -17,18 +17,18 @@ def ave_unit_size(parcels, buildings):
     # Median building sqft per residential unit over zones
     return get_ave_unit_size_by_zone(buildings.is_residential == 1, buildings, parcels)
 
-@orca.column('parcels', 'ave_unit_size_sf', cache=True, cache_scope='step')
+@orca.column('parcels', 'ave_unit_size_sf', cache=True, cache_scope='forever')
 def ave_unit_size_sf(parcels, buildings):
     # Median building sqft per single-family residential unit over zones
-    return get_ave_unit_size_by_zone(buildings.is_singlefamily == 1, buildings, parcels)
+    #return get_ave_unit_size_by_zone(buildings.is_singlefamily == 1, buildings, parcels)
+    return sample_ave_unit_size(buildings.is_singlefamily == 1, buildings, parcels, 'sf')
 
-@orca.column('parcels', 'ave_unit_size_mf', cache=True, cache_scope='step')
+@orca.column('parcels', 'ave_unit_size_mf', cache=True, cache_scope='forever')
 def ave_unit_size_mf(parcels, buildings):
     # Median building sqft per multi-family residential unit over zones
-    return get_ave_unit_size_by_zone(buildings.is_multifamily == 1,
-                                     buildings, parcels)
-    #return sample_ave_unit_size(buildings.is_multifamily == 1,
-    #                                     buildings, parcels, 'mf')
+    #return get_ave_unit_size_by_zone(buildings.is_multifamily == 1,
+    #                                 buildings, parcels)
+    return sample_ave_unit_size(buildings.is_multifamily == 1, buildings, parcels, 'mf')
 
 @orca.column('parcels', 'ave_unit_size_condo', cache=True, cache_scope='step')
 def ave_unit_size_condo(parcels, buildings):
@@ -481,14 +481,35 @@ def sample_ave_unit_size(is_in, buildings, parcels, type):
     else: # MF
 	low = 600
 	high = 2214
+    # linear line between low and high
     choices = np.concatenate((np.linspace(low, high, num = 100), np.array([max(high, zone_med.max())+1])))
-    # index of categories
-    icats = pd.cut(zone_med, bins = choices, labels = np.arange(choices.size-1), include_lowest = True).astype("int32")
-    # affected parcels
-    pcl_is_in = is_in.groupby(buildings.parcel_id[is_in]).any()
+    # index of choice category for each parcel
+    icats = pd.cut(zone_med.values, bins = choices, labels = np.arange(choices.size-1), include_lowest = True)
+    icats[np.isnan(icats)] = 0
+    icats = icats.astype("int32")
     # create array of weights
-    weights = np.ones((pcl_is_in.size, choices.size - 1))
-    # TODO: fill weights arary with the right weights depending on the category of each parcel
+    weights = np.zeros((zone_med.size, choices.size - 1))
+    # set the weight of the hit category to 1
+    widx = np.arange(icats.size)
+    weights[widx, icats] = 1
+    # decrease the weight incrementally n/2 points to the left and n/2 points to the right 
+    # while handling the edges
+    n = 20
+    incr = 1./n
+    for i in np.arange(n)+1:
+	weights[widx[icats - i >= 0], icats[icats - i >= 0] - i] = 1-i*incr
+	weights[widx[icats + i < weights.shape[1]], icats[icats + i < weights.shape[1]] + i] = 1-i*incr
+    # add a little bit in order not to exclude any choice
+    weights = weights + incr/2.
+    # normalize
+    wsum = weights.sum(axis = 1)
+    weights = weights/wsum[:, np.newaxis]
+    # randomly select unit size for each parcel
+    probidx = np.arange(weights.shape[1])
+    def mkchoice(probs):
+	return np.random.choice(probidx, p=probs)    
+    choiceidx = np.apply_along_axis(mkchoice, 1, weights)
+    return pd.Series(choices[choiceidx], index = zone_med.index)
     
 #def get_ave_parcel_res_value_by_zone(is_in, parcels):
 #    # Median building sqft per residential unit over zones
