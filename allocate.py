@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "results_alloc_stc_20191218.h5"
+     return "results_alloc_stc_20200127.h5"
 
 @orca.injectable('settings', cache=True)
 def settings():
@@ -57,19 +57,19 @@ def tables_in_base_year():
 orca.run([
      # REPM
      #######
-     #"repmres_simulate",          # residential REPM
-     #"repmnr_simulate",           # non-residential REPM
+     "repmres_simulate",          # residential REPM
+     "repmnr_simulate",           # non-residential REPM
      
      # Transition
      #######
      # (Must run hh/job transition models first in order to 
      # determine the demand for the developer model.)
-     #"households_transition_alloc",     # 
-     #"jobs_transition_alloc",           #
+     "households_transition_alloc",     # 
+     "jobs_transition_alloc",           #
      
      # Developer 
      #######
-     #"process_mpds",
+     "process_mpds",
      "proforma_feasibility_alloc",
      "developer_picker_alloc",
      
