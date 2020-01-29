@@ -493,7 +493,7 @@ def boost_residential_density(buildings, year, settings):
 def boost_nonresidential_density(buildings, year, settings):
     conf = settings.get("boost_nonresidential_density", {})
     attr = "non_residential_sqft"
-    if year <= settings['base_year'] + 1:
+    if year <= settings['base_year']:
         attr = "job_capacity"
     boost_density(buildings, attr, year, settings['base_year'], conf)
 
@@ -505,8 +505,8 @@ def boost_density(buildings, attribute, year, base_year, conf):
     else:
         is_in = np.ones(len(buildings), dtype = "bool8")
     # if not first year boost new development only
-    if year > (base_year + 1):
-        is_in = np.logical_and(is_in, buildings.year_built == year - 1)
+    if year > base_year:
+        is_in = np.logical_and(is_in, buildings.year_built == year)
     boost = conf.get("boost_factor", 1)
     buildings.update_col_from_series(attribute, (boost * buildings[attribute][is_in]).round(0).astype("int32"))    
 
