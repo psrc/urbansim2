@@ -4,6 +4,14 @@ control_geography_id: city_id
 
 min_overfull_buildings: 0
 
+boost_residential_density:
+  filter: is_growth_center
+  boost_factor: 1.25
+  
+boost_nonresidential_density:
+  filter: is_growth_center
+  boost_factor: 1.25
+ 
 feasibility_model_CY:
   development_filter: capacity_opportunity_non_gov_relaxed
   config_file: proforma.yaml

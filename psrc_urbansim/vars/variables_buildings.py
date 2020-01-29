@@ -63,10 +63,10 @@ def faz_id(buildings, zones):
     return misc.reindex(zones.faz_id, buildings.zone_id)
 
 @orca.column('buildings', 'growth_center_id', cache=True)
-def growth_center_id(buildings, parcels, parcels_geos):
+def growth_center_id(buildings, parcels):
     if "growth_center_id" in parcels.columns:
         return misc.reindex(parcels.growth_center_id, buildings.parcel_id)
-    return misc.reindex(parcels_geos.growth_center_id, buildings.parcel_id)	
+    return misc.reindex(orca.get_table("parcels_geos").growth_center_id, buildings.parcel_id)	
 
 @orca.column('buildings', 'has_valid_age_built', cache=True, cache_scope='step')
 def has_valid_age_built(buildings, settings):
@@ -83,6 +83,10 @@ def is_condo(buildings):
 @orca.column('buildings', 'is_governmental', cache=True, cache_scope='step')
 def is_governmental(buildings, building_types):
     return (misc.reindex(building_types.generic_building_type_description, buildings.building_type_id) == 'government').astype("int16")
+
+@orca.column('buildings', 'is_growth_center', cache=True, cache_scope='step')
+def is_growth_center(buildings):
+    return ((buildings.growth_center_id >= 500) & (buildings.growth_center_id < 600)).astype("int16")
 
 @orca.column('buildings', 'is_industrial', cache=True, cache_scope='step')
 def is_industrial(buildings):

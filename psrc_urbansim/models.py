@@ -484,6 +484,32 @@ def update_buildings_lag1(buildings):
 ##############################
 ### Models for ALLOCATION mode
 ##############################
+@orca.step('boost_residential_density')
+def boost_residential_density(buildings, year, settings):
+    conf = settings.get("boost_residential_density", {})
+    boost_density(buildings, "residential_units", year, settings['base_year'], conf)
+
+@orca.step('boost_nonresidential_density')
+def boost_nonresidential_density(buildings, year, settings):
+    conf = settings.get("boost_nonresidential_density", {})
+    attr = "non_residential_sqft"
+    if year <= settings['base_year'] + 1:
+        attr = "job_capacity"
+    boost_density(buildings, attr, year, settings['base_year'], conf)
+
+
+def boost_density(buildings, attribute, year, base_year, conf):
+    filter = conf.get("filter", None)
+    if filter:
+        is_in = buildings[filter].astype('bool8')
+    else:
+        is_in = np.ones(len(buildings), dtype = "bool8")
+    # if not first year boost new development only
+    if year > (base_year + 1):
+        is_in = np.logical_and(is_in, buildings.year_built == year - 1)
+    boost = conf.get("boost_factor", 1)
+    buildings.update_col_from_series(attribute, (boost * buildings[attribute][is_in]).round(0).astype("int32"))    
+
 @orca.step('proforma_feasibility_alloc')
 def proforma_feasibility_alloc(isCY, parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func, set_ave_unit_size_func, settings):

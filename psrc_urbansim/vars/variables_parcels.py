@@ -26,8 +26,7 @@ def ave_unit_size_sf(parcels, buildings):
 @orca.column('parcels', 'ave_unit_size_mf', cache=True, cache_scope='forever')
 def ave_unit_size_mf(parcels, buildings):
     # Median building sqft per multi-family residential unit over zones
-    #return get_ave_unit_size_by_zone(buildings.is_multifamily == 1,
-    #                                 buildings, parcels)
+    #return get_ave_unit_size_by_zone(buildings.is_multifamily == 1, buildings, parcels)
     return sample_ave_unit_size(buildings.is_multifamily == 1, buildings, parcels, 'mf')
 
 @orca.column('parcels', 'ave_unit_size_condo', cache=True, cache_scope='step')

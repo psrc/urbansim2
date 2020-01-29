@@ -55,6 +55,10 @@ def tables_in_base_year():
 
 # models for control years
 orca.run([
+     # Density boosts
+     #######
+     "boost_residential_density",
+     "boost_nonresidential_density",
      # REPM
      #######
      "repmres_simulate",          # residential REPM

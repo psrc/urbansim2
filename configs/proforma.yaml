@@ -285,6 +285,6 @@ proposal_selection_attribute: building_sqft
 #percent_of_max_profit: 65
 #percent_of_max_profit: 5
 #percent_of_max_profit: 30
-percent_of_max_profit: 0
+percent_of_max_profit: 80
 # is the above meant per group (True) or per parcel (False)
 percent_of_max_profit_per_group: True
