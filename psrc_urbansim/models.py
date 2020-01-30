@@ -508,7 +508,7 @@ def boost_density(buildings, attribute, year, base_year, conf):
     if year > base_year:
         is_in = np.logical_and(is_in, buildings.year_built == year)
     boost = conf.get("boost_factor", 1)
-    buildings.update_col_from_series(attribute, (boost * buildings[attribute][is_in]).round(0).astype("int32"))    
+    buildings.update_col_from_series(attribute, (boost * buildings[attribute][is_in]).round(0), cast = True)  
 
 @orca.step('proforma_feasibility_alloc')
 def proforma_feasibility_alloc(isCY, parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
