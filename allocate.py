@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "results_alloc_stc_20200127.h5"
+     return "results_alloc_stc_20200205.h5"
 
 @orca.injectable('settings', cache=True)
 def settings():
@@ -70,6 +70,8 @@ orca.run([
      # Developer 
      #######
      "process_mpds",
+     "cap_residential_development",
+     "cap_nonresidential_development",     
      "proforma_feasibility_alloc",
      "developer_picker_alloc",
      

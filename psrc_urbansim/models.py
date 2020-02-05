@@ -512,14 +512,14 @@ def boost_density(buildings, attribute, year, base_year, conf):
 
 @orca.step('proforma_feasibility_alloc')
 def proforma_feasibility_alloc(isCY, parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
-                         parcel_is_allowed_func, set_ave_unit_size_func, settings):
+                         parcel_is_allowed_func, parcel_is_allowed_func_with_cap, set_ave_unit_size_func, settings):
     if isCY:
         print "Running proforma_feasibility for control year"
         return proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func, set_ave_unit_size_func, settings)
     print "Running proforma_feasibility for non-control year"
     return proforma_feasibility(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
-                         parcel_is_allowed_func, set_ave_unit_size_func, settings)
+                         parcel_is_allowed_func_with_cap, set_ave_unit_size_func, settings)
 
 @orca.step('proforma_feasibility_CY') # for running in control years, should have relaxed redevelopment filter
 def proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
@@ -663,6 +663,42 @@ def delete_subreg_geo_from_jobs(jobs, settings):
     cols = [col for col in jobs.local_columns if col <> subreg_geo_id]
     resave_table_in_orca(jobs, cols)
     
+    
+@orca.step('cap_residential_development')
+def cap_residential_development(isCY, parcels, household_controls, year, control_years, settings):
+    if not isCY:
+        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        return cap_development(parcels, household_controls, year, subreg_geo_id, control_years, 
+                               "total_number_of_households", "residential_units", "cap_residential_development")
+    
+@orca.step('cap_nonresidential_development')
+def cap_nonresidential_development(isCY, parcels, employment_controls, year, control_years, settings):
+    if not isCY:
+        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        return cap_development(parcels, employment_controls, year, subreg_geo_id, control_years, 
+                               "total_number_of_jobs", "total_job_spaces", "cap_nonresidential_development")
+
+def cap_development(parcels, control_totals, year, geo_id, control_years, 
+                    ct_attribute, units_attribute, out_attribute):
+    # find the closest control year and its targets
+    cys = np.sort(np.array(control_years))
+    cy = cys[cys > year].min()
+    ct = control_totals.local.ix[cy][ct_attribute].groupby(control_totals.local.ix[cy][geo_id]).sum()
+    # find what is already built
+    units = parcels[units_attribute]
+    units_geo = units.groupby(parcels[geo_id]).sum()
+    # merge and find parcels where no more development desired
+    mct = pd.concat((units_geo, ct), axis = 1)
+    mct.columns = [units_attribute, ct_attribute]
+    cap_geos = mct[units_attribute].fillna(0) > mct[ct_attribute]*1.05
+    # save as a new attribute of the parcels table
+    cap_pcl = parcels[geo_id].isin(cap_geos[cap_geos == True].index.values)
+    if(out_attribute in parcels.columns):
+        parcels.update_col_from_series(out_attribute, cap_pcl)
+    else:
+        parcels.update_col(out_attribute, cap_pcl)
+
+
 def resave_table_in_orca(table, cols):
     tbl = table.to_frame(cols)
     orca.add_table(table.name, tbl)
