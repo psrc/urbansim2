@@ -17,15 +17,17 @@ def ave_unit_size(parcels, buildings):
     # Median building sqft per residential unit over zones
     return get_ave_unit_size_by_zone(buildings.is_residential == 1, buildings, parcels)
 
-@orca.column('parcels', 'ave_unit_size_sf', cache=True, cache_scope='step')
+@orca.column('parcels', 'ave_unit_size_sf', cache=True, cache_scope='forever')
 def ave_unit_size_sf(parcels, buildings):
     # Median building sqft per single-family residential unit over zones
-    return get_ave_unit_size_by_zone(buildings.is_singlefamily == 1, buildings, parcels)
+    #return get_ave_unit_size_by_zone(buildings.is_singlefamily == 1, buildings, parcels)
+    return sample_ave_unit_size(buildings.is_singlefamily == 1, buildings, parcels, 'sf')
 
-@orca.column('parcels', 'ave_unit_size_mf', cache=True, cache_scope='step')
+@orca.column('parcels', 'ave_unit_size_mf', cache=True, cache_scope='forever')
 def ave_unit_size_mf(parcels, buildings):
     # Median building sqft per multi-family residential unit over zones
-    return get_ave_unit_size_by_zone(buildings.is_multifamily == 1, buildings, parcels)
+    #return get_ave_unit_size_by_zone(buildings.is_multifamily == 1, buildings, parcels)
+    return sample_ave_unit_size(buildings.is_multifamily == 1, buildings, parcels, 'mf')
 
 @orca.column('parcels', 'ave_unit_size_condo', cache=True, cache_scope='step')
 def ave_unit_size_condo(parcels, buildings):
@@ -171,6 +173,10 @@ def land_area(parcels, buildings):
 @orca.column('parcels', 'land_cost', cache=True, cache_scope='step')
 def land_cost(parcels): # toal value of the parcel
     return parcels.land_value + parcels.total_improvement_value
+
+@orca.column('parcels', 'large_area_id', cache=True, cache_scope='iteration')
+def large_area_id(parcels, zones):
+    return misc.reindex(zones.large_area_id, parcels.zone_id)
 
 @orca.column('parcels', 'lnemp20da', cache=True, cache_scope='step')
 def lnemp20da(parcels, zones):
@@ -442,11 +448,68 @@ def get_ave_unit_size_by_zone(is_in, buildings, parcels):
     # is_in is a logical Series giving the filter for subsetting the buildings
     # Values for parcels in zones with no residential buildings are imputed 
     # using the regional median.
-    bsu = buildings.building_sqft_per_unit[is_in].replace(0, np.nan) # so that zeros are not counted
-    reg_median = bsu.median()
-    return buildings.building_sqft_per_unit[is_in].groupby(buildings.zone_id[is_in]).median().\
-           reindex(parcels.index).fillna(reg_median).replace(0, reg_median)
+    is_in = np.logical_and(is_in, buildings.building_sqft_per_unit > 200) # set minimum reasonable size to 200 sft/unit
+    bsu = buildings.building_sqft_per_unit[is_in] # so that small values are not counted
+    parcel_median = bsu.groupby(buildings.parcel_id[is_in]).median()
+    reg_median = parcel_median.median()
+    zone_nr_parcels = parcel_median.groupby(parcels.zone_id).count()
+    zone_median = parcel_median.groupby(parcels.zone_id).median()
+    zone_median[zone_nr_parcels < 20] = np.nan
+    if zone_median.isna().any():
+	# replace nan with faz medians
+	zones = orca.get_table("zones")
+	faz_nr_parcels = parcel_median.groupby(parcels.faz_id).count()
+	faz_median = parcel_median.groupby(parcels.faz_id).median()
+	faz_median[faz_nr_parcels < 20] = np.nan
+	zone_median_from_faz = misc.reindex(faz_median, zones.faz_id)
+	zone_median.where(~zone_median.isna(), zone_median_from_faz, inplace = True)
+	if zone_median.isna().any():
+	    # replace nan with large area medians
+	    la_median = parcel_median.groupby(parcels.large_area_id).median()
+	    la_median[la_median < 1000] = 1000
+	    zone_median_from_la = misc.reindex(la_median, zones.large_area_id)
+	    zone_median.where(~zone_median.isna(), zone_median_from_la, inplace = True)
+	zone_median[zone_median < 600] = 600 # make 600 the minimum
+    return misc.reindex(zone_median, parcels.zone_id).fillna(reg_median).replace(0, reg_median)
 
+def sample_ave_unit_size(is_in, buildings, parcels, type):
+    zone_med = get_ave_unit_size_by_zone(is_in, buildings, parcels)
+    if type == "sf":
+	low = 1171
+	high = 3237
+    else: # MF
+	low = 600
+	high = 2214
+    # linear line between low and high
+    choices = np.concatenate((np.linspace(low, high, num = 100), np.array([max(high, zone_med.max())+1])))
+    # index of choice category for each parcel
+    icats = pd.cut(zone_med.values, bins = choices, labels = np.arange(choices.size-1), include_lowest = True)
+    icats[np.isnan(icats)] = 0
+    icats = icats.astype("int32")
+    # create array of weights
+    weights = np.zeros((zone_med.size, choices.size - 1))
+    # set the weight of the hit category to 1
+    widx = np.arange(icats.size)
+    weights[widx, icats] = 1
+    # decrease the weight incrementally n/2 points to the left and n/2 points to the right 
+    # while handling the edges
+    n = 20
+    incr = 1./n
+    for i in np.arange(n)+1:
+	weights[widx[icats - i >= 0], icats[icats - i >= 0] - i] = 1-i*incr
+	weights[widx[icats + i < weights.shape[1]], icats[icats + i < weights.shape[1]] + i] = 1-i*incr
+    # add a little bit in order not to exclude any choice
+    weights = weights + incr/2.
+    # normalize
+    wsum = weights.sum(axis = 1)
+    weights = weights/wsum[:, np.newaxis]
+    # randomly select unit size for each parcel
+    probidx = np.arange(weights.shape[1])
+    def mkchoice(probs):
+	return np.random.choice(probidx, p=probs)    
+    choiceidx = np.apply_along_axis(mkchoice, 1, weights)
+    return pd.Series(choices[choiceidx], index = zone_med.index)
+    
 #def get_ave_parcel_res_value_by_zone(is_in, parcels):
 #    # Median building sqft per residential unit over zones
 #    # is_in is a logical Series giving the filter for subsetting the parcels

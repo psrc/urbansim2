@@ -34,6 +34,7 @@ def tables_in_base_year():
 
 orca.run([
 #    "add_lag1_tables",
+    "process_mpds",
     #"proforma_feasibility",
     #"developer_picker",
     #"clear_cache",

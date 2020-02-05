@@ -151,6 +151,7 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings['proposals_to_keep_per_parcel'] = all_default_settings.get('proposals_to_keep_per_parcel', None)
     local_settings['proposals_to_keep_per_form'] = all_default_settings.get('proposals_to_keep_per_form', None)
     local_settings['proposals_to_keep_per_group'] = all_default_settings.get('proposals_to_keep_per_group', None)
+    local_settings['proposal_selection_attribute'] = all_default_settings.get('proposal_selection_attribute', "max_profit")
     pf = default_settings
     for attr in local_settings.keys():
         setattr(pf, attr, local_settings[attr])
@@ -201,7 +202,7 @@ def run_feasibility(parcels, parcel_price_callback,
     orca.add_injectable("pf_config", pf)
     
     sites = (pl.remove_pipelined_sites(parcels) if pipeline
-             else parcels.to_frame(parcels.local_columns))
+             else parcels.local)
     #df = apply_parcel_callbacks(sites, parcel_price_callback,
     #                            pf, **kwargs)
     
@@ -256,33 +257,38 @@ def run_feasibility(parcels, parcel_price_callback,
     feasibility = pd.merge(feasibility, pf.form_groups, left_on = "form", right_index = True)
     
     # select only proposals with largest profit per parking and form
-    feassort = feasibility.sort_values('max_profit', ascending=False)
+    selection_column = pf.proposal_selection_attribute
+    feassort = feasibility.sort_values(selection_column, ascending=False)
     feasibility = feassort.groupby([feassort.index, 'form', 'max_profit_far']).head(1)
     
     # keep specified number of proposals per form
     if pf.proposals_to_keep_per_form is not None:
-        feassort = feasibility.sort_values('max_profit', ascending=False)
+        feassort = feasibility.sort_values(selection_column, ascending=False)
         feasibility = feassort.groupby([feassort.index, 'form']).head(pf.proposals_to_keep_per_form) 
         
     # keep specified number of proposals per group
     if pf.proposals_to_keep_per_group is not None:
-        feassort = feasibility.sort_values('max_profit', ascending=False)
+        feassort = feasibility.sort_values(selection_column, ascending=False)
         feasibility = feassort.groupby([feassort.index, 'group']).head(pf.proposals_to_keep_per_group) 
         
     # keep specified number of proposals per parcel
     if pf.proposals_to_keep_per_parcel is not None:
-        feassort = feasibility.sort_values('max_profit', ascending=False)
+        feassort = feasibility.sort_values(selection_column, ascending=False)
         feasibility = feassort.groupby(feassort.index).head(pf.proposals_to_keep_per_parcel)     
     
     # adjust profit so that all parcels get developed, i.e. shift by the maximum negative profit per sqft
     feasibility['parcel_size'] = df.parcel_size
     #feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.building_sqft
     feasibility['max_profit_psf'] = feasibility.max_profit / feasibility.parcel_size
-    feasibility['max_profit_psf_parcel'] = feasibility.groupby(feasibility.index)['max_profit_psf'].transform(max)
+    feasibility['building_sqft_parcel'] = feasibility.groupby([feasibility.index, 'group'])['building_sqft'].transform(max)
+    feasibility['max_profit_psf_parcel'] = feasibility.groupby([feasibility.index, 'group'])['max_profit_psf'].transform(max)
+    feasibility['max_profit_psf_parcel'].where(~(feasibility.building_sqft_parcel == feasibility.building_sqft), feasibility.max_profit_psf, inplace = True)
     feasibility['max_profit_orig'] = feasibility['max_profit']
     if (feasibility.max_profit_psf_parcel < 0).any():
-        feasibility.loc[feasibility.max_profit_psf < feasibility.max_profit_psf_parcel, 'max_profit_psf'] = np.nan
-        feasibility.loc[feasibility.max_profit_psf_parcel < -100, 'max_profit_psf_parcel'] = -100        
+        feasibility.loc[np.logical_and(feasibility.max_profit_psf < feasibility.max_profit_psf_parcel, feasibility.building_sqft < feasibility.building_sqft_parcel), 'max_profit_psf'] = np.nan
+        #feasibility.loc[feasibility.building_sqft < feasibility.building_sqft_parcel, 'max_profit_psf'] = np.nan
+        
+        feasibility.loc[feasibility.max_profit_psf_parcel < -100, 'max_profit_psf_parcel'] = -100
         max_neg_profit_psf = feasibility.loc[feasibility.max_profit_psf_parcel < 0].max_profit_psf_parcel.min() - 0.001
         #feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.building_sqft
         feasibility['max_profit'] = feasibility['max_profit_orig'] - max_neg_profit_psf*feasibility.parcel_size
@@ -292,7 +298,7 @@ def run_feasibility(parcels, parcel_price_callback,
         #feasibility.loc[iadj, 'max_profit'] = 0.001 * feasibility.loc[iadj, 'building_sqft']
         feasibility.loc[iadj, 'max_profit'] = 0.001 * feasibility.loc[iadj, 'parcel_size']
         
-    feasibility.drop(['max_profit_psf_parcel', 'max_profit_psf'], axis=1, inplace = True)
+    feasibility.drop(['max_profit_psf_parcel', 'max_profit_psf', 'building_sqft_parcel'], axis=1, inplace = True)
 
     # remove proposals with negative adjusted profit
     feasibility = feasibility[feasibility.max_profit > 0]
@@ -300,10 +306,10 @@ def run_feasibility(parcels, parcel_price_callback,
     # keep proposals with profit within given percentage of max profit (per group or per parcel)
     if pf.percent_of_max_profit > 0:
         if pf.percent_of_max_profit_per_group:
-            feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'group'])['max_profit'].transform(max)
+            feasibility['max_profit_parcel'] = feasibility.groupby([feasibility.index, 'group'])[selection_column].transform(max)
         else:
-            feasibility['max_profit_parcel'] = feasibility.groupby(feasibility.index)['max_profit'].transform(max)
-        feasibility['ratio'] = feasibility.max_profit/feasibility.max_profit_parcel
+            feasibility['max_profit_parcel'] = feasibility.groupby(feasibility.index)[selection_column].transform(max)
+        feasibility['ratio'] = feasibility[selection_column]/feasibility.max_profit_parcel
         feasibility = feasibility[feasibility.ratio >= pf.percent_of_max_profit / 100.]
         feasibility.drop(['max_profit_parcel', 'ratio'], axis=1, inplace = True)
         
@@ -317,9 +323,17 @@ def run_feasibility(parcels, parcel_price_callback,
     # create a dataset with disaggregated sqft by building type
     feas_bt = pd.merge(feasibility.loc[:, ["form", "feasibility_id", "residential_sqft", "non_residential_sqft"]], pf.forms_df, left_on = "form", right_index = True)
     feas_bt.set_index(['form'], append = True, inplace = True)
-    feas_bt[pf.uses[pf.residential_uses.values == 1]] = feas_bt[pf.uses[pf.residential_uses.values == 1]].multiply(feas_bt.residential_sqft, axis = "index")
-    feas_bt[pf.uses[pf.residential_uses.values == 0]] = feas_bt[pf.uses[pf.residential_uses.values == 0]].multiply(feas_bt.non_residential_sqft, axis = "index")
-    orca.add_table('feasibility_bt', feas_bt)     
+    feas_bt[pf.uses] = feas_bt[pf.uses].multiply(feas_bt.non_residential_sqft+feas_bt.residential_sqft, axis = "index")
+    # re-weight within res and non-res
+    #w = feas_bt[pf.uses[pf.residential_uses.values == 1]]
+    #s = w.sum(axis = 1)
+    #w.loc[s > 0, :] = w.loc[s > 0, :].div(s.loc[s > 0, :], axis = 0)
+    #feas_bt[pf.uses[pf.residential_uses.values == 1]] = w.multiply(feas_bt.residential_sqft, axis = "index")
+    #w = feas_bt[pf.uses[pf.residential_uses.values == 0]]
+    #s = w.sum(axis = 1)
+    #w.loc[s > 0, :] = w.loc[s > 0, :].div(s.loc[s > 0, :], axis = 0)
+    #feas_bt[pf.uses[pf.residential_uses.values == 0]] = w.multiply(feas_bt.non_residential_sqft, axis = "index")
+    orca.add_table('feasibility_bt', feas_bt)
            
     orca.add_table('feasibility', feasibility)
     return feasibility

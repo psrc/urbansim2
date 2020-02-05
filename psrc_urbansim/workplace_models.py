@@ -13,13 +13,16 @@ import urbansim.developer as dev
 import developer_models as psrcdev
 import os 
 from urbansim.utils import misc
-from choicemodels import choicemodels
 import statsmodels.api as sm
 from statsmodels.formula.api import logit, probit, poisson, ols
 import random
 from urbansim.utils import misc
 from psrc_urbansim.binary_discrete_choice import BinaryDiscreteChoiceModel
+import dcm_weighted_sampling as psrc_dcm
 
+def update_local_scope(table, column, values):
+    table.update_col_from_series(column, pd.Series(values, index=table.index), cast=True)
+    return table
 
 def to_frame(tbl, join_tbls, cfg, additional_columns=[]):
     """
@@ -79,24 +82,56 @@ def work_at_home_simulate(cfg, choosers, join_tbls):
 def wahcm_estimate(persons_for_estimation, households_for_estimation, zones):
     return work_at_home_estimate("wahcm.yaml", persons_for_estimation, 'work_at_home', 
                                  [households_for_estimation, zones], 'wahcmcoeff.yaml')    
-
+        
 @orca.step('wahcm_simulate')
 def wahcm_simulate(persons, jobs, households, zones):
+    do_wahcm_simulate(persons, jobs, households, zones)
     
+@orca.step('wahcm_simulate_alloc')
+def wahcm_simulate_alloc(isCY, persons, jobs, households, zones, settings):
+    if isCY:
+        do_wahcm_simulate(persons, jobs, households, zones, subreg_geo_id = settings.get("control_geography_id", "city_id"))
+    else:
+        wahcm_simulate(persons, jobs, households, zones)
+
+def do_wahcm_simulate(persons, jobs, households, zones, subreg_geo_id = None):
     work_at_home_prob = work_at_home_simulate("wahcmcoeff.yaml", persons, 
                                  [households, zones])[1]
-    jobs_df = jobs.to_frame(jobs.local_columns)
+    job_cols = jobs.local_columns
+    if subreg_geo_id is not None:
+        job_cols = job_cols + [subreg_geo_id]
+    jobs_df = jobs.to_frame(job_cols)
+    
     home_based_jobs = jobs_df[(jobs_df.home_based_status == 1) & (jobs_df.vacant_jobs>0)]
 
-    # If there are more vacant home based jobs than home workers, sample home workers using the exact number of vacant home based jobs, weighted by the probablities from the wachm:
-    if len(home_based_jobs) > len(work_at_home_prob):
-        home_workers = work_at_home_prob.sample(len(work_at_home_prob), weights = work_at_home_prob.values)
-    # Otherwise 
-    else:
-        home_workers = work_at_home_prob.sample(len(home_based_jobs), weights = work_at_home_prob.values)
+    if subreg_geo_id is None:
+        # If there are more vacant home based jobs than home workers, sample home workers using the exact number of vacant home based jobs, weighted by the probablities from the wachm:
+        if len(home_based_jobs) > len(work_at_home_prob):
+            selected_jobs = home_based_jobs.sample(len(work_at_home_prob)).index.to_series()
+            home_workers = work_at_home_prob
+            # Otherwise 
+        else:
+            selected_jobs = home_based_jobs.index.to_series()
+            home_workers = work_at_home_prob.sample(len(home_based_jobs), weights = work_at_home_prob.values)
+    else: # assign jobs located within the home-residence of workers
+        home_workers = pd.Series([])
+        selected_jobs = pd.Series([])
+        subregs = np.unique(persons[subreg_geo_id][work_at_home_prob.index])
+        for subreg in subregs:
+            this_hb_jobs = home_based_jobs[home_based_jobs[subreg_geo_id] == subreg]
+            if this_hb_jobs.size == 0:
+                next
+            this_home_workers = work_at_home_prob[persons.index[np.logical_and(persons[subreg_geo_id] == subreg, persons.index.isin(work_at_home_prob.index))]]
+            if len(this_hb_jobs) > len(this_home_workers):
+                this_hb_jobs = this_hb_jobs.sample(len(this_home_workers))
+            else:
+                this_home_workers = this_home_workers.sample(len(this_hb_jobs), weights = this_home_workers.values)
+            selected_jobs = pd.concat((selected_jobs, this_hb_jobs.index.to_series()))
+            home_workers = pd.concat((home_workers, this_home_workers))
+            
     # update job_id on the persons table
-    # should not matter which person gets which home-based job
-    combine_indexes = pd.DataFrame([home_workers.index, home_based_jobs.index[0:len(home_workers)]]).transpose()
+    # should not matter which person gets which home-based job; the arrays should have the same length
+    combine_indexes = pd.DataFrame([home_workers.index, selected_jobs]).transpose()
     combine_indexes.columns = ['person_id', 'job_id']
     combine_indexes.set_index('person_id', inplace=True)
     combine_indexes['work_at_home'] = 1
@@ -121,17 +156,12 @@ def wahcm_simulate(persons, jobs, households, zones):
     jobs.update_col_from_series('vacant_jobs', combine_indexes.vacant_jobs, cast = True)
     print "Number of unplaced home-based jobs: %s" % len(jobs.local[(jobs.local.home_based_status==1) 
                               & (jobs.local.vacant_jobs > 0) & (jobs.building_id > 0)])
-    #orca.clear_cache()
+
   
 @orca.step('wplcm_simulate')
 def wplcm_simulate(persons, households, jobs):
-    # can only send in jobs that have a valid building_id, so remove unlocated jobs for now
-    jobs_df = jobs.to_frame(jobs.local_columns)
-    jobs_df = jobs_df[jobs_df.building_id>0]
-    jobs_df.index.name = 'job_id'
-    orca.add_table('located_jobs', jobs_df)
-    located_jobs =  orca.get_table('located_jobs')
-    res = utils.lcm_simulate("wplcmcoef.yaml", persons, located_jobs, None,
-                              "job_id", "number_of_jobs", "vacant_jobs", cast=True)
-        
-    #orca.clear_cache()
+    #jobs.index.name = 'job_id'
+    res = psrc_dcm.lcm_simulate("wplcmcoef.yaml", persons, jobs,
+                             0, None, "job_id", "number_of_jobs",
+                             "vacant_jobs", cast=True)
+
