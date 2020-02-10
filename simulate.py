@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "simresult20190814.h5"
+     return "simresult20200210_JF.h5"
 
 # remove results file if exists
 outfile = simfile()
@@ -33,46 +33,43 @@ def tables_in_base_year():
 
 
 orca.run([
-#    "add_lag1_tables",
-    "process_mpds",
-    #"proforma_feasibility",
-    #"developer_picker",
-    #"clear_cache",
-    #"wahcm_estimate",
-    #"delete_invalid_households_persons",
-    #"base_year_wplcm_simulate",
-    "update_misc_building_columns",
-    "update_household_previous_building_id",
-    "update_buildings_lag1",
-    "repmres_simulate",          # residential REPM
-    "repmnr_simulate",          # non-residential REPM           
+     # Misc
+     #######
+     #"update_misc_building_columns",
+     "update_household_previous_building_id",
+     "update_buildings_lag1",
+     
+     # REPM
+     #######
+     "repmres_simulate",          # residential REPM
+     "repmnr_simulate",           # non-residential REPM
+     
+     # Developer 
+     #######
+     "process_mpds",
+     "proforma_feasibility",
+     "developer_picker",
+
+    # Household models
+    #######
     "households_transition",     # households transition
     "households_relocation",     # households relocation model
     "hlcm_simulate",
-#    "proforma_feasibility",
-#    "developer_picker",
-    #"wahcm_estimate",
-    #"delete_invalid_households_persons",
-    #"base_year_wplcm_simulate",
-    #"update_household_previous_building_id",
-#    "update_buildings_lag1",
-    #"repmres_simulate",          # residential REPM
-    #"repmnr_simulate",          # non-residential REPM           
-    #"households_transition",     # households transition
-    "households_relocation",     # households relocation model
-    #"hlcm_simulate",
-    #"update_household_parcel_id",
-    #"jobs_transition",           # jobs transition
+    
+    # Employment models
+    #######
+    "jobs_transition",           # jobs transition
     "jobs_relocation",
-    #'update_persons_jobs',           # jobs relocation model
-    #"elcm_simulate",             # employment location choice
-    #"governmental_jobs_scaling",
-    #"wahcm_simulate",
-    #"wplcm_simulate",
-    #"clear_cache"
+    "elcm_simulate",             # employment location choice
+    'update_persons_jobs',
+    "governmental_jobs_scaling",
+    
+    # Workplace models
+    #######    
+    "wahcm_simulate",
+    "wplcm_simulate",
 
-    ##"clear_cache"
-], iter_vars= range(2015,2016,2017), data_out=outfile, out_base_tables=tables_in_base_year(),
+], iter_vars= range(2015,2051), data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 
 
