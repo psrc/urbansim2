@@ -76,6 +76,25 @@ def parcel_is_allowed_func(form):
             res = np.logical_or(res, zoning[[gt]] > 0)
     return res
 
+@orca.injectable("parcel_is_allowed_func_with_cap", autocall=False)
+def parcel_is_allowed_func_with_cap(form):
+    allowed = parcel_is_allowed_func(form)
+    config = orca.get_injectable("pf_config")
+    # cap development if amount built is sufficient
+    pcl = orca.get_table("parcels")
+    nrescap = orca.get_table("parcels")["cap_nonresidential_development"]
+    rescap = orca.get_table("parcels")["cap_residential_development"]
+    mixedcap = np.logical_and(nrescap, rescap)
+
+    if config.res_ratios[form] < 1:
+        if config.res_ratios[form] > 0: # mixed use
+            allowed.ix[mixedcap[mixedcap == True].index] = False
+        else: # non-res
+            allowed.ix[nrescap[nrescap == True].index] = False
+    else: # res
+        allowed.ix[rescap[rescap == True].index] = False
+    return allowed
+
 @orca.injectable("set_ave_unit_size_func", autocall=False)
 def set_ave_unit_size_func(pf, form, df):
     attrs = []

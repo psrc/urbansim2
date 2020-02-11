@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "results_alloc_stc_20200127.h5"
+     return "results_alloc_footloose_cap_20200205.h5"
 
 @orca.injectable('settings', cache=True)
 def settings():
@@ -55,6 +55,11 @@ def tables_in_base_year():
 
 # models for control years
 orca.run([
+     # Misc
+     #######
+     "update_household_previous_building_id",
+     "update_buildings_lag1",
+     
      # REPM
      #######
      "repmres_simulate",          # residential REPM
@@ -70,6 +75,8 @@ orca.run([
      # Developer 
      #######
      "process_mpds",
+     "cap_residential_development",
+     "cap_nonresidential_development",     
      "proforma_feasibility_alloc",
      "developer_picker_alloc",
      
@@ -77,14 +84,7 @@ orca.run([
      #######
      "boost_residential_density",
      "boost_nonresidential_density",
-     
-     # Misc
-     #######
-     "update_misc_building_columns",
-     "update_household_previous_building_id",
-     "update_buildings_lag1",
-     "update_persons_jobs",
-     
+          
      # Relocate and place households
      #######
      "households_relocation_alloc",
@@ -95,6 +95,7 @@ orca.run([
      "jobs_relocation_alloc",     
      "elcm_simulate_alloc",             # ELCM
      "governmental_jobs_scaling_alloc",
+     "update_persons_jobs",
 
     # Scaling of unplaced HHs and jobs in control years
     #######
