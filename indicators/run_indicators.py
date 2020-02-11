@@ -149,8 +149,8 @@ def create_tables(outdir):
     # Creating a unique list of indicators from the tables added in compute_indicators 
     if not os.path.exists(outdir):
         os.makedirs(outdir)    
-#    print "ind_table_list"
-#    print ind_table_list
+ #   print "ind_table_list"
+ #   print ind_table_dic
     unique_ind_table_dic = {}
     for table, filetype  in ind_table_dic.iteritems():
         if table[:-5] not in unique_ind_table_dic:
@@ -160,7 +160,7 @@ def create_tables(outdir):
         for table in ind_table_dic:
             if ind_table in table:
                 ind_table_list_for_csv.append(table)
-        
+        ind_table_list_for_csv.sort()
         ind_df_list_for_csv = []
         column_labels = []
         for table in ind_table_list_for_csv:
