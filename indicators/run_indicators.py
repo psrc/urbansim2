@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import orca
-from urbansim.utils import yamlio
+from urbansim.utils import yamlio, misc
 import psrc_urbansim.variables
 import data
 
@@ -85,7 +85,36 @@ def settings_file():
 def settings(settings_file):
     return yamlio.yaml_to_dict(str_or_buffer=settings_file)
     
+@orca.step()
+def add_new_datasets(settings, iter_var):
+    # Add additional datasets (stored in csv files) to orca.
+    # This model can be used when we need to change geography,
+    # e.g. supply different city_id on parcel level and new cities table.
+    # In the settings, use the node new_datasets with one subnode per dataset.
+    # For each dataset, the node csv_file defines the name of the csv file with path 
+    # relative to DATA_HOME.
+    # If the dataset should be merged with the existing dataset, 
+    # set the node merge_with_existing to true.
+    # Example (replace cities and attach parcels containing only parcel_id and city_id):
+    # new_datasets:
+    #     cities:
+    #         csv_file: cities_62pseudo.csv
+    #     parcels:
+    #         csv_file: parcels_62pseudo.csv
+    #         merge_with_existing: true
 
+    datasets = settings.get("new_datasets", {})
+    if len(datasets) == 0:
+        return
+    for dsname, conf in datasets.iteritems():
+        orca_ds = orca.get_table(dsname).local
+        ds = pd.read_csv(os.path.join(misc.data_dir(), conf.get("csv_file")), index_col=orca_ds.index.name)
+        if conf.get("merge_with_existing", False):
+            orca_ds[ds.columns] = ds
+        else:
+            orca_ds = ds
+        orca.add_table(dsname, orca_ds)
+    
 @orca.step()
 def compute_indicators(settings, iter_var):
     # loop over indicators and datasets from settings and store into file
@@ -115,7 +144,7 @@ def compute_datasets(settings, iter_var):
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     # Loops over dataset_tables and datasets from settings and store into file
-    for ind, value in settings['dataset_tables'].iteritems():
+    for ind, value in settings.get('dataset_tables', {}).iteritems():
         if iter_var not in value.get('year', settings['years']):
             continue
         for ds in value['dataset']:
@@ -141,7 +170,7 @@ def compute_datasets(settings, iter_var):
             
 
 # Compute indicators
-orca.run(['compute_indicators', 'compute_datasets'], iter_vars=settings(settings_file())['years'])
+orca.run(['add_new_datasets', 'compute_indicators', 'compute_datasets'], iter_vars=settings(settings_file())['years'])
 #orca.run(['compute_indicators'], iter_vars=settings(settings_file())['years'])
 
 # Create tables to output as CSV files

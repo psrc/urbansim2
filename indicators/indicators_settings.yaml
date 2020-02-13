@@ -1,9 +1,18 @@
-store: results_alloc_footloose_cap_20200205.h5
+#store: results_alloc_footloose_cap_20200205.h5
+store: simresult20200210.h5
 #store: /Volumes/Model\ Data\ 2/vision2050/opusgit/urbansim_data/data/psrc_parcel/runs/awsmodel07/runUS2_20191125_alloc_stc/results_alloc_stc_20191125.h5
-output_directory: run_20200205_alloc_footloose_cap
+#output_directory:  run_20200210_JF
+output_directory:  run_20200210_JF_62pseudo
 
 base_year: 2014
 years: [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050]
+
+#new_datasets:
+#    cities:
+#        csv_file: cities_62pseudo.csv
+#    parcels:
+#        csv_file: parcels_62pseudo.csv
+#        merge_with_existing: true
 
 indicators:
     number_of_households:
