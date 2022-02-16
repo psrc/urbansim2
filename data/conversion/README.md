@@ -1,5 +1,7 @@
 ## Conversion scripts
 
+Before converting an Opus cache into urbansim-2 format, make sure it has all the [necessary changes](READMEopusdifs.md).
+
 To convert Opus cache into an urbansim-2 hdf5 file, run the script ``cache_to_hdf5.py`` with the first argument being the cache directory and the second argument 
 being the name of the output file. For example, to convert the baseyear cache from modelsrv8, do:
 
