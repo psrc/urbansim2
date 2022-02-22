@@ -2,7 +2,7 @@
 
 A standard Opus cache needs a few changes before converting to hdf5 file. These are:
 
-1. Add a table zoning_heights. This is a post-processed table from MS-SQL table heights, using the script [process_heights.R](https://github.com/psrc/urbansim2/tree/dev/data/zoning) and exported into Opus cache using 
+1. Add a table zoning_heights. This is a table created from development constraints that contain info about heights and lot coverage. It can be created using the script [create_heights_from_constraints.R](https://github.com/psrc/urbansim2/tree/dev/data/zoning/create_heights_from_constraints.R) and exported into Opus cache using 
 
 ```
 python -m opus_core.tools.convert_table csv flt -d . -o  cache_dir_for_urbansim2/year -t zoning_heights
