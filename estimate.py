@@ -8,7 +8,7 @@ import orca
 # uncomment models you want to estimate
 
 # REPM
-orca.run(["repmres_estimate"])
+#orca.run(["repmres_estimate"])
 #orca.run(["repmnr_estimate"])
 
 # HLCM
@@ -19,3 +19,6 @@ orca.run(["repmres_estimate"])
 
 # ELCM
 #orca.run(["elcm_estimate"])
+
+# HH Relocation
+orca.run(["household_logit_relocation_estimate"])

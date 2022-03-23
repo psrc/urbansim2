@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "simresult20200210_JF.h5"
+     return "simresult20220222test.h5"
 
 # remove results file if exists
 outfile = simfile()
@@ -46,7 +46,7 @@ orca.run([
      
      # Developer 
      #######
-     "process_mpds",
+     #"process_mpds",
      "proforma_feasibility",
      "developer_picker",
 
@@ -69,7 +69,9 @@ orca.run([
     "wahcm_simulate",
     "wplcm_simulate",
 
-], iter_vars= range(2015,2051), data_out=outfile, out_base_tables=tables_in_base_year(),
+], #iter_vars= range(2015,2051), 
+         iter_vars= range(2019,2020), 
+         data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 
 

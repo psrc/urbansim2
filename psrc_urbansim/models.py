@@ -19,6 +19,7 @@ from urbansim.utils import misc, yamlio
 import os
 from psrc_urbansim.vars.variables_interactions import network_distance_from_home_to_work
 import dcm_weighted_sampling as psrc_dcm
+from psrc_urbansim.binary_discrete_choice import BinaryDiscreteChoiceModel
 
 
 # Residential REPM
@@ -174,7 +175,7 @@ def elcm_simulate(jobs, buildings, parcels, zones, gridcells):
                              cast=True)
 
 
-
+# Relocation models
 @orca.step('households_relocation')
 def households_relocation(households, household_relocation_rates):
     from urbansim.models import relocation as relo
@@ -186,6 +187,26 @@ def households_relocation(households, household_relocation_rates):
     households.update_col_from_series("building_id",
                                       pd.Series(-1, index=movers), cast=True)
     print "%s households are unplaced in total." % ((households.local["building_id"] <= 0).sum())
+
+@orca.step('household_logit_relocation_estimate')
+def household_logit_relocation_estimate(households_for_estimation):
+    from workplace_models import to_frame
+    cfg_file = misc.config("hhreloc.yaml")
+    cfg = yamlio.yaml_to_dict(str_or_buffer=cfg_file)
+    choice_attr = cfg.get("choice_column", "move")
+    choosers = to_frame(households_for_estimation, [], cfg_file, additional_columns = [choice_attr])
+    out_cfg_file = misc.config("hhreloccoef.yaml")
+    return BinaryDiscreteChoiceModel.fit_from_cfg(choosers, choice_attr, 
+                                                  cfg_file, outcfgname=out_cfg_file)
+
+@orca.step('household_logit_relocation_simulate')
+def household_logit_relocation_simulate(households):
+    # TODO: test this model
+    cfg = misc.config("hhreloccoef.yaml")
+    choosers = to_frame(households, [], cfg)
+    return BinaryDiscreteChoiceModel.predict_from_cfg(choosers, cfg)
+
+
 
 @orca.step('jobs_relocation')
 def jobs_relocation(jobs, job_relocation_rates):

@@ -1,0 +1,18 @@
+name: Household Relocation Logit Model
+
+model_type: binarydiscretechoice
+
+choosers_fit_filters: null
+
+choosers_predict_filters: null
+
+alts_fit_filters:
+
+alts_predict_filters:
+
+interaction_predict_filters: null
+
+choice_column: move
+
+model_expression: age_of_head + np.log1p(income+1) + I(income <= 0) + I(tenure == 1) + 1 # + I(persons_under_13 > 0) 
+
