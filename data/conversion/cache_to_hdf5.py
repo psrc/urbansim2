@@ -127,7 +127,7 @@ def convert_dirs(base_dir, hdf_name, is_estimation=False,
             keys = ['year']
 
         elif dirname == 'annual_household_control_totals':
-            df.income_max = np.where(df.income_max <> -1,
+            df.income_max = np.where(df.income_max != -1,
                                      df.income_max + 1, df.income_max)
             df.workers_max = np.where(df.workers_max > 0,
                                       df.workers_max + .5, df.workers_max)

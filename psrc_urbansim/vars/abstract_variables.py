@@ -146,7 +146,7 @@ def abstract_within_walking_distance_parcels(attribute_name, parcels, gridcells,
 
 def abstract_trip_weighted_average_from_home(time_attribute, trips_attribute, from_zone_id, zones, missing_value=999):
     """Trip-weighted averaging for zone dataset."""
-    non_missing_idx = np.where(np.logical_and(time_attribute <> missing_value, trips_attribute <> missing_value))
+    non_missing_idx = np.where(np.logical_and(time_attribute != missing_value, trips_attribute != missing_value))
     numerator = np.array(ndi.sum(time_attribute.iloc[non_missing_idx] * trips_attribute.iloc[non_missing_idx],
                             labels = from_zone_id[non_missing_idx], index=zones.index))
     denominator = np.array(ndi.sum(trips_attribute.iloc[non_missing_idx],

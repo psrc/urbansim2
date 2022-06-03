@@ -183,10 +183,10 @@ def households_relocation(households, household_relocation_rates):
                               rate_column='probability_of_relocating')
     movers = rm.find_movers(households.to_frame(households.local_columns + ['building_type_id'])
                             [households.building_id > 0])  # relocate only residents
-    print "%s households selected to move." % movers.size
+    print ("%s households selected to move." % movers.size)
     households.update_col_from_series("building_id",
                                       pd.Series(-1, index=movers), cast=True)
-    print "%s households are unplaced in total." % ((households.local["building_id"] <= 0).sum())
+    print ("%s households are unplaced in total." % ((households.local["building_id"] <= 0).sum()))
 
 @orca.step('household_logit_relocation_estimate')
 def household_logit_relocation_estimate(households_for_estimation):
@@ -213,10 +213,10 @@ def jobs_relocation(jobs, job_relocation_rates):
     from urbansim.models import relocation as relo
     rm = relo.RelocationModel(job_relocation_rates.to_frame(), rate_column='job_relocation_probability')
     movers = rm.find_movers(jobs.to_frame(jobs.local_columns)[jobs.building_id > 0])  # relocate only placed jobs
-    print "%s jobs selected to move." % movers.size
+    print ("%s jobs selected to move." % movers.size)
     jobs.update_col_from_series("building_id",
                                 pd.Series(-1, index=movers), cast=True)
-    print "%s jobs are unplaced in total." % ((jobs.local["building_id"] <= 0).sum())
+    print ("%s jobs are unplaced in total." % ((jobs.local["building_id"] <= 0).sum()))
 
 
 @orca.step('update_persons_jobs')
@@ -281,10 +281,10 @@ def run_households_transition(households, household_controls,
         # Not needed in allocation mode, since subregional geo id should be visible to other models.
         resave_table_in_orca(orca.get_table("households"), orig_hh_local_columns)
             
-    print "Net change: %s households" % (orca.get_table("households").
-                                         local.shape[0] - orig_size_hh)
-    print "Net change: %s persons" % (orca.get_table("persons").
-                                      local.shape[0] - orig_size_pers)
+    print ("Net change: %s households" % (orca.get_table("households").
+                                         local.shape[0] - orig_size_hh))
+    print ("Net change: %s persons" % (orca.get_table("persons").
+                                      local.shape[0] - orig_size_pers))
 
     # changes to households/persons table are not reflected in local scope
     # need to reset vars to get changes.
@@ -330,8 +330,7 @@ def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation
     
     # the transition model removes index name, so put it back
     orca.get_table("jobs").index.name = jobs.index.name
-    print "Net change: %s jobs" % (orca.get_table("jobs").local.shape[0]-
-                                   orig_size)
+    print ("Net change: %s jobs" % (orca.get_table("jobs").local.shape[0]-orig_size))
     if not is_allocation:
         # Need to resave the table in orca because computed columns became local columns.
         # Not needed in allocation mode, since subregional geo id should be visible to other models.
@@ -344,9 +343,9 @@ def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation
 def governmental_jobs_scaling(jobs, buildings, year, settings):
     jobs_to_place_bool = np.logical_and(np.in1d(jobs.sector_id,
                                               [12, 13]), jobs.building_id < 0)
-    print "Locating %s governmental jobs" % sum(jobs_to_place_bool)
+    print ("Locating %s governmental jobs" % sum(jobs_to_place_bool))
     loc_ids = run_scaling('number_of_governmental_jobs', jobs, jobs_to_place_bool, buildings, year, settings)
-    print "Number of unplaced governmental jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()
+    print ("Number of unplaced governmental jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum())
     
     
 def run_scaling(number_of_agents_column, agents, agents_to_place_bool, buildings, year, settings, is_allocation = False):
@@ -535,10 +534,10 @@ def boost_density(buildings, attribute, year, base_year, conf):
 def proforma_feasibility_alloc(isCY, parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func, parcel_is_allowed_func_with_cap, set_ave_unit_size_func, settings):
     if isCY:
-        print "Running proforma_feasibility for control year"
+        print ("Running proforma_feasibility for control year")
         return proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func, set_ave_unit_size_func, settings)
-    print "Running proforma_feasibility for non-control year"
+    print ("Running proforma_feasibility for non-control year")
     return proforma_feasibility(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
                          parcel_is_allowed_func_with_cap, set_ave_unit_size_func, settings)
 
@@ -553,10 +552,10 @@ def proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, p
 def developer_picker_alloc(isCY, feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, 
                         proposal_selection, building_sqft_per_job, settings):
     if isCY:
-        print "Running developer_picker for control year"
+        print ("Running developer_picker for control year")
         return developer_picker_CY(feasibility, buildings, parcels, year, proposal_selection_probabilities, 
                         proposal_selection, building_sqft_per_job, settings)
-    print "Running developer_picker for non-control year"
+    print ("Running developer_picker for non-control year")
     return developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, 
                         proposal_selection, building_sqft_per_job)
     
@@ -593,7 +592,7 @@ def households_transition_alloc(isCY, households, household_controls, year, sett
         # (because those HHs were unplaced and thus, excluded from the Transition)       
         pers = pers.local.loc[pers["household_id"].isin(hh.index)]
         orca.add_table("persons", pers)
-        print "Total persons after cleaning: %s" % len(pers)
+        print ("Total persons after cleaning: %s" % len(pers))
 
 @orca.step('jobs_transition_alloc')
 def jobs_transition_alloc(isCY, jobs, employment_controls, year, settings):
@@ -602,16 +601,16 @@ def jobs_transition_alloc(isCY, jobs, employment_controls, year, settings):
 @orca.step('households_relocation_alloc')
 def households_relocation_alloc(isCY, households, household_relocation_rates):
     if isCY:
-        print "No households relocation in control year"
-        print "%s households are unplaced in total." % ((households.local["building_id"] <= 0).sum())
+        print ("No households relocation in control year")
+        print ("%s households are unplaced in total." % ((households.local["building_id"] <= 0).sum()))
     else:
         households_relocation(households, household_relocation_rates)
 
 @orca.step('jobs_relocation_alloc')
 def jobs_relocation_alloc(isCY, jobs, job_relocation_rates):
     if isCY:
-        print "No jobs relocation in control year"
-        print "%s jobs are unplaced in total." % ((jobs.local["building_id"] <= 0).sum())
+        print ("No jobs relocation in control year")
+        print ("%s jobs are unplaced in total." % ((jobs.local["building_id"] <= 0).sum()))
     else:
         jobs_relocation(jobs, job_relocation_rates)
 
@@ -645,9 +644,9 @@ def governmental_jobs_scaling_alloc(isCY, jobs, buildings, year, settings):
     if isCY:
         jobs_to_place_bool = np.logical_and(np.in1d(jobs.sector_id,
                                                   [12, 13]), jobs.building_id < 0)
-        print "Locating %s governmental jobs by subregion" % sum(jobs_to_place_bool)
+        print ("Locating %s governmental jobs by subregion" % sum(jobs_to_place_bool))
         loc_ids = run_scaling('number_of_governmental_jobs', jobs, jobs_to_place_bool, buildings, year, settings, is_allocation = True)
-        print "Number of unplaced governmental jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()        
+        print ("Number of unplaced governmental jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum())
     else:
         governmental_jobs_scaling(jobs, buildings, year, settings)
 
@@ -655,25 +654,25 @@ def governmental_jobs_scaling_alloc(isCY, jobs, buildings, year, settings):
 def scaling_unplaced_jobs(isCY, jobs, buildings, year, settings):
     if isCY:
         jobs_to_place_bool = jobs.building_id < 0
-        print "Locating %s unplaced jobs by subregion" % sum(jobs_to_place_bool)
+        print ("Locating %s unplaced jobs by subregion" % sum(jobs_to_place_bool))
         loc_ids = run_scaling('number_of_non_home_based_jobs', jobs, jobs_to_place_bool,
                               buildings, year, settings, is_allocation = True)
-        print "Number of unplaced jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()        
+        print ("Number of unplaced jobs: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum())
 
 @orca.step('scaling_unplaced_households')
 def scaling_unplaced_households(isCY, households, buildings, year, settings):
     if isCY:
         hhs_to_place_bool = households.building_id < 0
-        print "Locating %s unplaced households by subregion" % sum(hhs_to_place_bool)
+        print ("Locating %s unplaced households by subregion" % sum(hhs_to_place_bool))
         loc_ids = run_scaling('number_of_households', households, hhs_to_place_bool, buildings, year, settings, is_allocation = True)
-        print "Number of unplaced households: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()        
+        print ("Number of unplaced households: %s" % np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum())
 
 @orca.step('delete_subreg_geo_from_households')
 def delete_subreg_geo_from_households(households, settings):
     subreg_geo_id = settings.get("control_geography_id", "city_id")
     if subreg_geo_id not in households.local_columns:
         return
-    cols = [col for col in households.local_columns if col <> subreg_geo_id]
+    cols = [col for col in households.local_columns if col != subreg_geo_id]
     resave_table_in_orca(households, cols)
 
 @orca.step('delete_subreg_geo_from_jobs')
@@ -681,7 +680,7 @@ def delete_subreg_geo_from_jobs(jobs, settings):
     subreg_geo_id = settings.get("control_geography_id", "city_id")
     if subreg_geo_id not in jobs.local_columns:
         return
-    cols = [col for col in jobs.local_columns if col <> subreg_geo_id]
+    cols = [col for col in jobs.local_columns if col != subreg_geo_id]
     resave_table_in_orca(jobs, cols)
     
     
