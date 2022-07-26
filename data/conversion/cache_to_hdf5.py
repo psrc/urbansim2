@@ -48,7 +48,7 @@ def cache_to_df(dir_path):
         elif attrib_ext.startswith('.iS'):
             length_string = int(attrib_ext[3:])
             attrib_data = np.fromfile(attrib, ('a' + str(length_string)))
-            table[attrib_name] = attrib_data
+            table[attrib_name] = np.char.decode(attrib_data)
 
         else:
             print('Array {} is not a recognized data type'.format(attrib))
