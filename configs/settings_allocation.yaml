@@ -1,5 +1,4 @@
-#store: psrc_base_year_2014_alloc_footloose.h5
-store: psrc_base_year_2018.h5
+store: psrc_base_year_2018_py3.h5
 
 control_geography_id: city_id
 

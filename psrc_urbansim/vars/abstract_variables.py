@@ -112,7 +112,7 @@ def abstract_within_given_radius(radius, quantity, x, y, filter=None):
 
 def set_walking_distance_footprint(cell_size=150, walking_distance_circle_radius=600):
     wd_gc = int(2*walking_distance_circle_radius/float(cell_size)+1)
-    center = (wd_gc-1)/2
+    center = int((wd_gc-1)/2)
     distance = np.ones((wd_gc,wd_gc), dtype="float32")
     distance[center,center]=0.0
     distance = ndi.distance_transform_edt(distance)
