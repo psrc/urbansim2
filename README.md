@@ -13,12 +13,12 @@ This is an urbansim-2 implementation of the PSRC land use model. It is a python 
 In the examples below it will be assumed that the base directory for the installation is ``d:/udst``.
 
 
-1. Install [Anaconda Python](http://continuum.io/downloads), the latest of the 2.* series (not 3.*). By default it will be installed in a different directory than existing Python, so there is no danger in messing up the current Python installation. Alternatively, use a virtual environment specific for Urbansim2. In a command prompt, start a new virtual environment called "urbansim2" as follows:
+1. Install [Anaconda Python](http://continuum.io/downloads), the latest of the 3.* series. By default it will be installed in a different directory than existing Python, so there is no danger in messing up the current Python installation. Alternatively, use a virtual environment specific for urbansim2. In a command prompt, start a new virtual environment called "urbansim2" as follows:
 
 ```
-conda create -n urbansim2 python=2.7 anaconda
+conda create -n urbansim2 python=3.7 anaconda
 ```
-Activate this environment every time you restart the prompt and want to work with urbansim2 by entering the follow (for Windows prompts):
+Activate this environment every time you restart the prompt and want to work with urbansim2 by entering the following (for Windows prompts):
 
 ```
 activate urbansim2

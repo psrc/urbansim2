@@ -17,7 +17,8 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     return "results_alloc_footloose_cap_20200205.h5"
+     #return "results_alloc_footloose_cap_20200205.h5"
+     return "results_alloc_BY2018test.h5"
 
 @orca.injectable('settings', cache=True)
 def settings():

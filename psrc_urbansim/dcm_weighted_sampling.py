@@ -1,6 +1,6 @@
 import os
 
-from vars.variables_interactions import *
+from .vars.variables_interactions import *
 
 from patsy import dmatrix
 from prettytable import PrettyTable
@@ -121,10 +121,10 @@ def lcm_simulate_sample(cfg, choosers, sample_field, buildings, min_overfull_bui
     available_units = buildings[supply_fname]
     vacant_units = buildings[vacant_fname]
 
-    print "There are %d total available units" % available_units.sum()
-    print "    and %d total choosers" % len(choosers)
-    print "    but there are %d overfull buildings" % \
-          len(vacant_units[vacant_units < 0])
+    print("There are %d total available units" % available_units.sum())
+    print("    and %d total choosers" % len(choosers))
+    print("    but there are %d overfull buildings" % \
+          len(vacant_units[vacant_units < 0]))
 
     vacant_units = vacant_units[vacant_units > 0]
 
@@ -138,17 +138,17 @@ def lcm_simulate_sample(cfg, choosers, sample_field, buildings, min_overfull_bui
     units = locations_df.loc[indexes].reset_index()
     #check_nas(units)
 
-    print "    for a total of %d temporarily empty units" % vacant_units.sum()
-    print "    in %d buildings total in the region" % len(vacant_units)
+    print("    for a total of %d temporarily empty units" % vacant_units.sum())
+    print("    in %d buildings total in the region" % len(vacant_units))
 
     if missing > 0:
-        print "WARNING: %d indexes aren't found in the locations df -" % \
-            missing
-        print "    this is usually because of a few records that don't join "
-        print "    correctly between the locations df and the aggregations tables"
+        print("WARNING: %d indexes aren't found in the locations df -" % \
+            missing)
+        print("    this is usually because of a few records that don't join ")
+        print("    correctly between the locations df and the aggregations tables")
 
     movers = choosers_df[choosers_df[out_fname] == -1]
-    print "There are %d total movers for this LCM" % len(movers)
+    print("There are %d total movers for this LCM" % len(movers))
 
     units, movers = sample_weights(units, movers, sample_field, percent_sample)
     weight_columns_map = {}
@@ -183,8 +183,8 @@ def lcm_simulate_sample(cfg, choosers, sample_field, buildings, min_overfull_bui
         buildings.update_col_from_series(price_col, new_prices)
 
     vacant_units = buildings[vacant_fname]
-    print "    and there are now %d empty units" % vacant_units.sum()
-    print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
+    print("    and there are now %d empty units" % vacant_units.sum())
+    print("    and %d overfull buildings" % len(vacant_units[vacant_units < 0]))
 
 def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, out_fname,
                  supply_fname, vacant_fname,
@@ -239,10 +239,10 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     available_units = buildings[supply_fname]
     vacant_units = buildings[vacant_fname]
 
-    print "There are %d total available units" % available_units.sum()
-    print "    and %d total choosers" % len(choosers)
-    print "    but there are %d overfull locations" % \
-          len(vacant_units[vacant_units < 0])
+    print("There are %d total available units" % available_units.sum())
+    print("    and %d total choosers" % len(choosers))
+    print("    but there are %d overfull locations" % \
+          len(vacant_units[vacant_units < 0]))
 
     vacant_units = vacant_units[vacant_units > 0]
 
@@ -256,17 +256,17 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     units = locations_df.loc[indexes].reset_index()
     #check_nas(units)
 
-    print "    for a total of %d temporarily empty units" % vacant_units.sum()
-    print "    in %d locations total in the region" % len(vacant_units)
+    print("    for a total of %d temporarily empty units" % vacant_units.sum())
+    print("    in %d locations total in the region" % len(vacant_units))
 
     if missing > 0:
-        print "WARNING: %d indexes aren't found in the locations df -" % \
-            missing
-        print "    this is usually because of a few records that don't join "
-        print "    correctly between the locations df and the aggregations tables"
+        print("WARNING: %d indexes aren't found in the locations df -" % \
+            missing)
+        print("    this is usually because of a few records that don't join ")
+        print("    correctly between the locations df and the aggregations tables")
 
     movers = choosers_df[choosers_df[out_fname] == -1]
-    print "There are %d total movers for this LCM" % len(movers)
+    print("There are %d total movers for this LCM" % len(movers))
 
     if enable_supply_correction is not None:
         assert isinstance(enable_supply_correction, dict)
@@ -305,11 +305,11 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
             # write final shifters to the submarket_table for use in debugging
             orca.get_table(submarket_table)["price_shifters"] = submarkets_ratios
 
-        print "Running supply and demand"
-        print "Simulated Prices"
-        print buildings[price_col].describe()
-        print "Submarket Price Shifters"
-        print submarkets_ratios.describe()
+        print("Running supply and demand")
+        print("Simulated Prices")
+        print(buildings[price_col].describe())
+        print("Submarket Price Shifters")
+        print(submarkets_ratios.describe())
         # we want new prices on the buildings, not on the units, so apply
         # shifters directly to buildings and ignore unit prices
         orca.add_column(buildings.name,
@@ -317,8 +317,8 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
         new_prices = buildings[price_col] * \
             submarkets_ratios.loc[buildings[submarket_col]].values
         buildings.update_col_from_series(price_col, new_prices)
-        print "Adjusted Prices"
-        print buildings[price_col].describe()
+        print("Adjusted Prices")
+        print(buildings[price_col].describe())
 
     #if len(movers) > vacant_units.sum():
     #    print "WARNING: Not enough locations for movers"
@@ -333,7 +333,7 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
    
     new_units, probabilities = dcm_weighted.predict_with_resim(movers, units)
     if len(new_units) == 0:
-        print "No choosers or alternatives after applying LCM filter. Skipping LCM."
+        print("No choosers or alternatives after applying LCM filter. Skipping LCM.")
         return
     
     #new_units, _ = yaml_to_class(cfg).predict_from_cfg(movers, units, cfg, alternative_ratio = 10)
@@ -362,8 +362,8 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
         buildings.update_col_from_series(price_col, new_prices)
 
     vacant_units = buildings[vacant_fname]
-    print "    and there are now %d empty units" % vacant_units.sum()
-    print "    and %d overfull buildings" % len(vacant_units[vacant_units < 0])
+    print("    and there are now %d empty units" % vacant_units.sum())
+    print("    and %d overfull buildings" % len(vacant_units[vacant_units < 0]))
 
 def yaml_to_class(cfg):
     """
@@ -402,16 +402,16 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
     if location_filter is not None:
         loc_filter = np.logical_and(loc_filter, location_filter)
         
-    print "Re-simulating agents in overfull locations"
+    print("Re-simulating agents in overfull locations")
     for x in range(0, niterations+1):
         
         vacant_units = buildings[vacant_fname][loc_filter]
         
-        print "Iteration %d" % (x+1)
+        print("Iteration %d" % (x+1))
         movers = extract_movers(choosers, out_fname, choosers_filter = choosers_filter)
         _print_number_unplaced(movers, out_fname)
-        print "There are now %d empty units" % vacant_units.sum()
-        print "    and %d overfull locations" % len(vacant_units[vacant_units < 0])
+        print("There are now %d empty units" % vacant_units.sum())
+        print("    and %d overfull locations" % len(vacant_units[vacant_units < 0]))
 
         # exit early when simulated households are not resulting in any overfull buildings
         if len(vacant_units[vacant_units < 0]) <= min_overfull_buildings:
@@ -549,7 +549,7 @@ def sample_weights(units, movers, sample_field, percent_sample):
                 units['sample_filter_' + str(int(item))].update(pd.Series(percent_sample/vacant_this_area, this_area_index))
             # give every unit an equal weight
             else:
-                print "with %d units in large area %d and %d outside, weights will be the same for all samples." % (vacant_this_area, item, (vacant-vacant_this_area))
+                print("with %d units in large area %d and %d outside, weights will be the same for all samples." % (vacant_this_area, item, (vacant-vacant_this_area)))
                 units['sample_filter_' + str(int(item))] = 100.0/len(units)
 
         return units, movers
@@ -719,7 +719,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
         data_set_list = []
         chosen_list = []
 
-        for choosers_seg_value, alternatives_weight_column in weights.iteritems():
+        for choosers_seg_value, alternatives_weight_column in weights.items():
             if len(choosers[choosers[choosers_weight_segmentation_col] == choosers_seg_value]) > 0:
                 if choosers_seg_value == -1:
                     choosers_no_weight = choosers[choosers[choosers_weight_segmentation_col] == -1]
@@ -910,7 +910,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
             sample_size = len(alternatives)
 
         data_set_list = []
-        for choosers_seg_value, alternatives_weight_column in weights.iteritems():
+        for choosers_seg_value, alternatives_weight_column in weights.items():
             if len(choosers[choosers[choosers_weight_segmentation_col] == choosers_seg_value]) > 0:
                 if choosers_seg_value == -1:
                     choosers_no_weight = choosers[choosers[choosers_weight_segmentation_col] == -1]
@@ -1313,7 +1313,7 @@ class PSRC_SegmentedMNLDiscreteChoiceModel(dcm.SegmentedMNLDiscreteChoiceModel):
         if "models" not in cfg:
             cfg["models"] = {}
 
-        for name, m in cfg['models'].items():
+        for name, m in list(cfg['models'].items()):
             m['model_expression'] = m.get(
                 'model_expression', default_model_expr)
             m['sample_size'] = cfg['sample_size']
@@ -1422,8 +1422,8 @@ class PSRC_SegmentedMNLDiscreteChoiceModel(dcm.SegmentedMNLDiscreteChoiceModel):
 
         results = self._group.fit_weighted(choosers, alternatives, current_choice,  weights, choosers_weight_segmentation_col)
 
-        for k, v in self._group.models.items():
-            print("LCM RESULTS FOR SEGMENT %s\n" % str(k))
+        for k, v in list(self._group.models.items()):
+            print(("LCM RESULTS FOR SEGMENT %s\n" % str(k)))
             v.report_fit()
         self.to_yaml(outcfgname)
         logger.debug('finish: fit into configuration {}'.format(outcfgname))
@@ -1569,7 +1569,7 @@ class MNLDiscreteChoiceModelWeightedSamples(object):
         Whether all models in the group have been fitted.
 
         """
-        return (all(m.fitted for m in self.models.values())
+        return (all(m.fitted for m in list(self.models.values()))
                 if self.models else False)
 
 

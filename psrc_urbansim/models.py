@@ -2,25 +2,22 @@ import os
 import sys
 import orca
 import random
-import urbansim_defaults.utils as utils
-import psrc_urbansim.utils as psrcutils
-import datasources
-import variables
-import psrc_urbansim.vars.variables_persons as variables_persons
-import psrc_urbansim.vars.variables_households as variables_households
 import numpy as np
 import pandas as pd
-from psrc_urbansim.mod.allocation import AgentAllocationModel
+import urbansim_defaults.utils as utils
 import urbansim.developer as dev
-import developer_models as psrcdev
-import dcm_weighted_sampling as psrc_dcm
-import sqftproforma
 from urbansim.utils import misc, yamlio
-import os
+import psrc_urbansim.utils as psrcutils
+import psrc_urbansim.datasources
+import psrc_urbansim.variables
+import psrc_urbansim.vars.variables_persons as variables_persons
+import psrc_urbansim.vars.variables_households as variables_households
 from psrc_urbansim.vars.variables_interactions import network_distance_from_home_to_work
-import dcm_weighted_sampling as psrc_dcm
+from psrc_urbansim.mod.allocation import AgentAllocationModel
+import psrc_urbansim.developer_models as psrcdev
+import psrc_urbansim.dcm_weighted_sampling as psrc_dcm
+import psrc_urbansim.sqftproforma
 from psrc_urbansim.binary_discrete_choice import BinaryDiscreteChoiceModel
-
 
 # Residential REPM
 @orca.step('repmres_estimate')

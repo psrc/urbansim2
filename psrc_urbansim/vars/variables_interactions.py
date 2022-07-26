@@ -87,7 +87,7 @@ def avg_trip_weighted_zone_logsum(income_categories, twa_logsum_1, twa_logsum_2,
 
 def empden_zone_sector(sector, bzone_id):
     # non-interaction
-    from variables_zones import number_of_jobs_of_sector
+    from .variables_zones import number_of_jobs_of_sector
     zones = orca.get_table('zones')
     zone_density = number_of_jobs_of_sector(sector, zones, orca.get_table('jobs'))/zones.acres
     zone_density[~np.isfinite(zone_density)] = 0

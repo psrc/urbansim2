@@ -142,7 +142,7 @@ def Group4_Over110600(alldata, households):
 
 @orca.column('alldata', 'hs_student_age_15_up', cache=True, cache_scope='iteration')
 def hs_student_age_15_up(alldata, persons): 
-    return pd.Series(((persons.employment_status <> 1)* (persons.student == 1) * (persons.age > 15) * (persons.age < 19)).sum(), index = alldata.index)
+    return pd.Series(((persons.employment_status != 1)* (persons.student == 1) * (persons.age > 15) * (persons.age < 19)).sum(), index = alldata.index)
 
 @orca.column('alldata', 'Nineteen_24', cache=True, cache_scope='iteration')
 def Nineteen_24(alldata, persons): 
@@ -198,7 +198,7 @@ def Under5(alldata, persons):
 
 @orca.column('alldata', 'university_student', cache=True, cache_scope='iteration')
 def university_student(alldata, persons): 
-    return pd.Series(((persons.employment_status <> 1)* (persons.student == 1) * (persons.age > 18)).sum(), index = alldata.index)
+    return pd.Series(((persons.employment_status != 1)* (persons.student == 1) * (persons.age > 18)).sum(), index = alldata.index)
 
 @orca.column('alldata', 'workers_no_job', cache=True, cache_scope='iteration')
 def workers_no_job(alldata, persons): 

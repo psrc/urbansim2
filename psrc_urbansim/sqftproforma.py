@@ -152,7 +152,7 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
 
     # Conversion similar to sqftproforma._convert_types()
     local_settings["res_ratios"] = {}
-    for form in forms.keys():
+    for form in list(forms.keys()):
         forms[form] /= forms[form].sum() # normalize
         local_settings["res_ratios"][form] = pd.Series(forms[form][np.where(local_settings["residential_uses"])]).sum()
             
@@ -172,7 +172,7 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings['proposals_to_keep_per_group'] = all_default_settings.get('proposals_to_keep_per_group', None)
     local_settings['proposal_selection_attribute'] = all_default_settings.get('proposal_selection_attribute', "max_profit")
     pf = default_settings
-    for attr in local_settings.keys():
+    for attr in list(local_settings.keys()):
         setattr(pf, attr, local_settings[attr])
     pf.reference_dict = sqftproforma.SqFtProFormaReference(**pf.__dict__).reference_dict
 
@@ -180,7 +180,7 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     return pf
 
 def update_sqftproforma_reference(pf):
-    for name, config in pf.reference_dict.keys():
+    for name, config in list(pf.reference_dict.keys()):
         if name in ['tcu', 'warehouse']:
             pf.reference_dict[(name, config)]['ave_cost_sqft'][pf.reference_dict[(name, config)].far > pf.max_industrial_height] = np.nan
     return pf      
@@ -234,14 +234,14 @@ def run_feasibility(parcels, parcel_price_callback,
             
     #feasibility = lookup_by_form(df, parcel_use_allowed_callback, pf, **kwargs)
     
-    print "Describe of the yearly rent by use"
-    print df[pf.uses].describe()
+    print("Describe of the yearly rent by use")
+    print(df[pf.uses].describe())
 
     # Computing actual feasibility
     d = {}
     forms = pf.forms_to_test or pf.forms
     for form in forms:
-        print "Computing feasibility for form %s" % form
+        print("Computing feasibility for form %s" % form)
         #if parcel_id_col is not None:
         #    parcels = df[parcel_id_col].unique()
         #    allowed = (parcel_use_allowed_callback(form).loc[parcels])
@@ -261,7 +261,7 @@ def run_feasibility(parcels, parcel_price_callback,
     # Collect results     
     # put feasibility into long format
     form_feas = []
-    for form_name in d.keys():
+    for form_name in list(d.keys()):
         df_feas_form = d[form_name]
         df_feas_form['form'] = form_name
         form_feas.append(df_feas_form)
@@ -421,23 +421,23 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
         fars = pd.Series(self.fars)
         #assert len(fars[fars > 20]) == 0
         assert len(fars[fars <= 0]) == 0
-        for k, v in self.forms.items():
+        for k, v in list(self.forms.items()):
             assert isinstance(v, dict)
-            for k2, v2 in self.forms[k].items():
+            for k2, v2 in list(self.forms[k].items()):
                 assert isinstance(k2, str)
                 assert isinstance(v2, float)
-            for k2, v2 in self.forms[k].items():
+            for k2, v2 in list(self.forms[k].items()):
                 assert isinstance(k2, str)
                 assert isinstance(v2, float)
-        for k, v in self.parking_rates.items():
+        for k, v in list(self.parking_rates.items()):
             assert isinstance(k, str)
             assert k in self.uses
             assert 0 <= v < 5
-        for k, v in self.parking_sqft_d.items():
+        for k, v in list(self.parking_sqft_d.items()):
             assert isinstance(k, str)
             assert k in self.parking_configs
             assert 50 <= v <= 1000
-        for k, v in self.parking_sqft_d.items():
+        for k, v in list(self.parking_sqft_d.items()):
             assert isinstance(k, str)
             assert k in self.parking_cost_d
             assert 10 <= v <= 300
@@ -446,7 +446,7 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
             if np.isinf(v):
                 continue
             assert 0 <= v <= 1000
-        for k, v in self.costs.items():
+        for k, v in list(self.costs.items()):
             assert isinstance(k, str)
             assert k in self.uses
             for i in v:

@@ -37,7 +37,7 @@ def abstract_logsum_interaction_variable(travel_data_attribute_dict, agent_categ
     max_choices = agent_categories.values.max() + 1
     tmlist = [np.nan] * max_choices
     for i in range(max_choices): # iterate ofve income categories
-        if travel_data_attribute_dict.has_key(i):
+        if i in travel_data_attribute_dict:
             tmlist[i] = travel_data_attribute_dict[i][idx].reset_index(drop=True)
     return agent_categories.values.choose(tmlist)
 
@@ -106,7 +106,7 @@ def abstract_within_given_radius(radius, quantity, x, y, filter=None):
     #    return arr[x[~np.isnan(x)]].sum()
     #tmp = akd.apply(get_quant_sum, axis=1, raw=True)
     # This solution is very slow when executed on all parcels
-    tmp = np.array(map(lambda l: arr[l].sum(), KDTresults))
+    tmp = np.array([arr[l].sum() for l in KDTresults])
     result[index] = tmp
     return result    
 
@@ -155,7 +155,7 @@ def abstract_trip_weighted_average_from_home(time_attribute, trips_attribute, fr
     # if there are contiguous places of zero division the values should propagate upon iteration
     no_trips_from_here = np.where(denominator == 0)[0]
     if no_trips_from_here.size == denominator.size:
-        print "%s attribute of travel_data is all zeros; trip_weighted_average_from_home returns all zeros" % trips_attribute.name
+        print("%s attribute of travel_data is all zeros; trip_weighted_average_from_home returns all zeros" % trips_attribute.name)
         return np.zeros(numerator.size)
     while no_trips_from_here.size != 0:             
         substitute_locations = no_trips_from_here - 1    # a mapping, what zone the new data will come from

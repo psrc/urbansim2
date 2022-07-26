@@ -61,7 +61,7 @@ def building_sqft_pcl(parcels, buildings):
 
 @orca.column('parcels', 'building_sqft_wwd', cache=True, cache_scope='step')
 def building_sqft_wwd(parcels, gridcells, settings):
-    from abstract_variables import abstract_within_walking_distance_parcels
+    from .abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("building_sqft_pcl", parcels, gridcells, settings)
 
 
@@ -79,7 +79,7 @@ def capacity_opportunity_non_gov(parcels):
         (parcels.avg_building_age >= 10) & # buildings older than 10 years
         np.logical_or( # if condo, the utilization should have a higher bar (it's more difficult to get all condo owners to agree)
             (parcels.max_developable_capacity / parcels.building_sqft_pcl) > 6, 
-            parcels.land_use_type_id <> 15
+            parcels.land_use_type_id != 15
             )&
         (parcels.job_capacity < 500)& # do not turn down buildings with lots of jobs
         ((parcels.total_improvement_value / parcels.parcel_sqft) < 250) # do not turn down expensive mansions
@@ -95,7 +95,7 @@ def capacity_opportunity_non_gov_relaxed(parcels):
         (parcels.avg_building_age >= 1) & # buildings older than 1 year
         np.logical_or( # if condo, the utilization should have a higher bar (it's more difficult to get all condo owners to agree)
             (parcels.max_developable_capacity / parcels.building_sqft_pcl) > 6, 
-            parcels.land_use_type_id <> 15
+            parcels.land_use_type_id != 15
             ) &
         (parcels.job_capacity < 500) & # do not turn down buildings with lots of jobs
         ((parcels.total_improvement_value / parcels.parcel_sqft) < 250) # do not turn down expensive mansions
@@ -119,7 +119,7 @@ def employment_density_wwd(parcels):
 
 @orca.column('parcels', 'employment_retail_wwd', cache=True, cache_scope='step')
 def employment_retail_wwd(parcels, gridcells, settings):
-    from abstract_variables import abstract_within_walking_distance_parcels
+    from .abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("number_of_retail_jobs", parcels, gridcells, settings)
 
 @orca.column('parcels', 'existing_units', cache=True, cache_scope='step')
@@ -149,7 +149,7 @@ def industrial_job_spaces(parcels, buildings):
 
 @orca.column('parcels', 'income_per_person_wwd', cache=True, cache_scope='step')
 def income_per_person_wwd(parcels, gridcells, settings):
-    from abstract_variables import abstract_within_walking_distance_parcels
+    from .abstract_variables import abstract_within_walking_distance_parcels
     return (abstract_within_walking_distance_parcels("total_income", parcels, gridcells, settings)/parcels.population_wwd).fillna(0)
 
 @orca.column('parcels', 'invfar', cache=True, cache_scope='step')
@@ -254,7 +254,7 @@ def number_of_good_public_schools(parcels, schools):
 
 @orca.column('parcels', 'number_of_good_public_schools_within_3000_radius', cache=True, cache_scope='step')
 def number_of_good_public_schools_within_3000_radius(parcels, gridcells, settings):
-    from abstract_variables import abstract_within_walking_distance_parcels
+    from .abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("number_of_good_public_schools", parcels, gridcells, settings, walking_radius=3000)
 
 @orca.column('parcels', 'number_of_governmental_buildings', cache=True, cache_scope='step')
@@ -269,7 +269,7 @@ def number_of_households(parcels, households):
 
 @orca.column('parcels', 'number_of_households_wwd', cache=True, cache_scope='step')
 def number_of_households_wwd(parcels, gridcells, settings):
-    from abstract_variables import abstract_within_walking_distance_parcels
+    from .abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("number_of_households", parcels, gridcells, settings)
 
 @orca.column('parcels', 'number_of_jobs', cache=True, cache_scope='step')
@@ -279,7 +279,7 @@ def number_of_jobs(parcels, jobs):
 
 @orca.column('parcels', 'number_of_jobs_wwd', cache=True, cache_scope='step')
 def number_of_jobs_wwd(parcels, gridcells, settings):
-    from abstract_variables import abstract_within_walking_distance_parcels
+    from .abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("number_of_jobs", parcels, gridcells, settings)
 
 @orca.column('parcels', 'number_of_retail_jobs', cache=True, cache_scope='step')
@@ -297,7 +297,7 @@ def parcel_size(parcels):
 
 @orca.column('parcels', 'parcel_sqft_wwd', cache=True, cache_scope='step')
 def parcel_sqft_wwd(parcels, gridcells, settings):
-    from abstract_variables import abstract_within_walking_distance_parcels
+    from .abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("parcel_sqft", parcels, gridcells, settings)
 
 @orca.column('parcels', 'park_area', cache=True, cache_scope='step')
@@ -306,7 +306,7 @@ def park_area(parcels):
 
 @orca.column('parcels', 'park_area_wwd', cache=True, cache_scope='step')
 def park_area_wwd(parcels, gridcells, settings):
-    from abstract_variables import abstract_within_walking_distance_parcels
+    from .abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("park_area", parcels, gridcells, settings)
 
 @orca.column('parcels', 'population_density_wwd', cache=True, cache_scope='step')
@@ -320,7 +320,7 @@ def population_pcl(parcels, households):
 
 @orca.column('parcels', 'population_wwd', cache=True, cache_scope='step')
 def population_wwd(parcels, gridcells, settings):
-    from abstract_variables import abstract_within_walking_distance_parcels
+    from .abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("population_pcl", parcels, gridcells, settings)
 
 @orca.column('parcels', 'residential_units', cache=True, cache_scope='step')
@@ -457,29 +457,29 @@ def get_ave_unit_size_by_zone(is_in, buildings, parcels):
     zone_median[zone_nr_parcels < 20] = np.nan
     if zone_median.isna().any():
 	# replace nan with faz medians
-	zones = orca.get_table("zones")
-	faz_nr_parcels = parcel_median.groupby(parcels.faz_id).count()
-	faz_median = parcel_median.groupby(parcels.faz_id).median()
-	faz_median[faz_nr_parcels < 20] = np.nan
-	zone_median_from_faz = misc.reindex(faz_median, zones.faz_id)
-	zone_median.where(~zone_median.isna(), zone_median_from_faz, inplace = True)
-	if zone_median.isna().any():
+        zones = orca.get_table("zones")
+        faz_nr_parcels = parcel_median.groupby(parcels.faz_id).count()
+        faz_median = parcel_median.groupby(parcels.faz_id).median()
+        faz_median[faz_nr_parcels < 20] = np.nan
+        zone_median_from_faz = misc.reindex(faz_median, zones.faz_id)
+        zone_median.where(~zone_median.isna(), zone_median_from_faz, inplace = True)
+        if zone_median.isna().any():
 	    # replace nan with large area medians
-	    la_median = parcel_median.groupby(parcels.large_area_id).median()
-	    la_median[la_median < 1000] = 1000
-	    zone_median_from_la = misc.reindex(la_median, zones.large_area_id)
-	    zone_median.where(~zone_median.isna(), zone_median_from_la, inplace = True)
-	zone_median[zone_median < 600] = 600 # make 600 the minimum
+            la_median = parcel_median.groupby(parcels.large_area_id).median()
+            la_median[la_median < 1000] = 1000
+            zone_median_from_la = misc.reindex(la_median, zones.large_area_id)
+            zone_median.where(~zone_median.isna(), zone_median_from_la, inplace = True)
+        zone_median[zone_median < 600] = 600 # make 600 the minimum
     return misc.reindex(zone_median, parcels.zone_id).fillna(reg_median).replace(0, reg_median)
 
 def sample_ave_unit_size(is_in, buildings, parcels, type):
     zone_med = get_ave_unit_size_by_zone(is_in, buildings, parcels)
     if type == "sf":
-	low = 1171
-	high = 3237
+        low = 1171
+        high = 3237
     else: # MF
-	low = 600
-	high = 2214
+        low = 600
+        high = 2214
     # linear line between low and high
     choices = np.concatenate((np.linspace(low, high, num = 100), np.array([max(high, zone_med.max())+1])))
     # index of choice category for each parcel
@@ -496,8 +496,8 @@ def sample_ave_unit_size(is_in, buildings, parcels, type):
     n = 20
     incr = 1./n
     for i in np.arange(n)+1:
-	weights[widx[icats - i >= 0], icats[icats - i >= 0] - i] = 1-i*incr
-	weights[widx[icats + i < weights.shape[1]], icats[icats + i < weights.shape[1]] + i] = 1-i*incr
+        weights[widx[icats - i >= 0], icats[icats - i >= 0] - i] = 1-i*incr
+        weights[widx[icats + i < weights.shape[1]], icats[icats + i < weights.shape[1]] + i] = 1-i*incr
     # add a little bit in order not to exclude any choice
     weights = weights + incr/2.
     # normalize
@@ -506,7 +506,7 @@ def sample_ave_unit_size(is_in, buildings, parcels, type):
     # randomly select unit size for each parcel
     probidx = np.arange(weights.shape[1])
     def mkchoice(probs):
-	return np.random.choice(probidx, p=probs)    
+        return np.random.choice(probidx, p=probs)    
     choiceidx = np.apply_along_axis(mkchoice, 1, weights)
     return pd.Series(choices[choiceidx], index = zone_med.index)
     

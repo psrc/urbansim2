@@ -106,7 +106,7 @@ def large_area_id(buildings_lag1, parcels):
 
 @orca.column('buildings_lag1', 'ln_price_residual', cache=True, cache_scope='iteration')
 def ln_price_residual(buildings_lag1):
-    from abstract_variables import abstract_iv_residual
+    from .abstract_variables import abstract_iv_residual
     return abstract_iv_residual(np.log(buildings_lag1.price_per_unit), np.log(buildings_lag1.avg_price_per_unit_in_zone),
                                 buildings_lag1.price_per_unit > 0)
 
@@ -200,7 +200,7 @@ def building_zone_id(buildings_lag1, parcels):
 
 # Functions
 def number_of_jobs_of_sector_from_zone(sector, buildings_lag1, zones, jobs):
-    from variables_zones import number_of_jobs_of_sector
+    from .variables_zones import number_of_jobs_of_sector
     return misc.reindex(number_of_jobs_of_sector(sector, zones, jobs), buildings_lag1.zone_id)
 
 
