@@ -201,7 +201,7 @@ def convert_dirs(base_dir, hdf_name, is_estimation=False,
         elif dirname == 'buildings':
             keys = ['building_id']
             if is_estimation:
-                df.ix[df['building_type_id'] == 0, 'building_type_id'] = 1
+                df.loc[df['building_type_id'] == 0, 'building_type_id'] = 1
 
         else:
             keys = [dirname[:-1] + '_id']

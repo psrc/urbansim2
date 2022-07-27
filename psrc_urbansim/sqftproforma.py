@@ -88,11 +88,11 @@ def parcel_is_allowed_func_with_cap(form):
 
     if config.res_ratios[form] < 1:
         if config.res_ratios[form] > 0: # mixed use
-            allowed.ix[mixedcap[mixedcap == True].index] = False
+            allowed.loc[mixedcap[mixedcap == True].index] = False
         else: # non-res
-            allowed.ix[nrescap[nrescap == True].index] = False
+            allowed.loc[nrescap[nrescap == True].index] = False
     else: # res
-        allowed.ix[rescap[rescap == True].index] = False
+        allowed.loc[rescap[rescap == True].index] = False
     return allowed
 
 @orca.injectable("set_ave_unit_size_func", autocall=False)
@@ -100,9 +100,9 @@ def set_ave_unit_size_func(pf, form, df):
     attrs = []
     #if pf.forms_df.ix[form, "condo_residential"] > 0:
     #    attrs = attrs + ["ave_unit_size_condo"]
-    if pf.forms_df.ix[form, "multi_family_residential"] > 0:
+    if pf.forms_df.loc[form, "multi_family_residential"] > 0:
         attrs = attrs + ["ave_unit_size_mf"]
-    if pf.forms_df.ix[form, "single_family_residential"] > 0:
+    if pf.forms_df.loc[form, "single_family_residential"] > 0:
         attrs = attrs + ["ave_unit_size_sf"]
     if len(attrs) == 0:
         return df
@@ -146,9 +146,9 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
         #forms[form_name] = submerge.percent_building_sqft.fillna(0).values/100.
         #form_glut[form_name] = subuse.generic_land_use_type_name.values[0]
         #form_density_type[form_name] = subuse.density_type.values[0]
-        forms[form_name] = forms_df_extr.ix[form_name].values
-        form_glut[form_name] = forms_df.glut.ix[form_name].split(":")
-        form_density_type[form_name] = forms_df.density_type.ix[form_name]
+        forms[form_name] = forms_df_extr.loc[form_name].values
+        form_glut[form_name] = forms_df.glut.loc[form_name].split(":")
+        form_density_type[form_name] = forms_df.density_type.loc[form_name]
 
     # Conversion similar to sqftproforma._convert_types()
     local_settings["res_ratios"] = {}

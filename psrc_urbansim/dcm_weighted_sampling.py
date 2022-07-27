@@ -398,7 +398,7 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
     # choosers_filter and location_filter should be logical arrays, if given
         
     # buildings in this sample set
-    loc_filter = buildings.index.isin(units[out_fname].ix[probabilities.index.get_level_values('alternative_id')])
+    loc_filter = buildings.index.isin(units[out_fname].loc[probabilities.index.get_level_values('alternative_id')])
     if location_filter is not None:
         loc_filter = np.logical_and(loc_filter, location_filter)
         
@@ -542,7 +542,7 @@ def sample_weights(units, movers, sample_field, percent_sample):
         vacant = len(units)
         for item in movers[sample_field].unique():
             this_area_index = units[units['large_area_id'] == item].index
-            vacant_this_area = len(units.ix[this_area_index])
+            vacant_this_area = len(units.loc[this_area_index])
             # only use weights if there area units in/outside large area
             if (vacant_this_area > 0) and (vacant-vacant_this_area > 0):
                 units['sample_filter_' + str(int(item))] = (100-percent_sample)/(vacant-vacant_this_area)
@@ -566,7 +566,7 @@ def mnl_interaction_dataset_weighted(choosers, alternatives, SAMPLE_SIZE, choose
     choosers = choosers[choosers[choosers_weight_segmentation_col]==choosers_seg_value]
     
     if chosenalts is not None:
-        chosenalts = chosenalts.ix[chosenalts.index.isin(choosers.index)]
+        chosenalts = chosenalts.loc[chosenalts.index.isin(choosers.index)]
         isin = chosenalts.isin(alternatives.index)
         try:
             removing = isin.value_counts().loc[False]
@@ -723,7 +723,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
             if len(choosers[choosers[choosers_weight_segmentation_col] == choosers_seg_value]) > 0:
                 if choosers_seg_value == -1:
                     choosers_no_weight = choosers[choosers[choosers_weight_segmentation_col] == -1]
-                    current_choice_no_weight = current_choice.ix[current_choice.index.isin(choosers_no_weight.index)]
+                    current_choice_no_weight = current_choice.loc[current_choice.index.isin(choosers_no_weight.index)]
                     _, merged, chosen = interaction.mnl_interaction_dataset(choosers_no_weight, alternatives, self.sample_size, current_choice_no_weight)
                     
                     data_set_list.append(merged)

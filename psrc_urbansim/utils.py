@@ -85,7 +85,7 @@ def hedonic_simulate(cfg, tbl, join_tbls, out_fname, cast=False,
             if not residual_name in tbl.columns:
                 print ("WARNING: Residual column not available.")
             else:
-                price_or_rent = price_or_rent + tbl[residual_name].ix[price_or_rent.index]
+                price_or_rent = price_or_rent + tbl[residual_name].loc[price_or_rent.index]
     if ytransform_back is not None:
         price_or_rent = ytransform_back(price_or_rent)
     tbl.update_col_from_series(out_fname, price_or_rent, cast=cast)

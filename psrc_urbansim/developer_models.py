@@ -82,7 +82,7 @@ def filter_by_vacancy(df, uses, targets, net_units, choices = None):
     # Return feasibility_id of proposals that should be switched off.
     vacancy_met = pd.Series([], dtype = "int32")
     for use in uses:
-        trgt = targets.ix[use].target_units
+        trgt = targets.loc[use].target_units
         if trgt is None:
             continue
         units = net_units[use].reindex(df.index)
@@ -650,11 +650,11 @@ class PSRCDeveloper(develop.Developer):
         feas_bt = pd.merge(feasibility.loc[:, ["form", "feasibility_id"]], self.pf_config.forms_df, left_on = "form", right_index = True)
         self.current_units = {}
         for bt in self.building_types.index:
-            if self.building_types.is_residential.ix[bt] == 1:
+            if self.building_types.is_residential.loc[bt] == 1:
                 unitsname = current_units[0]
             else:
                 unitsname = current_units[1]
-            btname = self.building_types.name.ix[bt]
+            btname = self.building_types.name.loc[bt]
             self.current_units[btname] = pcl["%s_%s" % (btname, unitsname)]
         
     def _calculate_current_units(self, current_units_attribute):
@@ -662,12 +662,12 @@ class PSRCDeveloper(develop.Developer):
         pcl = orca.get_table("parcels")
         self.current_units = pd.merge(self.feasibility.loc[:, ["form", "feasibility_id"]], self.pf_config.forms_df > 0, left_on = "form", right_index = True)
         for bt in self.building_types.index:
-            if self.building_types.is_residential.ix[bt] == 1:
+            if self.building_types.is_residential.loc[bt] == 1:
                 unitsname = current_units_attribute[0]
             else:
                 unitsname = current_units_attribute[1]
-            btname = self.building_types.name.ix[bt]
-            self.current_units[btname] = self.current_units[btname].values * pcl["%s_%s" % (btname, unitsname)].ix[self.current_units[btname].index].values
+            btname = self.building_types.name.loc[bt]
+            self.current_units[btname] = self.current_units[btname].values * pcl["%s_%s" % (btname, unitsname)].loc[self.current_units[btname].index].values
         self.current_units.set_index("feasibility_id", inplace = True)
         
     def _calculate_units_from_sqft(self, bldg_sqft_per_job = None):

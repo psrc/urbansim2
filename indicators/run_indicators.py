@@ -155,7 +155,7 @@ def compute_datasets(settings, iter_var):
             for column in datasets[ind]:
                 df = orca.get_table(ds)[column].to_frame()
                 if value.get("include_condition", None) is not None:
-                    df = df.ix[subset.index]
+                    df = df.loc[subset.index]
                 #print orca.get_table(ds)[column].to_frame().head()
                 orca.add_table(column, df)
                 #print column

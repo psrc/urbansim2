@@ -24,9 +24,9 @@ def simfile():
 def settings():
      # merges settings.yaml with settings_allocation.yaml 
      with open(os.path.join(misc.configs_dir(), "settings.yaml")) as f:
-          settings = yaml.load(f)
+          settings = yaml.load(f, Loader=yaml.FullLoader)
           with open(os.path.join(misc.configs_dir(), "settings_allocation.yaml")) as af:
-               deep_merge(yaml.load(af), settings)
+               deep_merge(yaml.load(af, Loader=yaml.FullLoader), settings)
           # monkey patch on the settings object since it's pretty global
           # but will also be available as injectable
           orca.settings = settings
@@ -34,7 +34,7 @@ def settings():
 
 @orca.injectable('control_years', cache=True)
 def control_years():
-     return [2017] + range(2020, 2051, 5)
+     return list(range(2020, 2051, 5))
 
 @orca.injectable('isCY', cache=False)
 def isCY(year, control_years):
@@ -75,7 +75,7 @@ orca.run([
      
      # Developer 
      #######
-     "process_mpds",
+     #"process_mpds",
      "cap_residential_development",
      "cap_nonresidential_development",     
      "proforma_feasibility_alloc",
@@ -113,7 +113,7 @@ orca.run([
     "delete_subreg_geo_from_households",
     "delete_subreg_geo_from_jobs"
 
-], iter_vars=range(2015,2051), data_out=outfile, out_base_tables=tables_in_base_year(),
+], iter_vars=range(2019,2051), data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 
 

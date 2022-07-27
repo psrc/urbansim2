@@ -700,7 +700,7 @@ def cap_development(parcels, control_totals, year, geo_id, control_years,
     # find the closest control year and its targets
     cys = np.sort(np.array(control_years))
     cy = cys[cys > year].min()
-    ct = control_totals.local.ix[cy][ct_attribute].groupby(control_totals.local.ix[cy][geo_id]).sum()
+    ct = control_totals.local.loc[cy][ct_attribute].groupby(control_totals.local.loc[cy][geo_id]).sum()
     # find what is already built
     units = parcels[units_attribute]
     units_geo = units.groupby(parcels[geo_id]).sum()
