@@ -16,7 +16,7 @@ from psrc_urbansim.vars.variables_interactions import network_distance_from_home
 from psrc_urbansim.mod.allocation import AgentAllocationModel
 import psrc_urbansim.developer_models as psrcdev
 import psrc_urbansim.dcm_weighted_sampling as psrc_dcm
-import psrc_urbansim.sqftproforma
+import psrc_urbansim.sqftproforma as sqftproforma
 from psrc_urbansim.binary_discrete_choice import BinaryDiscreteChoiceModel
 
 # Residential REPM

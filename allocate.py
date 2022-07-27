@@ -1,3 +1,12 @@
+# #############################################
+# Runs the PSRC allocation mode of urbansim.
+# #############################################
+# Set the name of the input file as well as various other allocation-related settings 
+#    in configs/settings_allocation.yaml
+# Set generic (non-allocation related) settings in configs/settings.yaml
+# Set the base year in psrc_urbansim/datasources.py
+# #############################################
+
 import os
 import psrc_urbansim.models
 import psrc_urbansim.workplace_models
@@ -13,6 +22,7 @@ from urbansim.utils import misc
 from psrc_urbansim.utils import deep_merge
 
 logging.basicConfig(level=logging.INFO)
+
 
 
 @orca.injectable('simfile')

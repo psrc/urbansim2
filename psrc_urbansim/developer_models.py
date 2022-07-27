@@ -113,8 +113,8 @@ def compute_target_units(vacancy_rate, unlimited = False):
             existing_units =  (bld[unitattr] * is_builting_type).sum()
             target_units[vac.loc[bt].use] = np.round(max(
                 (number_of_agents / (1 - vac.loc[bt].target_vacancy_rate) - existing_units), 0))
-    tu = pd.DataFrame({'building_type_name': target_units.keys(),
-                       "target_units": target_units.values()})
+    tu = pd.DataFrame({'building_type_name': list(target_units.keys()),
+                       "target_units": list(target_units.values())})
     tu = tu.set_index('building_type_name')
     return tu
     

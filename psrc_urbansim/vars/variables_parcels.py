@@ -483,7 +483,7 @@ def sample_ave_unit_size(is_in, buildings, parcels, type):
     # linear line between low and high
     choices = np.concatenate((np.linspace(low, high, num = 100), np.array([max(high, zone_med.max())+1])))
     # index of choice category for each parcel
-    icats = pd.cut(zone_med.values, bins = choices, labels = np.arange(choices.size-1), include_lowest = True)
+    icats = np.asarray(pd.cut(zone_med.values, bins = choices, labels = np.arange(choices.size-1), include_lowest = True))
     icats[np.isnan(icats)] = 0
     icats = icats.astype("int32")
     # create array of weights
