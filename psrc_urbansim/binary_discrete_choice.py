@@ -245,7 +245,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         model_design = dmatrix(
             self.str_model_expression, data=choosers, return_type='dataframe')
 
-        if len(choosers) != model_design.as_matrix().shape[0]:
+        if len(choosers) != model_design.to_numpy().shape[0]:
             raise ModelEvaluationError(
                 'Estimated data does not have the same length as input.  '
                 'This suggests there are null values in one or more of '
@@ -358,7 +358,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         model_design = dmatrix(
             self.str_model_expression, data=choosers, return_type='dataframe')
 
-        if len(choosers) != model_design.as_matrix().shape[0]:
+        if len(choosers) != model_design.to_numpy().shape[0]:
             raise ModelEvaluationError(
                 'Simulated data does not have the same length as input.  '
                 'This suggests there are null values in one or more of '

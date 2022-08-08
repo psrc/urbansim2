@@ -380,7 +380,7 @@ def yaml_to_class(cfg):
     Nothing
     """
     import yaml
-    model_type = yaml.load(open(cfg))["model_type"]
+    model_type = yaml.load(open(cfg), Loader=yaml.FullLoader)["model_type"]
     return {
         "discretechoice": PSRC_MNLDiscreteChoiceModel,
         "segmented_discretechoice": PSRC_SegmentedMNLDiscreteChoiceModel
@@ -740,14 +740,14 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
         model_design = dmatrix(
             self.str_model_expression, data=merged, return_type='dataframe')
 
-        if len(merged) != model_design.as_matrix().shape[0]:
+        if len(merged) != model_design.to_numpy().shape[0]:
             raise ModelEvaluationError(
                 'Estimated data does not have the same length as input.  '
                 'This suggests there are null values in one or more of '
                 'the input columns.')
 
         self.log_likelihoods, self.fit_parameters = mnl.mnl_estimate(
-            model_design.as_matrix(), chosen, self.sample_size, False, (-10, 10)) 
+            model_design.to_numpy(), chosen, self.sample_size, False, (-10, 10)) 
         self.fit_parameters.index = model_design.columns
 
         logger.debug('finish: fit LCM model {}'.format(self.name))
@@ -940,7 +940,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
         model_design = dmatrix(
             self.str_model_expression, data=merged, return_type='dataframe')
 
-        if len(merged) != model_design.as_matrix().shape[0]:
+        if len(merged) != model_design.to_numpy().shape[0]:
             raise ModelEvaluationError(
                 'Simulated data does not have the same length as input.  '
                 'This suggests there are null values in one or more of '
@@ -960,7 +960,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
 
 
         probabilities = mnl.mnl_simulate(
-            model_design.as_matrix(),
+            model_design.to_numpy(),
             coeffs,
             numalts=numalts, returnprobs=True)
 
