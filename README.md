@@ -16,7 +16,7 @@ In the examples below it will be assumed that the base directory for the install
 1. Install [Anaconda Python](http://continuum.io/downloads), the latest of the 3.* series. By default it will be installed in a different directory than existing Python, so there is no danger in messing up the current Python installation. Alternatively, use a virtual environment specific for urbansim2. In a command prompt, start a new virtual environment called "urbansim2" as follows:
 
 ```
-conda create -n urbansim2 python=3.7 anaconda
+conda create -n urbansim2 python=3.9 anaconda
 ```
 Activate this environment every time you restart the prompt and want to work with urbansim2 by entering the following (for Windows prompts):
 
@@ -24,7 +24,7 @@ Activate this environment every time you restart the prompt and want to work wit
 activate urbansim2
 ```
 
-To achieve the same thing in a bash shell, type "source activate urbansim2" or "conda activate urbansim2". To deactivate type "conda deactivate".
+To achieve the same thing in a bash shell, type `source activate urbansim2` or `conda activate urbansim2`. To deactivate type `conda deactivate`.
 
 In addition to Anaconda Python, three other packages (zbox, prettytable and pylogit) are needed. Install using the following pip commands:
    
@@ -40,6 +40,14 @@ In addition to Anaconda Python, three other packages (zbox, prettytable and pylo
    cd /d/udst
    git clone https://github.com/psrc/urbansim2.git psrc_urbansim
    ```
+   To use the python3-specific branch, switch to `dev_python3`:
+   
+   ```
+   cd psrc_urbansim
+   git switch dev_python3
+   cd ..
+   ```
+    
    
 3. Install various UDST packages by cloning them from [UDST GitHub](https://github.com/UDST):
 
@@ -53,10 +61,34 @@ In addition to Anaconda Python, three other packages (zbox, prettytable and pylo
    git clone https://github.com/UDST/choicemodels.git choicemodels
    ```
    
-4. Set the environment variable PYTHONPATH to point to those directories, as well as this repository, ``psrc_urbansim``. If you plan to switch between Opus and UrbanSim-2, put these settings into a  file that can be executed prior to working in the UrbanSim-2 environment. E.g. create a file ``setpath.bat`` with 
+4. **Set environment variables:** 
+	* `PYTHONPATH` points to the downloaded UDST repositories, as well as this repository, `psrc_urbansim`. 
+	* `DATA_HOME` points to the directory where data is stored (minus the `data` subdirectory, see the next bullet about data preparation). The code will look for the data file in `$DATA_HOME/data`.
+	* `PATH` should include the Anaconda directory (needed if not working in a conda environment).
+	
+	There are a few different ways to set those variables other than the usual OS-specific ways:
+  
+  a) (recommended) If you are working with a conda environment, one can do the setting as follows:
+
+   ```
+  conda env config vars set PYHTONPATH="D:/udst/psrc_urbansim;D:/udst/urbansim;D:/udst/urbansim_defaults;D:/udst/orca;D:/udst/choicemodels;D:/udst/developer;D:/udst/pandana"
+  conda env config vars set DATA_HOME="D:/udst/psrc_urbansim"
+  ```
+     
+   To check if it worked, re-activate the environment and list all environment variables in it:
+     
+   ```
+     conda deactivate
+     conda activate urbansim2
+     conda env config vars list
+   ```
+
+   b) If you plan to switch between Opus and UrbanSim-2, but do not work with a conda environment, put these settings into a file that can be executed prior to working in the UrbanSim-2 environment. E.g. create a file ``setpath.bat`` with 
 
    ```
    SET PYTHONPATH=D:/udst/psrc_urbansim;D:/udst/urbansim;D:/udst/urbansim_defaults;D:/udst/orca;D:/udst/choicemodels;D:/udst/developer;D:/udst/pandana
+   SET DATA_HOME=D:/udst/psrc_urbansim
+   SET PATH=c:/Anaconda;c:/Anaconda/Scripts;%PATH%
    ```
    
    If you prefer to work with Git Bash, you can put something like this into a file called ``setpath.sh``:
@@ -64,38 +96,19 @@ In addition to Anaconda Python, three other packages (zbox, prettytable and pylo
    ```
    DIR=/d/udst
    export PYTHONPATH=$DIR/psrc_urbansim:$DIR/urbansim:$DIR/urbansim_defaults:$DIR/orca:$DIR/choicemodels:$DIR/developer:$DIR/pandana
-   ```
-   
-5. Set the PATH variable to point to the Anaconda directory. E.g. add this line to the ``setpath.bat`` file:
-   
-   ```
-   SET PATH=c:/Anaconda;c:/Anaconda/Scripts;%PATH%
-   ```
-   
-   or in bash:
-   
-   ```
+   export DATA_HOME=$DIR/psrc_urbansim
    export PATH=/c/Anaconda:/c/Anaconda/Scripts:$PATH
    ```
-    
+       
 6. Create a base year dataset as an hdf5 file by running the script [``psrc_urbansim/data/conversion/cache_to_hdf5.py``](https://github.com/psrc/urbansim2/tree/master/data/conversion/cache_to_hdf5.py) (see [more info](https://github.com/psrc/urbansim2/tree/master/data/conversion)). Move the resulting file into ``psrc_urbansim/data``.
-7. Set the environment variable ``DATA_HOME`` to the directory with your base year dataset (minus the ``data`` subdirectory). The code will look for the data file in $DATA_HOME/data. E.g. add this line to ``setpath.bat``:
- 
-   ```
-   SET DATA_HOME=D:/udst/psrc_urbansim
-   ```
-   
-   or in bash:
-   
-   ```
-   export DATA_HOME=$DIR/psrc_urbansim
-   ```
 
-8. Put the name of the data file into ``psrc_urbansim/configs/settings.yaml`` (node ``store``).
+    Note that up-to-date base year files are kept on modelsrv3 in `/d/udst/psrc_urbansim/data`. For the use with python3, use the files with suffix "*py3.h5".
+
+7. Put the name of the data file into `psrc_urbansim/configs/settings.yaml` (simulation, estimation) or `psrc_urbansim/configs/settings_allocation.yaml` (allocation), in node `store`.
 
 ### Code Update
 
-The code is evolving fast, so update it regularly.
+The code is evolving, so update it regularly.
 
 ```
 cd /d/udst/urbansim
@@ -120,7 +133,7 @@ cd /d/udst
 
 The script iterates over the packages and pulls from the corresponding repositories.
 
-To set the environment variables in step 4, 5 and 7, depending where you want to run UrbanSim-2:
+To set the environment variables in step 4, depending where you want to run UrbanSim-2:
 
 1. **Windows command line:** Open a terminal, go into the ``d:/udst`` directory and do:
 
@@ -138,7 +151,7 @@ To set the environment variables in step 4, 5 and 7, depending where you want to
 
 In both cases, it changes the environment only for the session in this terminal or bash window.
 
-The base year data are stored in ``/d/udst/psrc_urbansim/data``. The file to be used for estimation is ``psrc_estimation_2014.h5``. For a simulation use ``psrc_base_year_2014.h5``. For allocation use ``psrc_base_year_2014_alloc.h5``.
+The base year data are stored in ``/d/udst/psrc_urbansim/data``. The file to be used for estimation is ``psrc_estimation_2018_py3.h5``. For a simulation use ``psrc_base_year_2018_py3.h5``. For allocation use ``psrc_base_year_2018_alloc_py3.h5``.
 
 
 ## Using UrbanSim-2
@@ -185,7 +198,7 @@ python simulate.py
 
 ## Pushing Changes to GitHub
 
-For now, since everything is under development, we will push all our changes into the master branch (unless you want to have your own experimental branch). 
+For now, since everything is under development, we will push all our changes into the master branch (unless you want to have your own experimental branch). Python3 code is in the `dev_python3` branch.
 
 ### Exclusions
 
