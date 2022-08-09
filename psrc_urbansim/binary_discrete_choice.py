@@ -370,7 +370,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
                   for x in model_design.columns]
 
         # Constructor requires and observation column, but since we are not estimating any will do so using constant. 
-        logit = sm.Logit(model_design.loc[:,0], model_design)
+        logit = sm.Logit(model_design.iloc[:,0], model_design)
 
         # Get the prediction probabilities for each chooser
         return pd.DataFrame(logit.predict(coeffs), columns=['probability'], index=model_design.index)

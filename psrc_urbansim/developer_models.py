@@ -145,8 +145,8 @@ def compute_target_units_for_subarea(id, subreg_geo = "city_id", vacancy_factor 
             number_of_agents_in_bt_subarea = (bld[agentattr] * is_building_type_in_subarea).sum()            
             proportion = max(number_of_agents_in_bt_subarea, 1) / float(number_of_agents_in_subarea[is_res])
         target_units[pfbt.loc[bt].use] = max(np.round(proportion * demand[is_res]) - existing_units_in_bt_subarea, 0)
-    tu = pd.DataFrame({'building_type_name': target_units.keys(),
-                        "target_units": target_units.values()})
+    tu = pd.DataFrame({'building_type_name': list(target_units.keys()),
+                        "target_units": list(target_units.values())})
     tu = tu.set_index('building_type_name')
     return tu    
 
