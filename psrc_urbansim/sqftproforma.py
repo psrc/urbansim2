@@ -73,7 +73,7 @@ def parcel_is_allowed_func(form):
     res = zoning[[glu[0]]] > 0
     if len(glu) > 1:
         for gt in glu[1:]:
-            res = np.logical_or(res, zoning[[gt]] > 0)
+            res = np.logical_or(res, zoning[[gt]].values > 0)
     return res
 
 @orca.injectable("parcel_is_allowed_func_with_cap", autocall=False)
