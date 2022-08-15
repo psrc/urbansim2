@@ -74,7 +74,10 @@ def abstract_travel_time_interaction_variable(travel_data_attribute, agent_zone_
         home_zone = location_zone_id
         work_zone = agent_zone_id
     idx = pd.MultiIndex.from_arrays([home_zone.values, work_zone.values], names=["from_zone_id", "to_zone_id"])
-    return travel_data_attribute[idx].reset_index(drop=True)
+    res = pd.Series(np.nan, index = idx, dtype = travel_data_attribute.dtype, name = travel_data_attribute.name)
+    tda = travel_data_attribute.loc[idx[idx.isin(travel_data_attribute.index)]]
+    res.loc[idx.isin(tda.index)] = tda
+    return res.reset_index(drop=True)
         
 def abstract_iv_residual(dependent_var, iv, filter):
     """Abstract variable for constructing an instrumental variable, such as price residuals."""
