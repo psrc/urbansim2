@@ -45,7 +45,7 @@ def growth_center_id(households, parcels, parcels_geos):
 def income_category(households, settings):
     income_breaks = settings.get('income_breaks', [34000, 64000, 102000])
     res = households.income.values
-    res[:] = np.nan
+    res[:] = 0
     res[(households.income < income_breaks[0]).values] = 1
     res[(np.logical_and(households.income >= income_breaks[0], households.income < income_breaks[1])).values] = 2
     res[(np.logical_and(households.income >= income_breaks[1], households.income < income_breaks[2])).values] = 3

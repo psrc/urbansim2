@@ -692,7 +692,7 @@ class PSRCDeveloper(develop.Developer):
             if bldg_sqft_per_job is None:
                 denom = self.bldg_sqft_per_job
             else:
-                series2.loc[:, "building_type_id"] = self.building_types[self.building_types.name == bt].index
+                series2.loc[:, "building_type_id"] = self.building_types[self.building_types.name == bt].index[0]
                 denom = pd.merge(series2, series1, left_on=['zone_id', 'building_type_id'], right_index=True, how="left").building_sqft_per_job
             units.loc[:, bt] = units.loc[:, bt]/denom.loc[~denom.index.duplicated()]
         units.loc[:, "job_spaces"] = units.loc[:, self.building_types.name[self.building_types.is_residential == 0].values.tolist()].sum(axis = 1)
