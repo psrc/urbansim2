@@ -136,7 +136,7 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         Above this ratio of alternatives to choosers (default of 2.0), the
         alternatives will be sampled to improve computational performance
     """
-    import dcm_weighted_sampling as dcmsampl
+    import psrc_urbansim.dcm_weighted_sampling as dcmsampl
     
     cfg = misc.config(cfg)
 

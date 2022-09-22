@@ -36,9 +36,12 @@ def abstract_logsum_interaction_variable(travel_data_attribute_dict, agent_categ
     idx = pd.MultiIndex.from_arrays([home_zone.values, work_zone.values], names=["from_zone_id", "to_zone_id"])    
     max_choices = agent_categories.values.max() + 1
     tmlist = [np.nan] * max_choices
-    for i in range(max_choices): # iterate ofve income categories
+    for i in range(max_choices): # iterate over income categories
         if i in travel_data_attribute_dict:
-            tmlist[i] = travel_data_attribute_dict[i][idx].reset_index(drop=True)
+            tmlist[i] = pd.Series(np.nan, index = idx, dtype = travel_data_attribute_dict[i].dtype)
+            tmp = travel_data_attribute_dict[i].loc[idx[idx.isin(travel_data_attribute_dict[i].index)]]
+            tmlist[i].loc[idx.isin(tmp.index)] = tmp
+            tmlist[i] = tmlist[i].reset_index(drop=True)
     return agent_categories.values.choose(tmlist)
 
 def abstract_weighted_access(travel_data_attribute, zone_attribute, 
