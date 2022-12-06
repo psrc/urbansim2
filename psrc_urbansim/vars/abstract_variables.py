@@ -38,7 +38,10 @@ def abstract_logsum_interaction_variable(travel_data_attribute_dict, agent_categ
     tmlist = [np.nan] * max_choices
     for i in range(max_choices): # iterate over income categories
         if i in travel_data_attribute_dict:
-            tmlist[i] = travel_data_attribute_dict[i][idx].reset_index(drop=True) # TODO: fix this for python 3.9 (cases when some of the idx does not exist in travel_data_attribute_dict[i])
+            tmlist[i] = pd.Series(np.nan, index = idx, dtype = travel_data_attribute_dict[i].dtype)
+            tmp = travel_data_attribute_dict[i].loc[idx[idx.isin(travel_data_attribute_dict[i].index)]]
+            tmlist[i].loc[idx.isin(tmp.index)] = tmp
+            tmlist[i] = tmlist[i].reset_index(drop=True)
     return agent_categories.values.choose(tmlist)
 
 def abstract_weighted_access(travel_data_attribute, zone_attribute, 
