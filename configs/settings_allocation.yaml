@@ -1,6 +1,6 @@
 store: psrc_base_year_2018_alloc_py3.h5
 
-control_geography_id: city_id
+control_geography_id: subreg_id
 
 min_overfull_buildings: 0
 
@@ -18,11 +18,11 @@ feasibility_model_CY:
 
 households_transition:
   remove_columns: []
-  add_columns: ["city_id"] # non-local (computed) columns
+  add_columns: ["subreg_id"] # non-local (computed) columns
 
 jobs_transition:
   remove_columns: []
-  add_columns: ["city_id"] # non-local (computed) columns 
+  add_columns: ["subreg_id"] # non-local (computed) columns 
   
 household_location_choice_model_CY:
   prediction_sample_size: 100

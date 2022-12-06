@@ -15,6 +15,10 @@ def is_worker_n(n, persons):
 def city_id(persons, households):
     return misc.reindex(households.city_id, persons.household_id)
 
+@orca.column('persons', 'subreg_id', cache=True, cache_scope='step')
+def subreg_id(persons, households):
+    return misc.reindex(households.subreg_id, persons.household_id)
+
 @orca.column('persons', 'faz_id', cache=True, cache_scope='step')
 def faz_id(persons, zones):
     return misc.reindex(zones.faz_id, persons.household_zone_id)

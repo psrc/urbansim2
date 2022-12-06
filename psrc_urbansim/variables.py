@@ -3,6 +3,7 @@ import psrc_urbansim.vars.variables_parcels
 import psrc_urbansim.vars.variables_buildings
 import psrc_urbansim.vars.variables_buildings_lag1
 import psrc_urbansim.vars.variables_cities
+import psrc_urbansim.vars.variables_subregs
 import psrc_urbansim.vars.variables_households
 import psrc_urbansim.vars.variables_households_for_estimation
 import psrc_urbansim.vars.variables_persons

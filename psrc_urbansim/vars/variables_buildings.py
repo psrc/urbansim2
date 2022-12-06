@@ -46,6 +46,10 @@ def building_type_name(buildings, building_types):
 def city_id(buildings, parcels):
     return misc.reindex(parcels.city_id, buildings.parcel_id)
 
+@orca.column('buildings', 'subreg_id', cache=True, cache_scope='iteration')
+def subreg_id(buildings, parcels):
+    return misc.reindex(parcels.subreg_id, buildings.parcel_id)
+
 @orca.column('buildings', 'county_id', cache=True, cache_scope='iteration')
 def county_id(buildings, parcels):
     return misc.reindex(parcels.county_id, buildings.parcel_id)

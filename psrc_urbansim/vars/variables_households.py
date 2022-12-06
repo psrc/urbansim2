@@ -26,6 +26,14 @@ def city_id(households, parcels):
         return households.local.city_id
     return misc.reindex(parcels.city_id, households.parcel_id)
 
+@orca.column('households', 'subreg_id', cache=True, cache_scope='step')
+def subreg_id(households, parcels):
+    if "subreg_id" in households.local_columns:
+        # this hack is needed for allocation mode, since orca 
+        # gives priority to computed columns instead of local columns
+        return households.local.subreg_id
+    return misc.reindex(parcels.subreg_id, households.parcel_id)
+
 @orca.column('households', 'faz_id', cache=True, cache_scope='step')
 def faz_id(households, zones):
     return misc.reindex(zones.faz_id, households.zone_id)

@@ -60,14 +60,15 @@ def cache_to_df(dir_path):
 DIRECTORIES = {
     'annual_employment_control_totals', 'annual_household_control_totals',
     'annual_household_relocation_rates', 'annual_job_relocation_rates',
-    'buildings', 'building_sqft_per_job', 'building_types', 'cities', 'counties',
+    'buildings', 'building_sqft_per_job', 'building_types', 'cities', 
+    'controls', 'controls_hct', 'counties',
     'development_constraints', 'development_event_history',
     #'development_project_proposals', 
     'development_templates', 'development_template_components',
     'employment_adhoc_sector_group_definitions',
     'employment_adhoc_sector_groups', 'employment_sectors',
     'fazes', 'gridcells', 'land_use_types', 'jobs', 'households', 'mpds',
-    'parcels', 'persons', 'schools', 'target_vacancies', 'travel_data',
+    'parcels', 'persons', 'schools', 'subregs', 'targets', 'target_vacancies', 'travel_data',
     'zones', 'zoning_heights', 'jobs_for_estimation', 'persons_for_estimation'
 }
 
@@ -146,6 +147,9 @@ def convert_dirs(base_dir, hdf_name, is_estimation=False,
         elif dirname == 'building_sqft_per_job':
             keys = ['zone_id', 'building_type_id']
 
+        elif dirname == 'controls_hct':
+            keys = ['control_hct_id']
+            
         elif dirname == 'counties':
             keys = ['county_id']
             
