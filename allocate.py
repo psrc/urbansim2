@@ -27,8 +27,7 @@ logging.basicConfig(level=logging.INFO)
 
 @orca.injectable('simfile')
 def simfile():
-     #return "results_alloc_footloose_cap_20200205.h5"
-     return "results_alloc_BY2018test.h5"
+     return "results_alloc_BY2018_20221206.h5"
 
 @orca.injectable('settings', cache=True)
 def settings():
@@ -44,7 +43,7 @@ def settings():
 
 @orca.injectable('control_years', cache=True)
 def control_years():
-     return list(range(2020, 2051, 5))
+     return list(range(2020, 2041, 5)) + [2044, 2050]
 
 @orca.injectable('isCY', cache=False)
 def isCY(year, control_years):
