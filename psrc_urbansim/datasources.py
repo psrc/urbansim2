@@ -55,6 +55,11 @@ def cities(store):
     df = store['cities']
     return df
 
+@orca.table('subregs', cache=True)
+def subregs(store):
+    df = store['subregs']
+    return df
+
 @orca.table('buildings_lag1', cache=True)
 def buildings_lag1(store):
     dfname = 'buildings_lag1'
