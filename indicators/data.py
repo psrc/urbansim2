@@ -174,7 +174,15 @@ def gridcells(store, year, base_year):
 
 @orca.table('cities', cache=True, cache_scope='iteration')
 def cities(store, year, base_year, csv_store):
-    return find_cities_in_store('cities', store, year, base_year, csv_store)
+    return pd.read_csv(os.path.join(csv_store, 'cities.csv'), index_col='city_id')
+
+@orca.table('subregs', cache=True, cache_scope='iteration')
+def subregs(store, year, base_year, csv_store):
+    return pd.read_csv(os.path.join(csv_store, 'subregs.csv'), index_col='subreg_id')
+
+#@orca.table('cities', cache=True, cache_scope='iteration')
+#def cities(store, year, base_year, csv_store):
+#    return find_cities_in_store('cities', store, year, base_year, csv_store)
 
 #@orca.table('cities', cache=True, cache_scope='iteration')
 #def cities(store, year, base_year):
