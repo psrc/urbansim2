@@ -49,7 +49,7 @@ datasets = {'DU_and_HH_by_bld_type_by_faz_by_year': ['DU_SF_19', 'DU_MF_12', 'DU
             }
 
 
-geography_alias = {'cities': 'city', 'zones': 'zone', 'fazes': 'faz',
+geography_alias = {'cities': 'city', 'zones': 'zone', 'fazes': 'faz', 'subregs': 'subreg',
                    'counties': 'county', 'growth_centers': 'growth_center', 'buildings': 'building'}
 
 table_alias = {'number_of_jobs': 'employment', 'number_of_households': 'households',
@@ -118,7 +118,7 @@ def add_new_datasets(settings, iter_var):
 @orca.step()
 def compute_indicators(settings, iter_var):
     # loop over indicators and datasets from settings and store into file
-    for ind, value in settings.get('indicators', {}).iteritems():
+    for ind, value in settings.get('indicators', {}).items():
         for ds in value.get('dataset', {}):
             df = orca.get_table(ds)[ind].to_frame()
             #print 'ds is %s, ind is %s and iter_var is %s' % (ds, ind, iter_var)
