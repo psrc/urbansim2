@@ -1,7 +1,7 @@
 import os 
 import sys
 import orca
-import random
+import logging
 import urbansim_defaults.utils as utils
 import psrc_urbansim.utils as psrcutils
 from . import datasources
@@ -19,6 +19,8 @@ import random
 from urbansim.utils import misc
 from psrc_urbansim.binary_discrete_choice import BinaryDiscreteChoiceModel
 from . import dcm_weighted_sampling as psrc_dcm
+
+logger = logging.getLogger(__name__)
 
 def update_local_scope(table, column, values):
     table.update_col_from_series(column, pd.Series(values, index=table.index), cast=True)
@@ -139,7 +141,7 @@ def do_wahcm_simulate(persons, jobs, households, zones, subreg_geo_id = None):
     # updates job_id, work_at_home on the persons table where index (person_id) matches in combine_indexes
     persons.update_col_from_series("job_id", combine_indexes.job_id, cast = True)
     persons.update_col_from_series('work_at_home', combine_indexes.work_at_home, cast = True)
-    print("%s additional people assigned to work at home." % len(combine_indexes))
+    logger.info("%s additional people assigned to work at home." % len(combine_indexes))
                            
     # building_id on jobs table for home based workers should be the household building_id of the person assigned the job
     # get building_id:
@@ -154,7 +156,7 @@ def do_wahcm_simulate(persons, jobs, households, zones, subreg_geo_id = None):
     # update jobs table- building_id of at home workers and 0 for vacant_jobs
     jobs.update_col_from_series('building_id', combine_indexes.building_id, cast = True)
     jobs.update_col_from_series('vacant_jobs', combine_indexes.vacant_jobs, cast = True)
-    print("Number of unplaced home-based jobs: %s" % len(jobs.local[(jobs.local.home_based_status==1) 
+    logger.info("Number of unplaced home-based jobs: %s" % len(jobs.local[(jobs.local.home_based_status==1) 
                               & (jobs.local.vacant_jobs > 0) & (jobs.building_id > 0)]))
 
   

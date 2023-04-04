@@ -365,6 +365,7 @@ def run_scaling(number_of_agents_column, agents, agents_to_place_bool, buildings
                     dtype="int32"))
     alloc = AgentAllocationModel('existing', number_of_agents_column,
                                  as_delta=False)
+    logger.info("Locating {} agents".format(sum(agents_to_place_bool)))
     if is_allocation:
         subreg_geo_id = settings.get("control_geography_id", "city_id")
         subregs = np.unique(agents[subreg_geo_id][agents_to_place_bool])
@@ -387,6 +388,7 @@ def run_scaling(number_of_agents_column, agents, agents_to_place_bool, buildings
                                              [number_of_agents_column,
                                               'existing']), agents_to_place,
                                             year=year)
+    logger.info("Number of unplaced agents: {}".format(np.logical_or(np.isnan(loc_ids), loc_ids < 0).sum()))
     agents.local.loc[loc_ids.index, buildings.index.name] = loc_ids
     orca.add_table(agents.name, agents.local)
     return loc_ids

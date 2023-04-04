@@ -631,7 +631,7 @@ class BinaryDiscreteChoiceModel(DiscreteChoiceModel):
         #        len(alternatives))
 
         choice, probs = lcm.predict(choosers, debug=debug)
-        print("Assigned %d choosers" % len(choice.dropna()))
+        logger.info("Assigned %d choosers" % len(choice.dropna()))
         logger.debug('finish: predict from configuration {}'.format(cfgname))
         return choice, probs, lcm
 
