@@ -14,8 +14,8 @@ from urbansim.models import dcm, util
 from urbansim.urbanchoice import mnl, interaction
 from urbansim.utils import misc
 from urbansim.utils import yamlio
-from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_number_unplaced
-from psrc_urbansim import _remove_developed_buildings
+from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas
+from psrc_urbansim.utils import _remove_developed_buildings, _log_number_unplaced
 import logging
 from urbansim.utils.logutil import log_start_finish
 import timeit
@@ -166,7 +166,7 @@ def lcm_simulate_sample(cfg, choosers, sample_field, buildings, min_overfull_bui
                               index=new_units.index)
 
     choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
-    _print_number_unplaced(choosers, out_fname)
+    _log_number_unplaced(choosers, out_fname)
 
     resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units, cast = cast)
 
@@ -350,7 +350,7 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
                               index=new_units.index)
 
     choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
-    _print_number_unplaced(choosers, out_fname)
+    _log_number_unplaced(choosers, out_fname)
 
     resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units, cast = cast)
 
@@ -412,7 +412,7 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
         
         logger.info("Iteration %d" % (x+1))
         movers = extract_movers(choosers, out_fname, choosers_filter = choosers_filter)
-        _print_number_unplaced(movers, out_fname)
+        _log_number_unplaced(movers, out_fname)
         logger.info("There are now %d empty units" % vacant_units.sum())
         logger.info("    and %d overfull locations" % len(vacant_units[vacant_units < 0]))
 
@@ -476,7 +476,7 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
                                                       index = resim_choosers['chooser_id']), 
                                             cast=cast)
             movers = extract_movers(choosers, out_fname, choosers_filter = choosers_filter)
-            _print_number_unplaced(movers, out_fname)
+            _log_number_unplaced(movers, out_fname)
             break        
         
         def mkchoice(probs):

@@ -3,7 +3,7 @@ import orca
 import numpy as np
 import logging
 from urbansim.utils import misc, yamlio
-from urbansim_defaults.utils import to_frame, yaml_to_class, check_nas, _print_number_unplaced
+from urbansim_defaults.utils import to_frame, yaml_to_class, check_nas
 from urbansim.models.regression import YTRANSFORM_MAPPING
 from urbansim.models import util
 import os
@@ -221,7 +221,7 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
                               index=new_units.index)
  
         choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
-        _print_number_unplaced(choosers, out_fname)
+        _log_number_unplaced(choosers, out_fname)
         
         resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, 
                                  new_units, this_sreg_units, 
@@ -301,3 +301,6 @@ def _remove_developed_buildings(old_buildings, new_buildings, unplace_agents):
                                              "building_id == -1"))))
 
     return old_buildings
+
+def _log_number_unplaced(df, fieldname):
+    logger.info("Total currently unplaced: %d" % df[fieldname].value_counts().get(-1, 0))
