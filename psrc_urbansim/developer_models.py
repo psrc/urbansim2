@@ -4,6 +4,7 @@ os.sys.path.append(r'D:\udst\developer')
 import numpy as np
 import pandas as pd
 import orca
+import logging
 from developer import develop
 import developer.utils as devutils
 from urbansim.utils import misc
@@ -12,7 +13,7 @@ from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_n
 #from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
 
 MAXlog = np.log(np.finfo('f').max) # max limit of float32 - for using with np.exp()
-
+logger = logging.getLogger(__name__)
 
 @orca.injectable('proposal_selection_probabilities', autocall=False)
 def proposal_selection_probabilities(df):
@@ -160,7 +161,7 @@ def do_process_mpds(mpds, buildings, remove_developed_buildings=True,
             old_buildings, mpds_df, unplace_agents)
     l2 = len(old_buildings)
     all_buildings = merge_buildings(old_buildings, mpds_df)
-    print("\nAdded {} buildings as MPDs. {} buildings removed.".format(len(mpds_df), l1 - l2))
+    logger.info("\nAdded {} buildings as MPDs. {} buildings removed.".format(len(mpds_df), l1 - l2))
     return 
     
 def run_developer(forms, agents, buildings, supply_fname, feasibility,
@@ -261,7 +262,7 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     # keep developer config
     dev.config = devutils.yaml_to_dict(yaml_str = None, str_or_buffer=cfg)
     
-    print("{:,} feasible proposals on {:,} parcels before running developer".format( 
+    logger.info("{:,} feasible proposals on {:,} parcels before running developer".format( 
         len(dev.feasibility), len(np.unique(dev.feasibility.parcel_id))))
 
     dev.feasibility_bt = orca.get_table("feasibility_bt").local
@@ -287,7 +288,6 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
                                   add_more_columns_callback,
                                   supply_fname, remove_developed_buildings,
                                   unplace_agents, pipeline, dev.pf_config.cap_rate)
-
     return new_buildings
 
 
@@ -309,8 +309,8 @@ def run_developer_CY(subreg_geo_id, feasibility, buildings, **kwargs):
     
     new_buildings = None
     for subreg in subregs:
-        print("\nSubregion {}".format(subreg))
-        print("-------------")
+        logger.info("\n---- Subregion {} ----".format(subreg))
+        print("\n---- Subregion {} ----".format(subreg))
         target_units = compute_target_units_for_subarea(subreg, subreg_geo_id)
         feas = feasibility.local.loc[feasibility[subreg_geo_id] == subreg]
         orca.add_table("feasibility", feas) # this is to create an orca table
@@ -322,10 +322,10 @@ def run_developer_CY(subreg_geo_id, feasibility, buildings, **kwargs):
             new_buildings = pd.concat([new_buildings, newbldgs])
         buildings = orca.get_table("buildings")
         
-    print("\nTotal: {} new buildings ({} residential, {} non-residential) on {} parcels ".format(
+    logger.info("\nTotal: {} new buildings ({} residential, {} non-residential) on {} parcels ".format(
         len(new_buildings), (new_buildings.residential_units > 0).sum(), (new_buildings.non_residential_sqft > 0).sum(), 
         len(np.unique(new_buildings.parcel_id))))
-    print("\nNet change: {} buildings, {} residential units, {} non-residential sqft, {} job spaces".format(
+    logger.info("\nNet change: {} buildings, {} residential units, {} non-residential sqft, {} job spaces".format(
         len(buildings) - old_size, buildings.residential_units.sum() - old_res, buildings.non_residential_sqft.sum() - old_non_res,
         buildings.job_spaces.sum() - old_jobs))
     print("------")
@@ -466,7 +466,7 @@ def add_buildings(buildings, new_buildings,
         if not isinstance(supply_fname, list):
             supply_fname = [supply_fname]
         for fname in supply_fname:
-            print("Adding {:,} buildings with {:,} {}".format(
+            logger.info("Adding {:,} buildings with {:,} {}".format(
                 len(new_buildings[new_buildings[fname] > 0]),
                 int(new_buildings[fname].sum()),
                 fname))

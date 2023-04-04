@@ -197,10 +197,10 @@ def households_relocation(households, household_relocation_rates):
                               rate_column='probability_of_relocating')
     movers = rm.find_movers(households.to_frame(households.local_columns + ['building_type_id'])
                             [households.building_id > 0])  # relocate only residents
-    logger.info("{} households selected to move.".format(movers.size))
     households.update_col_from_series("building_id",
                                       pd.Series(-1, index=movers), cast=True)
-    logger.info("{} households are unplaced in total.".format((households.local["building_id"] <= 0).sum()))
+    logger.info("{} households selected to move. {} households are unplaced in total.".format(
+        (households.local["building_id"] <= 0).sum(), movers.size))
 
 @orca.step('household_logit_relocation_estimate')
 def household_logit_relocation_estimate(households_for_estimation):
@@ -227,10 +227,9 @@ def jobs_relocation(jobs, job_relocation_rates):
     from urbansim.models import relocation as relo
     rm = relo.RelocationModel(job_relocation_rates.to_frame(), rate_column='job_relocation_probability')
     movers = rm.find_movers(jobs.to_frame(jobs.local_columns)[jobs.building_id > 0])  # relocate only placed jobs
-    logger.info("{} jobs selected to move.".format(movers.size))
     jobs.update_col_from_series("building_id",
                                 pd.Series(-1, index=movers), cast=True)
-    logger.info("{} jobs are unplaced in total.".format((jobs.local["building_id"] <= 0).sum()))
+    logger.info("{} jobs selected to move. {} jobs are unplaced in total.".format((jobs.local["building_id"] <= 0).sum(), movers.size))
 
 
 @orca.step('update_persons_jobs')
@@ -295,13 +294,13 @@ def run_households_transition(households, household_controls,
         # Not needed in allocation mode, since subregional geo id should be visible to other models.
         resave_table_in_orca(orca.get_table("households"), orig_hh_local_columns)
             
-    logger.info("Net change: {} households".format(orca.get_table("households").local.shape[0] - orig_size_hh))
-    logger.info("Net change: {} persons".format(orca.get_table("persons").local.shape[0] - orig_size_pers))
-
     # changes to households/persons table are not reflected in local scope
     # need to reset vars to get changes.
     households = orca.get_table('households')
     persons = orca.get_table("persons") 
+    
+    logger.info("Net change: {} households (before: {}, after: {})".format(households.local.shape[0] - orig_size_hh, orig_size_hh, households.local.shape[0]))
+    logger.info("Net change: {} persons (before: {}, after: {})".format(persons.local.shape[0] - orig_size_pers, orig_size_pers, persons.local.shape[0]))
     
     # need to make some updates to the persons & households table
     households = update_local_scope(households, "is_inmigrant", 
@@ -342,7 +341,7 @@ def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation
     
     # the transition model removes index name, so put it back
     orca.get_table("jobs").index.name = jobs.index.name
-    logger.info("Net change: {} jobs".format(orca.get_table("jobs").local.shape[0]-orig_size))
+    logger.info("Net change: {} jobs (before: {}, after: {})".format(orca.get_table("jobs").local.shape[0]-orig_size, orig_size, orca.get_table("jobs").local.shape[0]))
     if not is_allocation:
         # Need to resave the table in orca because computed columns became local columns.
         # Not needed in allocation mode, since subregional geo id should be visible to other models.
@@ -613,16 +612,14 @@ def jobs_transition_alloc(isCY, jobs, employment_controls, year, settings):
 @orca.step('households_relocation_alloc')
 def households_relocation_alloc(isCY, households, household_relocation_rates):
     if isCY:
-        logger.info("No households relocation in control year")
-        logger.info("{} households are unplaced in total.".format((households.local["building_id"] <= 0).sum()))
+        logger.info("No households relocation in control year. {} households are unplaced in total.".format((households.local["building_id"] <= 0).sum()))
     else:
         households_relocation(households, household_relocation_rates)
 
 @orca.step('jobs_relocation_alloc')
 def jobs_relocation_alloc(isCY, jobs, job_relocation_rates):
     if isCY:
-        logger.info("No jobs relocation in control year")
-        logger.info("{} jobs are unplaced in total.".format((jobs.local["building_id"] <= 0).sum()))
+        logger.info("No jobs relocation in control year. {} jobs are unplaced in total.".format((jobs.local["building_id"] <= 0).sum()))
     else:
         jobs_relocation(jobs, job_relocation_rates)
 

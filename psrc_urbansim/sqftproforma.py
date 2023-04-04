@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import orca
+import logging
 from developer import sqftproforma
 from urbansim.utils import misc
 from urbansim_defaults.utils import to_frame
@@ -9,6 +10,7 @@ from developer.utils import yaml_to_dict
 from developer.utils import columnize
 
 #from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
+logger = logging.getLogger(__name__)
 
 @orca.injectable("uses_and_forms")
 def uses_and_forms(building_types, #land_use_types, development_templates, development_template_components, generic_land_use_types
@@ -236,6 +238,8 @@ def run_feasibility(parcels, parcel_price_callback,
     
     print("Describe of the yearly rent by use")
     print(df[pf.uses].describe())
+    logger.info("Yearly rent by use:")
+    logger.info(df[pf.uses].describe().to_sring())
 
     # Computing actual feasibility
     d = {}
