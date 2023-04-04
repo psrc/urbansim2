@@ -1,12 +1,15 @@
 import pandas as pd
 import orca
 import numpy as np
+import logging
 from urbansim.utils import misc, yamlio
 from urbansim_defaults.utils import to_frame, yaml_to_class, check_nas, _print_number_unplaced
 from urbansim.models.regression import YTRANSFORM_MAPPING
 from urbansim.models import util
 import os
 from psrc_urbansim.dcm_weighted_sampling import PSRC_SegmentedMNLDiscreteChoiceModel, MNLDiscreteChoiceModelWeightedSamples, resim_overfull_buildings
+
+logger = logging.getLogger(__name__)
 
 def change_store(store_name):
     orca.add_injectable("store",

@@ -21,7 +21,6 @@ import timeit
 
 
 #from psrc_urbansim.utils import resim_overfull
-
 logger = logging.getLogger(__name__)
 
 def lcm_estimate_sample(cfg, choosers, choosers_filter, chosen_fname, buildings, join_tbls, out_cfg=None):
@@ -778,7 +777,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
 
         """
         self.assert_fitted()
-        logger.debug('start: predict LCM model {}'.format(self.name))
+        logger.debug('start: predict_weighted for LCM model {}'.format(self.name))
 
         choosers, alternatives = self.apply_predict_filters(
             choosers, alternatives)
@@ -811,7 +810,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
             raise ValueError(
                 'Unrecognized choice_mode option: {}'.format(self.choice_mode))
 
-        logger.debug('finish: predict LCM model {}'.format(self.name))
+        logger.debug('finish: predict_weighted for LCM model {}'.format(self.name))
         return choices, probabilities
 
     def predict_with_resim(self, choosers, alternatives, debug=False):
@@ -838,7 +837,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
 
         """
         self.assert_fitted()
-        logger.debug('start: predict LCM model {}'.format(self.name))
+        logger.debug('start: predict_with_resim for LCM model {}'.format(self.name))
 
         choosers, alternatives = self.apply_predict_filters(
             choosers, alternatives)
@@ -849,9 +848,11 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
         if len(alternatives) == 0:
             return pd.Series(index=choosers.index), pd.Series()
 
+        logger.debug('start: calculate probabilities for {} choosers and {} alternatives'.format(len(choosers), len(alternatives)))
         probabilities = self.probabilities(
             choosers, alternatives, filter_tables=False)
-
+        logger.debug('finish: calculate probabilities')
+        
         if debug:
             self.sim_pdf = probabilities
 
@@ -871,7 +872,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
             raise ValueError(
                 'Unrecognized choice_mode option: {}'.format(self.choice_mode))
 
-        logger.debug('finish: predict LCM model {}'.format(self.name))
+        logger.debug('finish: predict_with_resim for LCM model {}'.format(self.name))
         return choices, probabilities
 
     def probabilities_weighted(self, choosers, alternatives, weights, choosers_weight_segmentation_col, filter_tables=True):
@@ -897,7 +898,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
             IDs in the inner index and chooser IDs in the out index.
 
         """
-        logger.debug('start: calculate probabilities for LCM model {}'.format(
+        logger.debug('start: calculate weighted probabilities for LCM model {}'.format(
             self.name))
         self.assert_fitted()
 
@@ -974,7 +975,7 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
             names=('chooser_id', 'alternative_id'))
         probabilities = pd.Series(probabilities.flatten(), index=mi)
 
-        logger.debug('finish: calculate probabilities for LCM model {}'.format(
+        logger.debug('finish: calculate weighted probabilities for LCM model {}'.format(
             self.name))
         return probabilities
 
@@ -1047,7 +1048,7 @@ class PSRC_MNLDiscreteChoiceModelGroup(dcm.MNLDiscreteChoiceModelGroup):
             for all the choosers.
 
         """
-        logger.debug('start: predict models in LCM group {}'.format(self.name))
+        logger.debug('start: predict_weighted in LCM group {}'.format(self.name))
         results = []
         prob_results = []
 
@@ -1059,7 +1060,7 @@ class PSRC_MNLDiscreteChoiceModelGroup(dcm.MNLDiscreteChoiceModelGroup):
             results.append(choices)
             prob_results.append(probabilities)
         logger.debug(
-            'finish: predict models in LCM group {}'.format(self.name))
+            'finish: predict_weighted in LCM group {}'.format(self.name))
         return pd.concat(results) if results else pd.Series(), pd.concat(prob_results) if prob_results else pd.Series()
 
     def predict_with_resim(self, choosers, alternatives, debug=False):
@@ -1087,7 +1088,7 @@ class PSRC_MNLDiscreteChoiceModelGroup(dcm.MNLDiscreteChoiceModelGroup):
             for all the choosers.
 
         """
-        logger.debug('start: predict models in LCM group {}'.format(self.name))
+        logger.debug('start: predict_with_resim in LCM group {}'.format(self.name))
         results = []
         results_probabilities = []
 
@@ -1101,7 +1102,7 @@ class PSRC_MNLDiscreteChoiceModelGroup(dcm.MNLDiscreteChoiceModelGroup):
             results_probabilities.append(probabilities)
 
         logger.debug(
-            'finish: predict models in LCM group {}'.format(self.name))
+            'finish: predict_with_resim in LCM group {}'.format(self.name))
         return pd.concat(results) if results else pd.Series(), pd.concat(results_probabilities) if results_probabilities else pd.Series()
     def add_model_from_params(
             self, name, model_expression, sample_size,
@@ -1461,13 +1462,13 @@ class PSRC_SegmentedMNLDiscreteChoiceModel(dcm.SegmentedMNLDiscreteChoiceModel):
 
         """
         logger.debug(
-            'start: predict models in segmented LCM {}'.format(self.name))
+            'start: predict_weighted in segmented LCM {}'.format(self.name))
         choosers, alternatives = self._filter_choosers_alts(
             choosers, alternatives)
         #self._group2 = PSRC_MNLDiscreteChoiceModelGroup(self.segmentation_col, remove_alts=self.remove_alts)
         results = self._group.predict_weighted(choosers, alternatives, weights, choosers_weight_segmentation_col, debug=debug)
         logger.debug(
-            'finish: predict models in segmented LCM {}'.format(self.name))
+            'finish: predict_weighted in segmented LCM {}'.format(self.name))
         return results
 
     def predict_with_resim(self, choosers, alternatives, debug=False):
@@ -1496,13 +1497,13 @@ class PSRC_SegmentedMNLDiscreteChoiceModel(dcm.SegmentedMNLDiscreteChoiceModel):
 
         """
         logger.debug(
-            'start: predict models in segmented LCM {}'.format(self.name))
+            'start: predict_with_resim in segmented LCM {}'.format(self.name))
         choosers, alternatives = self._filter_choosers_alts(
             choosers, alternatives)
         #self._group2 = PSRC_MNLDiscreteChoiceModelGroup(self.segmentation_col, remove_alts=self.remove_alts)
         results, probabilities = self._group.predict_with_resim(choosers, alternatives, debug=debug)
         logger.debug(
-            'finish: predict models in segmented LCM {}'.format(self.name))
+            'finish: predict_with_resim in segmented LCM {}'.format(self.name))
         return results, probabilities
 
 class MNLDiscreteChoiceModelWeightedSamples(object):
@@ -1599,14 +1600,14 @@ class MNLDiscreteChoiceModelWeightedSamples(object):
             for all the choosers.
 
         """
-        logger.debug('start: predict models in LCM group {}'.format(self.name))
+        logger.debug('start: predict_weighted in LCM group {}'.format(self.name))
         results = []
 
         choices = self.model.predict_weighted(choosers, alternatives, self.weight_columns_map, self.choosers_weight_segmentation_col, debug=debug)
         
 
         logger.debug(
-            'finish: predict models in LCM group {}'.format(self.name))
+            'finish: predict_weighted in LCM group {}'.format(self.name))
         return choices
 
     def predict_with_resim(self, choosers, alternatives, debug=False):
@@ -1634,12 +1635,12 @@ class MNLDiscreteChoiceModelWeightedSamples(object):
             for all the choosers.
 
         """
-        logger.debug('start: predict models in LCM group {}'.format(self.name))
+        logger.debug('start: predict_with_resim in LCM group {}'.format(self.name))
         results = []
 
         choices, probabilities = self.model.predict_with_resim(choosers, alternatives, debug=debug)
         
 
         logger.debug(
-            'finish: predict models in LCM group {}'.format(self.name))
+            'finish: predict_with_resim in LCM group {}'.format(self.name))
         return choices, probabilities  

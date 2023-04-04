@@ -8,6 +8,7 @@
 # #############################################
 
 import os
+import time
 import psrc_urbansim.models
 import psrc_urbansim.workplace_models
 import psrc_urbansim.developer_models
@@ -21,13 +22,27 @@ from urbansim.utils import yamlio
 from urbansim.utils import misc
 from psrc_urbansim.utils import deep_merge
 
-logging.basicConfig(level=logging.INFO)
+debug = False # switch this to True for detailed debug messages
+log_into_file = True # should log messages go into a file (True) or be printed into the console (False)
 
+FORMAT = '%(asctime)s %(name)s %(levelname)s %(message)s'
+timestr = time.strftime("%Y%m%d")
+log_file = None
 
+if debug:
+     if log_into_file:
+          log_file = "log_allocation_debug_" + timestr + ".txt"
+     loglevel = logging.DEBUG
+else:
+     if log_into_file:
+          log_file = "log_allocation_" + timestr + ".txt"
+     loglevel = logging.INFO   
+
+logging.basicConfig(level = loglevel, filename = log_file, format = FORMAT, datefmt = '%H:%M:%S', filemode = 'w')
 
 @orca.injectable('simfile')
 def simfile():
-     return "results_alloc_BY2018_20221220.h5"
+     return "results_alloc_BY2018_20230404.h5"
 
 @orca.injectable('settings', cache=True)
 def settings():
@@ -122,7 +137,7 @@ orca.run([
     "delete_subreg_geo_from_households",
     "delete_subreg_geo_from_jobs"
 
-], iter_vars=range(2019,2051), data_out=outfile, out_base_tables=tables_in_base_year(),
+], iter_vars=range(2019,2021), data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 
 
