@@ -15,7 +15,6 @@ from urbansim.urbanchoice import mnl, interaction
 from urbansim.utils import misc
 from urbansim.utils import yamlio
 from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas
-from psrc_urbansim.utils import _remove_developed_buildings, _log_number_unplaced
 import logging
 from urbansim.utils.logutil import log_start_finish
 import timeit
@@ -102,7 +101,7 @@ def lcm_simulate_sample(cfg, choosers, sample_field, buildings, min_overfull_bui
     cast : boolean
         Should the output be cast to match the existing column.
     """
-    from psrc_urbansim.utils import psrc_to_frame
+    from psrc_urbansim.utils import psrc_to_frame, _log_number_unplaced
     
     cfg = misc.config(cfg)
 
@@ -218,7 +217,7 @@ def lcm_simulate(cfg, choosers, buildings, min_overfull_buildings, join_tbls, ou
     cast : boolean
         Should the output be cast to match the existing column.
     """
-    from psrc_urbansim.utils import psrc_to_frame
+    from psrc_urbansim.utils import psrc_to_frame, _log_number_unplaced
     
     cfg = misc.config(cfg)
 
@@ -399,7 +398,8 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
                              new_buildings, probabilities, new_units, units, 
                              choosers_filter = None, location_filter = None, niterations = 10, cast = False):
     # choosers_filter and location_filter should be logical arrays, if given
-        
+    from psrc_urbansim.utils import _log_number_unplaced
+    
     # buildings in this sample set
     loc_filter = buildings.index.isin(units[out_fname].loc[probabilities.index.get_level_values('alternative_id')])
     if location_filter is not None:
