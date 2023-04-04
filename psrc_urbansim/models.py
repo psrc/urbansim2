@@ -5,6 +5,7 @@ import random
 import numpy as np
 import pandas as pd
 import logging
+import time
 import urbansim_defaults.utils as utils
 import urbansim.developer as dev
 from urbansim.utils import misc, yamlio
@@ -21,6 +22,18 @@ import psrc_urbansim.sqftproforma as sqftproforma
 from psrc_urbansim.binary_discrete_choice import BinaryDiscreteChoiceModel
 
 logger = logging.getLogger(__name__)
+
+# dummy steps for logging and timing the current year
+@orca.step('start_year')
+def start_year(year):
+    logger.info("**** START YEAR {} ****\n============".format(year))
+    orca.add_injectable('iter_start_time', time.time())
+    
+@orca.step('end_year')
+def end_year(year):
+    tend = time.time()    
+    logger.info("**** END YEAR {} ****. It took {:.2f} s".format(year, tend - orca.get_injectable("iter_start_time")))
+    
 
 # Residential REPM
 @orca.step('repmres_estimate')

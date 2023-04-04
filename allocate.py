@@ -80,6 +80,8 @@ def tables_in_base_year():
 
 # models for control years
 orca.run([
+     'start_year',
+     
      # Misc
      #######
      "update_household_previous_building_id",
@@ -135,7 +137,9 @@ orca.run([
     # Cleanup city_id
     #######
     "delete_subreg_geo_from_households",
-    "delete_subreg_geo_from_jobs"
+    "delete_subreg_geo_from_jobs",
+    
+     'end_year'
 
 ], iter_vars=range(2019,2021), data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)

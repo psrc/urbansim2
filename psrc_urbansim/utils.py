@@ -72,7 +72,7 @@ def hedonic_simulate(cfg, tbl, join_tbls, out_fname, cast=False,
         if residual_name is None:
             residual_name = "_%s_residuals_" % out_fname    
         if compute_residuals:
-            print ("Computing residuals")
+            logger.info("Computing residuals")
             orig_values = df[out_fname]
             ytransform_out = YTRANSFORM_MAPPING[settings.get("ytransform_out", None)]
             if ytransform_out is not None:
@@ -86,7 +86,7 @@ def hedonic_simulate(cfg, tbl, join_tbls, out_fname, cast=False,
                 tbl.update_col(residual_name, residuals)
         if add_residuals:
             if not residual_name in tbl.columns:
-                print ("WARNING: Residual column not available.")
+                logger.warning("Residual column not available.")
             else:
                 price_or_rent = price_or_rent + tbl[residual_name].loc[price_or_rent.index]
     if ytransform_back is not None:
@@ -153,10 +153,9 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
     vacant_units = buildings[vacant_fname]
 
     all_movers = choosers_df[(choosers_df[out_fname] == -1)]
-    print ("There are %d total available units" % available_units.sum())
-    print ("    and %d total choosers from which %d are movers" % (len(choosers), len(all_movers)))
-    print ("    but there are %d overfull buildings" % \
-          len(vacant_units[vacant_units < 0]))
+    logger.info("There are {} total available units".format(available_units.sum()))
+    logger.info("    and {} total choosers from which {} are movers".format(len(choosers), len(all_movers)))
+    logger.info("    but there are {} overfull buildings".format(len(vacant_units[vacant_units < 0])))
 
     vacant_units = vacant_units[vacant_units > 0]
 
@@ -170,14 +169,13 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
     units = locations_df.loc[indexes].reset_index()
     check_nas(units)
 
-    print ("    for a total of %d temporarily empty units" % vacant_units.sum())
-    print ("    in %d buildings total in the region" % len(vacant_units))
+    logger.info("    for a total of {} temporarily empty units".format(vacant_units.sum()))
+    logger.info("    in {} buildings total in the region".format(len(vacant_units)))
 
     if missing > 0:
-        print ("WARNING: %d indexes aren't found in the locations df -" % \
-            missing)
-        print ("    this is usually because of a few records that don't join ")
-        print ("    correctly between the locations df and the aggregations tables")
+        logger.warning("{} indexes aren't found in the locations df -".format(missing))
+        logger.info("    this is usually because of a few records that don't join ")
+        logger.info("    correctly between the locations df and the aggregations tables")
 
     subregs = np.unique(all_movers[subreg_geo_id])
     lcm = dcmsampl.yaml_to_class(cfg).from_yaml(str_or_buffer=cfg)
@@ -195,12 +193,11 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         this_sreg_units = units[units[subreg_geo_id] == subreg]
         # need to filter alternatives now in order to modify the sample size if needed
         this_sreg_units = util.apply_filter_query(this_sreg_units, lcm.alts_predict_filters)  
-        print("\nSubregion {}".format(subreg))
-        print("-------------")
-        print ("There are %d total movers and %d alternatives for this subregion" % (len(movers), len(this_sreg_units)))      
+        logger.info("\n---- Subregion {} ----".format(subreg))
+        logger.info("There are {} total movers and {} alternatives for this subregion".format(len(movers), len(this_sreg_units)))  
         
         if len(movers) == 0 or len(this_sreg_units) == 0:
-            print ("Skipping LCM")
+            logger.info("Skipping LCM")
             continue
 
         # adjust sampling size if too few alternatives
@@ -210,10 +207,10 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
             _update_prediction_sample_size(dcm_weighted.model, orig_sample_size)
             
         
-        print ("Sampling", dcm_weighted.model.prediction_sample_size, "alternatives")
+        logger.info("Sampling {} alternatives".format(dcm_weighted.model.prediction_sample_size))
         # predict
         new_units, probabilities = dcm_weighted.predict_with_resim(movers, this_sreg_units)
-        print("Assigned %d choosers to new units" % len(new_units.dropna()))        
+        logger.info("Assigned {} choosers to new units".format(len(new_units.dropna())))       
 
         # new_units returns nans when there aren't enough units,
         # get rid of them and they'll stay as -1s
@@ -232,8 +229,8 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
                                  niterations = 10, cast = cast)
 
     vacant_units = buildings[vacant_fname]
-    print ("    and there are now %d empty units" % vacant_units.sum())
-    print ("    and %d overfull buildings" % len(vacant_units[vacant_units < 0]))
+    logger.info("    and there are now {} empty units".format(vacant_units.sum()))
+    logger.info("    and {} overfull buildings".format(len(vacant_units[vacant_units < 0])))
 
 
 def psrc_to_frame(tbl, join_tbls, cfg, additional_columns=[], check_na = True):
