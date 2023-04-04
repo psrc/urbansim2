@@ -49,7 +49,7 @@ datasets = {'DU_and_HH_by_bld_type_by_faz_by_year': ['DU_SF_19', 'DU_MF_12', 'DU
             }
 
 
-geography_alias = {'cities': 'city', 'zones': 'zone', 'fazes': 'faz',
+geography_alias = {'cities': 'city', 'zones': 'zone', 'fazes': 'faz', 'subregs': 'subreg',
                    'counties': 'county', 'growth_centers': 'growth_center', 'buildings': 'building'}
 
 table_alias = {'number_of_jobs': 'employment', 'number_of_households': 'households',
@@ -106,7 +106,7 @@ def add_new_datasets(settings, iter_var):
     datasets = settings.get("new_datasets", {})
     if len(datasets) == 0:
         return
-    for dsname, conf in datasets.iteritems():
+    for dsname, conf in datasets.items():
         orca_ds = orca.get_table(dsname).local
         ds = pd.read_csv(os.path.join(misc.data_dir(), conf.get("csv_file")), index_col=orca_ds.index.name)
         if conf.get("merge_with_existing", False):
@@ -118,7 +118,7 @@ def add_new_datasets(settings, iter_var):
 @orca.step()
 def compute_indicators(settings, iter_var):
     # loop over indicators and datasets from settings and store into file
-    for ind, value in settings.get('indicators', {}).iteritems():
+    for ind, value in settings.get('indicators', {}).items():
         for ds in value.get('dataset', {}):
             df = orca.get_table(ds)[ind].to_frame()
             #print 'ds is %s, ind is %s and iter_var is %s' % (ds, ind, iter_var)
@@ -144,7 +144,7 @@ def compute_datasets(settings, iter_var):
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     # Loops over dataset_tables and datasets from settings and store into file
-    for ind, value in settings.get('dataset_tables', {}).iteritems():
+    for ind, value in settings.get('dataset_tables', {}).items():
         if iter_var not in value.get('year', settings['years']):
             continue
         for ds in value['dataset']:
@@ -181,10 +181,10 @@ def create_tables(outdir):
  #   print "ind_table_list"
  #   print ind_table_dic
     unique_ind_table_dic = {}
-    for table, filetype  in ind_table_dic.iteritems():
+    for table, filetype  in ind_table_dic.items():
         if table[:-5] not in unique_ind_table_dic:
             unique_ind_table_dic[table[:-5]] = filetype
-    for ind_table, filetype in unique_ind_table_dic.iteritems():
+    for ind_table, filetype in unique_ind_table_dic.items():
         ind_table_list_for_csv =[] 
         for table in ind_table_dic:
             if ind_table in table:

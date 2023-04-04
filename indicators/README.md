@@ -5,12 +5,14 @@ This script creates indicator csv/tab files from an Urbansim2 Simulation output 
 
 ## Setup
 
-Create a 'csv_store' directory inside the indicators directory and place these two files in it.
+Create a 'csv\_store' directory inside the indicators directory and place these files in it: cities.csv, subregs.csv, growth\_centers.csv, parcels\_geos.csv. They can be exported from from the base year database. The parcels\_geos.csv can be created via the `export_variables.py` script. It's a parcels table with columns: 
 
 ```
-J:\Projects\UrbanSim\Indicators\csv_store\growth_centers.csv
-J:\Projects\UrbanSim\Indicators\csv_store\parcels_geos.csv
+parcel_id, parcel_sqft, growth_center_id,faz_id, city_id, subreg_id,
+county_id, tod_id, zone_id, plan_type_id, census_tract_id
 ```
+
+
 
 
 ## Running the script

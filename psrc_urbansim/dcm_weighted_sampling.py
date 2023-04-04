@@ -509,7 +509,8 @@ def bootstrap(data, freq, class_fname, freq_fname):
 
     # If you want an index which is equal to the row in `data` where the sample
     # came from
-    samples.index = samples.index.get_level_values(1)
+    if samples.index.nlevels > 1:
+        samples.index = samples.index.get_level_values(1)
 
     # If you don't change it then you'll have a multiindex with level 0
     # being the class and level 1 being the row in `data` where
