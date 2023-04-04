@@ -1,0 +1,98 @@
+name: Household Location Choice Model
+
+# This is a hand-modified hlcmcoef.yaml file where submodel 0 was replaced by submodel 1.
+# It is to be used for LUV-years in allocation mode as the original specification for model 0 is too slow.
+
+model_type: segmented_discretechoice
+
+segmentation_col: is_inmigrant
+
+choosers_fit_filters:
+- building_id > 0
+- for_estimation == 1
+- previous_building_id <> 0
+
+choosers_predict_filters: null
+
+alts_fit_filters:
+- residential_units > 0
+
+alts_predict_filters:
+- vacant_residential_units > 0
+
+interaction_predict_filters: null
+
+choice_column: null
+
+sample_size: 30
+
+estimation_sample_size: null
+
+prediction_sample_size: 30
+
+default_config:
+    model_expression: I((income>0)*1):I(1*(np.logical_or(mortgage_cost/income < 0.1,
+        mortgage_cost/income > 0.3))) + ln_price_residual_residential + multifamily_generic_type
+        + I(np.where(income>0, (np.log1p(income)/(persons*persons*1.0)*(np.log1p(sqft_per_unit_imputed))),
+        1)) + I((persons < 2)*1):I(np.logical_not(building_type_name == "single_family_residential")*1)
+        + I(1*(np.logical_and(persons == 1, age_of_head < 50))):I(1*(np.log1p(employment_retail_wwd)>4))
+        + I((tenure == 1)*1):I(~is_multifamily) + I((persons < 3)*1):I((large_area_id
+        ==6)*1)
+
+models:
+    0:
+	fit_parameters:
+            Coefficient:
+                I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.3))): -0.3686356064872437
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 2.0582049472333463
+                I((persons < 3) * 1):I((large_area_id == 6) * 1): 2.041963763657436
+                I((tenure == 1) * 1):I( ~is_multifamily): 2.4703323742162255
+                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 2.2693640069275687
+                I(np.where(income > 0, (np.log1p(income) / (persons * persons * 1.0) * (np.log1p(sqft_per_unit_imputed))), 1)): -0.058003809013761565
+                ln_price_residual_residential: 0.44396758989513485
+                multifamily_generic_type: 3.10863562108921
+
+        name: 0
+    1:
+        fit_parameters:
+            Coefficient:
+                I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.3))): -0.3686356064872437
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 2.0582049472333463
+                I((persons < 3) * 1):I((large_area_id == 6) * 1): 2.041963763657436
+                I((tenure == 1) * 1):I( ~is_multifamily): 2.4703323742162255
+                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 2.2693640069275687
+                I(np.where(income > 0, (np.log1p(income) / (persons * persons * 1.0) * (np.log1p(sqft_per_unit_imputed))), 1)): -0.058003809013761565
+                ln_price_residual_residential: 0.44396758989513485
+                multifamily_generic_type: 3.10863562108921
+            Std. Error:
+                I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.3))): 0.10260049572410995
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 0.19670135851206433
+                I((persons < 3) * 1):I((large_area_id == 6) * 1): 0.1114219213168921
+                I((tenure == 1) * 1):I( ~is_multifamily): 0.0905163636463028
+                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 0.18601187064865507
+                I(np.where(income > 0, (np.log1p(income) / (persons * persons * 1.0) * (np.log1p(sqft_per_unit_imputed))), 1)): 0.00270892993521301
+                ln_price_residual_residential: 0.06258900478066823
+                multifamily_generic_type: 0.10625680066810012
+            T-Score:
+                I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.3))): -3.592922274747046
+                I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 10.463603112873823
+                I((persons < 3) * 1):I((large_area_id == 6) * 1): 18.32640955678678
+                I((tenure == 1) * 1):I( ~is_multifamily): 27.291555633732397
+                I(1 * (np.logical_and(persons == 1, age_of_head < 50))):I(1 * (np.log1p(employment_retail_wwd) > 4)): 12.200103138654054
+                I(np.where(income > 0, (np.log1p(income) / (persons * persons * 1.0) * (np.log1p(sqft_per_unit_imputed))), 1)): -21.412074287997626
+                ln_price_residual_residential: 7.0933799227346475
+                multifamily_generic_type: 29.255874462089547
+        fitted: true
+        log_likelihoods:
+            convergence: -1100.287929419713
+            'null': -1931.8801127840914
+            ratio: 0.43045744808974995
+        name: 1
+
+fitted: true
+
+choice_mode: individual
+
+remove_alts: false
+
+probability_mode: full_product
