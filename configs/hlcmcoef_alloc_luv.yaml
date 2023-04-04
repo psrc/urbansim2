@@ -41,7 +41,7 @@ default_config:
 
 models:
     0:
-	fit_parameters:
+        fit_parameters:
             Coefficient:
                 I((income > 0) * 1):I(1 * (np.logical_or(mortgage_cost / income < 0.1, mortgage_cost / income > 0.3))): -0.3686356064872437
                 I((persons < 2) * 1):I(np.logical_not(building_type_name == "single_family_residential") * 1): 2.0582049472333463
