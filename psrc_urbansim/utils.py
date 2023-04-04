@@ -274,3 +274,30 @@ def psrc_to_frame(tbl, join_tbls, cfg, additional_columns=[], check_na = True):
         check_nas(df)
     return df
 
+def _remove_developed_buildings(old_buildings, new_buildings, unplace_agents):
+    # this is a copy from urbansim_defaults.utils, with prints changed to logger.info
+    redev_buildings = old_buildings.parcel_id.isin(new_buildings.parcel_id)
+    l = len(old_buildings)
+    drop_buildings = old_buildings[redev_buildings]
+
+    if "dropped_buildings" in orca.orca._TABLES:
+        prev_drops = orca.get_table("dropped_buildings").to_frame()
+        orca.add_table("dropped_buildings", pd.concat([drop_buildings, prev_drops]))
+    else:
+        orca.add_table("dropped_buildings", drop_buildings)
+
+    old_buildings = old_buildings[np.logical_not(redev_buildings)]
+    l2 = len(old_buildings)
+    if l-l2 > 0:
+        logger.info("Dropped {} buildings because they were redeveloped".format(l-l2))
+
+    for tbl in unplace_agents:
+        agents = orca.get_table(tbl).local
+        displaced_agents = agents.building_id.isin(drop_buildings.index)
+        logger.info("Unplaced {} before: {}".format(tbl, len(agents.query(
+                                              "building_id == -1"))))
+        agents.building_id[displaced_agents] = -1
+        logger.info("Unplaced {} after: {}".format(tbl, len(agents.query(
+                                             "building_id == -1"))))
+
+    return old_buildings

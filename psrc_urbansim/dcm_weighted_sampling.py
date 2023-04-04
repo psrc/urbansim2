@@ -14,7 +14,8 @@ from urbansim.models import dcm, util
 from urbansim.urbanchoice import mnl, interaction
 from urbansim.utils import misc
 from urbansim.utils import yamlio
-from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_number_unplaced, _remove_developed_buildings
+from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas, _print_number_unplaced
+from psrc_urbansim import _remove_developed_buildings
 import logging
 from urbansim.utils.logutil import log_start_finish
 import timeit
