@@ -238,8 +238,7 @@ def run_feasibility(parcels, parcel_price_callback,
     
     print("Describe of the yearly rent by use")
     print(df[pf.uses].describe())
-    logger.info("Yearly rent by use:")
-    logger.info(df[pf.uses].describe().to_sring())
+    logger.info("Yearly rent by use:\n{}".format(df[pf.uses].describe().to_string()))
 
     # Computing actual feasibility
     d = {}
