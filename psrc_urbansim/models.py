@@ -26,14 +26,20 @@ logger = logging.getLogger(__name__)
 # dummy steps for logging and timing the current year
 @orca.step('start_year')
 def start_year(year):
-    logger.info("**** START YEAR {} ****\n============".format(year))
+    logger.info("{} **** START YEAR {} **** \n============".format(time.strftime("%Y-%m-%d"), year))
     orca.add_injectable('iter_start_time', time.time())
+    if not orca.is_injectable('iter_start_simulation_time'):
+        orca.add_injectable('iter_start_simulation_time', time.time())
+        
     
 @orca.step('end_year')
 def end_year(year):
     tend = time.time()    
-    logger.info("**** END YEAR {} ****. Processing time {}".format(
-        year, time.strftime("%H:%M:%S", time.gmtime(tend - orca.get_injectable("iter_start_time")))))
+    logger.info("{} **** END YEAR {} **** {}. Processing year: {} Processing simulation: {}".format(
+        time.strftime("%Y-%m-%d"), year, 
+        time.strftime("%H:%M:%S", time.gmtime(tend - orca.get_injectable("iter_start_time"))),
+        time.strftime("%H:%M:%S", time.gmtime(tend - orca.get_injectable("iter_start_simulation_time")))
+    ))
     
 
 # Residential REPM
