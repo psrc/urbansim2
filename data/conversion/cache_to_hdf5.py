@@ -61,7 +61,7 @@ DIRECTORIES = {
     'annual_employment_control_totals', 'annual_household_control_totals',
     'annual_household_relocation_rates', 'annual_job_relocation_rates',
     'buildings', 'building_sqft_per_job', 'building_types', 'cities', 
-    'controls', 'controls_hct', 'counties',
+    'controls', 'control_hcts', 'control_hct_crosswalk', 'counties',
     'development_constraints', 'development_event_history',
     #'development_project_proposals', 
     'development_templates', 'development_template_components',
