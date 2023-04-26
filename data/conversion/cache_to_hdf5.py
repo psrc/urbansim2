@@ -148,7 +148,7 @@ def convert_dirs(base_dir, hdf_name, is_estimation=False,
         elif dirname == 'building_sqft_per_job':
             keys = ['zone_id', 'building_type_id']
 
-        elif dirname == 'controls_hct':
+        elif dirname == 'control_hct_crosswalk':
             keys = ['control_hct_id']
             
         elif dirname == 'counties':
