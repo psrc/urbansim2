@@ -67,7 +67,8 @@ DIRECTORIES = {
     'development_templates', 'development_template_components',
     'employment_adhoc_sector_group_definitions',
     'employment_adhoc_sector_groups', 'employment_sectors',
-    'fazes', 'gridcells', 'land_use_types', 'jobs', 'households', 'mpds',
+    'fazes', 'gridcells', 'land_use_types', 'jobs', 'households', 
+    'households_events', 'households_zone_events', 'mpds',
     'parcels', 'persons', 'schools', 'subregs', 'targets', 'target_vacancies', 'travel_data',
     'zones', 'zoning_heights', 'jobs_for_estimation', 'persons_for_estimation'
 }
