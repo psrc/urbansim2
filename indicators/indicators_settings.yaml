@@ -1,9 +1,10 @@
 #store: results_alloc_footloose_cap_20200205.h5
-store: results_alloc_BY2018_20221220.h5
+#store: results_alloc_BY2018_20221220.h5
+store: results_alloc_BY2018_20230404.h5
 #store: /Volumes/Model\ Data\ 2/vision2050/opusgit/urbansim_data/data/psrc_parcel/runs/awsmodel07/runUS2_20191125_alloc_stc/results_alloc_stc_20191125.h5
 #output_directory:  run_20200210_JF
 #output_directory:  run_20200210_JF_62pseudo
-output_directory:  run_alloc_20221220
+output_directory:  run_alloc_20230404
 
 base_year: 2018
 years: [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050]
@@ -17,39 +18,39 @@ years: [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 
 
 indicators:
     number_of_households:
-        dataset: [zones, fazes, subregs, cities, alldata, growth_centers]
+        dataset: [zones, fazes, subregs, targets, cities, alldata, growth_centers]
         file_type: csv
         
     population:
-        dataset: [zones, fazes, subregs, cities, alldata, growth_centers]
+        dataset: [zones, fazes, subregs, targets, cities, alldata, growth_centers]
         file_type: csv
 
     number_of_jobs:
-        dataset: [zones, fazes, subregs, cities, alldata, growth_centers]
+        dataset: [zones, fazes, subregs, targets, cities, alldata, growth_centers]
         file_type: csv
 
     residential_units:
-        dataset: [zones, fazes, subregs, cities, alldata, growth_centers]
+        dataset: [zones, fazes, subregs, targets, cities, alldata, growth_centers]
         file_type: csv
 
     building_sqft:
-        dataset: [zones, fazes, subregs, cities, growth_centers]
+        dataset: [zones, fazes, subregs, targets, cities, growth_centers]
         file_type: csv
 
     nonres_sqft:
-        dataset: [zones, fazes, subregs, cities, growth_centers]
+        dataset: [zones, fazes, subregs, targets, cities, growth_centers]
         file_type: csv
 
     max_developable_capacity:
-        dataset: [zones, fazes, subregs, cities, growth_centers]
+        dataset: [zones, fazes, subregs, targets, cities, growth_centers]
         file_type: csv
 
     max_developable_nonresidential_capacity:
-        dataset: [zones, fazes, subregs, cities, growth_centers]
+        dataset: [zones, fazes, subregs, targets, cities, growth_centers]
         file_type: csv
 
     max_developable_residential_capacity:
-        dataset: [zones, fazes, subregs, cities, growth_centers]
+        dataset: [zones, fazes, subregs, targets, cities, growth_centers]
         file_type: csv
 
 dataset_tables:
@@ -58,7 +59,7 @@ dataset_tables:
         file_type: tab
 
     employment_by_aggr_sector:
-        dataset: [zones, subregs, cities]
+        dataset: [zones, subregs, targets, cities]
         file_type: tab
 
     persons_by_5year_age_groups:
@@ -69,21 +70,21 @@ dataset_tables:
         dataset: [alldata]
         file_type: csv
 
-    regional_total_hhs_by_30_60_90_in_14dollars_groups:
-        dataset: [alldata]
-        file_type: csv
+#    regional_total_hhs_by_30_60_90_in_14dollars_groups:
+#        dataset: [alldata]
+#        file_type: csv
 
-    regional_total_hhs_by_new_14incomegroups:
-        dataset: [alldata]
-        file_type: csv
+#    regional_total_hhs_by_new_14incomegroups:
+#        dataset: [alldata]
+#        file_type: csv
 
-    pwtyp:
-        dataset: [alldata]
-        file_type: csv
+    #pwtyp:
+        #dataset: [alldata]
+        #file_type: csv
 
-    pptyp:
-        dataset: [alldata]
-        file_type: csv
+    #pptyp:
+        #dataset: [alldata]
+        #file_type: csv
 
     eoy_vacancy_by_building_type:
         dataset: [counties]

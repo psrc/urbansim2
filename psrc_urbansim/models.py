@@ -35,7 +35,7 @@ def start_year(year):
 @orca.step('end_year')
 def end_year(year):
     tend = time.time()    
-    logger.info("{} **** END YEAR {} **** {}. Processing year: {} Processing simulation: {}".format(
+    logger.info("{} **** END YEAR {} ****. Processing year: {} Processing simulation: {}".format(
         time.strftime("%Y-%m-%d"), year, 
         time.strftime("%H:%M:%S", time.gmtime(tend - orca.get_injectable("iter_start_time"))),
         time.strftime("%H:%M:%S", time.gmtime(tend - orca.get_injectable("iter_start_simulation_time")))

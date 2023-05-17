@@ -178,7 +178,8 @@ def cities(store, year, base_year, csv_store):
 
 @orca.table('subregs', cache=True, cache_scope='iteration')
 def subregs(store, year, base_year, csv_store):
-    return pd.read_csv(os.path.join(csv_store, 'subregs.csv'), index_col='subreg_id')
+    #return pd.read_csv(os.path.join(csv_store, 'subregs.csv'), index_col='subreg_id')
+    return find_table_in_store('subregs', store, year, base_year)
 
 #@orca.table('cities', cache=True, cache_scope='iteration')
 #def cities(store, year, base_year, csv_store):
