@@ -101,7 +101,7 @@ orca.run([
      
      # Developer 
      #######
-     #"process_mpds",
+     "process_mpds",
      "cap_residential_development",
      "cap_nonresidential_development",     
      "proforma_feasibility_alloc",
@@ -148,3 +148,8 @@ orca.run([
 logging.info('Allocation finished')
 
 
+# TODO:
+# =====
+# - transition model samples agents regardless of the size of the group from which it's sampled
+# - not all MPDs are contained in the mpds dataset
+# - no agent events model implemented
