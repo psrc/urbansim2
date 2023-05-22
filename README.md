@@ -1,8 +1,5 @@
 # PSRC UrbanSim
 
-[![Travis-CI Build Status](https://travis-ci.org/psrc/urbansim2.svg?branch=master)](https://travis-ci.org/psrc/urbansim2)
-[![Coverage Status](https://coveralls.io/repos/github/psrc/urbansim2/badge.svg?branch=master)](https://coveralls.io/github/psrc/urbansim2?branch=master)
-
 This is an urbansim-2 implementation of the PSRC land use model. It is a python package that contains PSRC-specfic modifications to the urbansim package developed by UrbanSim Inc. (former Synthicity). 
 
 
@@ -40,14 +37,7 @@ In addition to Anaconda Python, three other packages (zbox, prettytable and pylo
    cd /d/udst
    git clone https://github.com/psrc/urbansim2.git psrc_urbansim
    ```
-   To use the python3-specific branch, switch to `dev_python3`:
-   
-   ```
-   cd psrc_urbansim
-   git switch dev_python3
-   cd ..
-   ```
-    
+       
    
 3. Install various UDST packages by cloning them from [UDST GitHub](https://github.com/UDST):
 
@@ -102,7 +92,7 @@ In addition to Anaconda Python, three other packages (zbox, prettytable and pylo
        
 6. Create a base year dataset as an hdf5 file by running the script [``psrc_urbansim/data/conversion/cache_to_hdf5.py``](https://github.com/psrc/urbansim2/tree/master/data/conversion/cache_to_hdf5.py) (see [more info](https://github.com/psrc/urbansim2/tree/master/data/conversion)). Move the resulting file into ``psrc_urbansim/data``.
 
-    Note that up-to-date base year files are kept on modelsrv3 in `/d/udst/psrc_urbansim/data`. For the use with python3, use the files with suffix "*py3.h5".
+    Note that up-to-date base year files are kept on the N drive (Model Data 2) in `N:\base_year_2018_inputs\urbansim2_inputs`. For the use with python3, use the files with suffix "*py3.h5".
 
 7. Put the name of the data file into `psrc_urbansim/configs/settings.yaml` (simulation, estimation) or `psrc_urbansim/configs/settings_allocation.yaml` (allocation), in node `store`.
 
@@ -156,7 +146,7 @@ The base year data are stored in ``/d/udst/psrc_urbansim/data``. The file to be 
 
 ## Using UrbanSim-2
 
-Note that the code is under construction and not everythng will work. Here is documentation of its [status](https://github.com/psrc/urbansim2/wiki/Implementation-status). 
+Note that the code is under construction and not everything will work. Here is documentation of its [status](https://github.com/psrc/urbansim2/wiki/Implementation-status). 
 
 ### Estimation
 
@@ -195,10 +185,18 @@ A simulation can be started from the file ``simulate.py``. Here, uncomment all m
 python simulate.py
 ```
 
+### Allocation
+
+Start a simulation in an allocation model using ``allocate.py``. The allocation-specific settings is done via the ``configs/settings_allocation.yaml`` file.
+ 
+ 
+### Indicators
+
+For generating indicators, see  [this page](https://github.com/psrc/urbansim2/tree/master/indicators).
 
 ## Pushing Changes to GitHub
 
-For now, since everything is under development, we will push all our changes into the master branch (unless you want to have your own experimental branch). Python3 code is in the `dev_python3` branch.
+For now, since everything is under development, we will push all our changes into the master branch (unless you want to have your own experimental branch). 
 
 ### Exclusions
 
