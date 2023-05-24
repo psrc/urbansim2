@@ -285,6 +285,18 @@ def parcel_land_value(buildings, parcels):
 def pbsqft(buildings, parcels):
     return misc.reindex(parcels.building_sqft_pcl, buildings.parcel_id).replace(0, np.nan)
 
+@orca.column('buildings', 'target_id', cache=True, cache_scope='iteration')
+def target_id(buildings, parcels):
+    return misc.reindex(parcels.target_id, buildings.parcel_id)
+
+@orca.column('buildings', 'control_id', cache=True, cache_scope='iteration')
+def control_id(buildings, parcels):
+    return misc.reindex(parcels.control_id, buildings.parcel_id)
+
+@orca.column('buildings', 'control_hct_id', cache=True, cache_scope='iteration')
+def control_hct_id(buildings, parcels):
+    return misc.reindex(parcels.control_hct_id, buildings.parcel_id)
+
 # Functions
 def number_of_jobs_of_sector_from_zone(sector, buildings, zones, jobs):
     from .variables_zones import number_of_jobs_of_sector

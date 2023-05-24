@@ -1,14 +1,17 @@
 #store: results_alloc_footloose_cap_20200205.h5
 #store: results_alloc_BY2018_20221220.h5
-store: results_alloc_BY2018_20230404.h5
+store: results_alloc_BY2018_20230517.h5
 #store: /Volumes/Model\ Data\ 2/vision2050/opusgit/urbansim_data/data/psrc_parcel/runs/awsmodel07/runUS2_20191125_alloc_stc/results_alloc_stc_20191125.h5
 #output_directory:  run_20200210_JF
 #output_directory:  run_20200210_JF_62pseudo
-output_directory:  run_alloc_20230404
+output_directory:  run_alloc_20230517
 
 base_year: 2018
-#years: [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049, 2050]
-years: [2018, 2020, 2025, 2030, 2035, 2040, 2044, 2045, 2050]
+
+years_all: [2018, 2050] # for annual indicator [start_year, end_year]
+#years: [2018, 2020, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
+
+compute_dataset_tables: false # comment this out for non-annual years (or set it to true)
 
 #new_datasets:
 #    cities:
@@ -19,57 +22,77 @@ years: [2018, 2020, 2025, 2030, 2035, 2040, 2044, 2045, 2050]
 
 indicators:
     number_of_households:
-        dataset: [zones, fazes, subregs, targets, cities, alldata, growth_centers]
+        dataset: [counties, zones, fazes, subregs, targets, controls, control_hcts, cities, alldata, growth_centers]
         file_type: csv
         
     population:
-        dataset: [zones, fazes, subregs, targets, cities, alldata, growth_centers]
+        dataset: [counties, zones, fazes, subregs, targets, controls, control_hcts, cities, alldata, growth_centers]
         file_type: csv
 
     number_of_jobs:
-        dataset: [zones, fazes, subregs, targets, cities, alldata, growth_centers]
+        dataset: [counties, zones, fazes, subregs, targets, controls, control_hcts, cities, alldata, growth_centers]
         file_type: csv
 
     residential_units:
-        dataset: [zones, fazes, subregs, targets, cities, alldata, growth_centers]
+        dataset: [counties, zones, fazes, subregs, targets, controls, control_hcts, cities, alldata, growth_centers]
+        file_type: csv
+        
+    activity_units:
+        dataset: [counties, subregs, targets, controls, control_hcts]
         file_type: csv
 
-    building_sqft:
-        dataset: [zones, fazes, subregs, targets, cities, growth_centers]
-        file_type: csv
+    #building_sqft:
+        #dataset: [zones, fazes, subregs, targets, cities, growth_centers]
+        #file_type: csv
 
     nonres_sqft:
-        dataset: [zones, fazes, subregs, targets, cities, growth_centers]
+        dataset: [counties, zones, fazes, subregs, targets, controls, control_hcts, cities, growth_centers]
         file_type: csv
 
-    max_developable_capacity:
-        dataset: [zones, fazes, subregs, targets, cities, growth_centers]
-        file_type: csv
+    #max_developable_capacity:
+        #dataset: [zones, fazes, subregs, targets, cities, growth_centers]
+        #file_type: csv
 
-    max_developable_nonresidential_capacity:
-        dataset: [zones, fazes, subregs, targets, cities, growth_centers]
-        file_type: csv
+    #max_developable_nonresidential_capacity:
+        #dataset: [zones, fazes, subregs, targets, cities, growth_centers]
+        #file_type: csv
 
-    max_developable_residential_capacity:
-        dataset: [zones, fazes, subregs, targets, cities, growth_centers]
-        file_type: csv
+    #max_developable_residential_capacity:
+        #dataset: [zones, fazes, subregs, targets, cities, growth_centers]
+        #file_type: csv
 
 dataset_tables:
-    DU_and_HH_by_bld_type_by_faz_by_year:
-        dataset: [fazes]
-        file_type: tab
+    #DU_and_HH_by_bld_type_by_faz_by_year:
+        #dataset: [fazes]
+        #file_type: tab
 
     employment_by_aggr_sector:
-        dataset: [zones, subregs, targets, cities]
+        dataset: [subregs, counties]
         file_type: tab
-
-    persons_by_5year_age_groups:
-        dataset: [alldata]
+        
+    household_controls:
+        dataset: [household_controls]
         file_type: csv
-
-    persons_by_age_groups_of_interest:
-        dataset: [alldata]
+        year: [2018]
+        file_name: annual_household_control_totals
+        
+    employment_controls:
+        dataset: [employment_controls]
         file_type: csv
+        year: [2018]
+        file_name: annual_employment_control_totals
+        
+    #employment_by_sector:
+        #dataset: [zones, subregs, targets, cities]
+        #file_type: tab
+
+    #persons_by_5year_age_groups:
+        #dataset: [alldata]
+        #file_type: csv
+
+    #persons_by_age_groups_of_interest:
+        #dataset: [alldata]
+        #file_type: csv
 
 #    regional_total_hhs_by_30_60_90_in_14dollars_groups:
 #        dataset: [alldata]
@@ -87,16 +110,16 @@ dataset_tables:
         #dataset: [alldata]
         #file_type: csv
 
-    eoy_vacancy_by_building_type:
-        dataset: [counties]
-        file_type: csv
+    #eoy_vacancy_by_building_type:
+        #dataset: [counties]
+        #file_type: csv
 
-    units_and_nonres_sqft_by_building_type:
-        dataset: [counties]
-        file_type: csv
+    #units_and_nonres_sqft_by_building_type:
+        #dataset: [counties]
+        #file_type: csv
 
-    new_buildings:
-        dataset: [buildings]
-        file_type: tab
-        year: [2050]
-        include_condition: year_built > 2018
+    #new_buildings:
+        #dataset: [buildings]
+        #file_type: tab
+        #year: [2050]
+        #include_condition: year_built > 2018

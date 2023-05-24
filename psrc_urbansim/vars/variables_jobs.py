@@ -24,6 +24,12 @@ def city_id(jobs, parcels):
         return jobs.local.city_id 
     return misc.reindex(parcels.city_id, jobs.parcel_id)
 
+@orca.column('jobs', 'county_id', cache=True, cache_scope='step')
+def county_id(jobs, parcels):
+    if "county_id" in jobs.local_columns:    
+        return jobs.local.county_id 
+    return misc.reindex(parcels.county_id, jobs.parcel_id)
+
 @orca.column('jobs', 'subreg_id', cache=True, cache_scope='step')
 def subreg_id(jobs, parcels):
     if "subreg_id" in jobs.local_columns:
@@ -99,9 +105,20 @@ def twa_logsum_hbw_4(jobs, zones):
 def vacant_jobs(jobs, persons):
     vacant = pd.Series(np.zeros(len(jobs)), index=jobs.index)
     counts = persons.job_id.value_counts()
-    counts = counts[counts.index > 0] # index can be -1 for unplaced households
+    counts = counts[counts.index > 0] # index can be -1 for unplaced jobs
     vacant.update(counts)
     vacant = jobs.number_of_jobs - vacant
     return vacant 
 
 
+@orca.column('jobs', 'target_id', cache=True, cache_scope='step')
+def target_id(jobs, parcels):
+    return misc.reindex(parcels.target_id, jobs.parcel_id)
+
+@orca.column('jobs', 'control_id', cache=True, cache_scope='step')
+def control_id(jobs, parcels):
+    return misc.reindex(parcels.control_id, jobs.parcel_id)
+
+@orca.column('jobs', 'control_hct_id', cache=True, cache_scope='step')
+def control_id(jobs, parcels):
+    return misc.reindex(parcels.control_hct_id, jobs.parcel_id)

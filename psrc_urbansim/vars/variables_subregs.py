@@ -8,6 +8,10 @@ import urbansim_defaults.utils
 # SUBREGS VARIABLES (in alphabetic order)
 #####################
 
+@orca.column('subregs', 'activity_units', cache=True, cache_scope='iteration')
+def activity_units(subregs):
+    return subregs.population + subregs.number_of_jobs
+
 @orca.column('subregs', 'building_sqft', cache=True, cache_scope='iteration')
 def building_sqft(subregs, buildings):
     return buildings.sqft_per_unit.groupby(buildings.subreg_id).sum().\
@@ -18,20 +22,36 @@ def Business_Services(subregs, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 7)).groupby(jobs.subreg_id).sum().\
 	        reindex(subregs.index).fillna(0)
 
+@orca.column('subregs', 'Con_Res', cache=True, cache_scope='iteration')
+def Con_Res(subregs):
+    return subregs.Natural_resources + subregs.Construction
+
 @orca.column('subregs', 'Construction', cache=True, cache_scope='iteration')
 def Construction(subregs, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 2)).groupby(jobs.subreg_id).sum().\
 	        reindex(subregs.index).fillna(0)
-			
+		
+@orca.column('subregs', 'Edu', cache=True, cache_scope='iteration')
+def Edu(subregs):
+    return subregs.edu + subregs.Private_Ed
+	
 @orca.column('subregs', 'edu', cache=True, cache_scope='iteration')
 def edu(subregs, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 13)).groupby(jobs.subreg_id).sum().\
 	        reindex(subregs.index).fillna(0)
 
+@orca.column('subregs', 'FIRES', cache=True, cache_scope='iteration')
+def FIRES(subregs):
+    return subregs.Business_Services + subregs.Healthcare + subregs.Personal_Services
+
 @orca.column('subregs', 'Food_Services', cache=True, cache_scope='iteration')
 def Food_Services(subregs, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 10)).groupby(jobs.subreg_id).sum().\
 	        reindex(subregs.index).fillna(0)
+
+@orca.column('subregs', 'Gov', cache=True, cache_scope='iteration')
+def Gov(subregs):
+    return subregs.government
 
 @orca.column('subregs', 'government', cache=True, cache_scope='iteration')
 def government(subregs, jobs):
@@ -47,6 +67,10 @@ def Healthcare(subregs, jobs):
 def Manuf(subregs, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 3)).groupby(jobs.subreg_id).sum().\
 	        reindex(subregs.index).fillna(0)
+
+@orca.column('subregs', 'Manuf_WTU', cache=True, cache_scope='iteration')
+def Manuf_WTU(subregs):
+    return subregs.Manuf + subregs.WTU
 
 @orca.column('subregs', 'max_developable_capacity', cache=True, cache_scope='iteration')
 def max_developable_capacity(subregs, parcels):
@@ -103,10 +127,14 @@ def residetial_units(subregs, buildings):
     return buildings.residential_units.groupby(buildings.subreg_id).sum().\
            reindex(subregs.index).fillna(0)
 
-@orca.column('subregs', 'Retail', cache=True, cache_scope='iteration')
-def Retail(subregs, jobs):
+@orca.column('subregs', 'Retail_only', cache=True, cache_scope='iteration')
+def Retail_only(subregs, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 5)).groupby(jobs.subreg_id).sum().\
 	        reindex(subregs.index).fillna(0)
+
+@orca.column('subregs', 'Retail', cache=True, cache_scope='iteration')
+def Retail(subregs):
+    return subregs.Retail_only + subregs.Food_Services
 
 @orca.column('subregs', 'WTU', cache=True, cache_scope='iteration')
 def WTU(subregs, jobs):

@@ -151,5 +151,6 @@ logging.info('Allocation finished')
 # TODO:
 # =====
 # - transition model samples agents regardless of the size of the group from which it's sampled
+#   -> if no agents of a group present nothing is sampled and the results do not match CTs 
 # - not all MPDs are contained in the mpds dataset
 # - no agent events model implemented

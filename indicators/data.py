@@ -87,6 +87,13 @@ def find_cities_in_store(table, store, year, base_year, csv_store):
 #        print store['%s/%s' % ("base", table)].head()
             return store['/%s/%s' % ("base", table)]
     
+@orca.table('employment_controls', cache=True)
+def employment_controls(store, year, base_year):
+    return find_table_in_store('employment_controls', store, year, base_year)
+
+@orca.table('household_controls', cache=True)
+def household_controls(store, year, base_year):
+    return find_table_in_store('household_controls', store, year, base_year)
     
 @orca.table('buildings', cache=True, cache_scope='iteration')
 def buildings(store, year, base_year):
@@ -220,13 +227,13 @@ def parcels_geos(csv_store):
                        index_col='parcel_id')
 
 @orca.table('targets', cache=True, cache_scope='iteration')
-def targets(store, year, base_year):
+def targets(csv_store, year, base_year):
     return pd.read_csv(os.path.join(csv_store, 'targets.csv'), index_col='target_id')
 
 @orca.table('controls', cache=True, cache_scope='iteration')
-def controls(store, year, base_year):
+def controls(csv_store, year, base_year):
     return pd.read_csv(os.path.join(csv_store, 'controls.csv'), index_col='control_id')
 
 @orca.table('control_hcts', cache=True, cache_scope='iteration')
-def control_hcts(store, year, base_year):
+def control_hcts(csv_store, year, base_year):
     return pd.read_csv(os.path.join(csv_store, 'control_hcts.csv'), index_col='control_hct_id')

@@ -5,13 +5,123 @@ from urbansim.utils import misc
 import urbansim_defaults.utils
 
 #####################
-# COUNTIES VARIABLES (in alphabetic order)
+# COUNTIES VARIABLES 
 #####################
-# ,,res_19_units,
-# ,,,
-# ,
-# ,,,,
-# 
+
+@orca.column('counties', 'activity_units', cache=True, cache_scope='iteration')
+def activity_units(counties):
+    return counties.population + counties.number_of_jobs
+
+@orca.column('counties', 'Business_Services', cache=True, cache_scope='iteration')
+def Business_Services(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 7)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'Con_Res', cache=True, cache_scope='iteration')
+def Con_Res(counties):
+    return counties.Natural_resources + counties.Construction
+
+@orca.column('counties', 'Construction', cache=True, cache_scope='iteration')
+def Construction(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 2)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'Edu', cache=True, cache_scope='iteration')
+def Edu(counties):
+    return counties.edu + counties.Private_Ed
+	
+@orca.column('counties', 'edu', cache=True, cache_scope='iteration')
+def edu(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 13)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'FIRES', cache=True, cache_scope='iteration')
+def FIRES(counties):
+    return counties.Business_Services + counties.Healthcare + counties.Personal_Services
+
+@orca.column('counties', 'Food_Services', cache=True, cache_scope='iteration')
+def Food_Services(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 10)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'Gov', cache=True, cache_scope='iteration')
+def Gov(counties):
+    return counties.government
+
+@orca.column('counties', 'government', cache=True, cache_scope='iteration')
+def government(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 12)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'Healthcare', cache=True, cache_scope='iteration')
+def Healthcare(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 9)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
+
+@orca.column('counties', 'Manuf', cache=True, cache_scope='iteration')
+def Manuf(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 3)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'Manuf_WTU', cache=True, cache_scope='iteration')
+def Manuf_WTU(counties, jobs):
+    return counties.Manuf + counties.WTU
+
+@orca.column('counties', 'Natural_resources', cache=True, cache_scope='iteration')
+def Natural_resources(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 1)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'nonres_sqft', cache=True, cache_scope='iteration')
+def nonres_sqft(counties, buildings):
+    return buildings.non_residential_sqft.groupby(buildings.county_id).sum().\
+           reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'number_of_households', cache=True, cache_scope='iteration')
+def number_of_households(counties, households):
+    return households.persons.groupby(households.control_id).size().\
+           reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'number_of_jobs', cache=True, cache_scope='iteration')
+def number_of_jobs(counties, jobs):
+    return jobs.sector_id.groupby(jobs.control_id).size().\
+           reindex(counties.index).fillna(0)
+		   
+@orca.column('counties', 'Personal_Services', cache=True, cache_scope='iteration')
+def Personal_Services(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 11)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+		   
+@orca.column('counties', 'population', cache=True, cache_scope='iteration')
+def population(counties, households):
+    return households.persons.groupby(households.control_id).sum().\
+           reindex(counties.index).fillna(0)
+		   
+@orca.column('counties', 'Private_Ed', cache=True, cache_scope='iteration')
+def Private_Ed(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 8)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'residential_units', cache=True, cache_scope='iteration')
+def residetial_units(counties, buildings):
+    return buildings.residential_units.groupby(buildings.control_id).sum().\
+           reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'Retail_only', cache=True, cache_scope='iteration')
+def Retail_only(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 5)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
+@orca.column('counties', 'Retail', cache=True, cache_scope='iteration')
+def Retail(counties):
+    return counties.Retail_only + counties.Food_Services
+
+@orca.column('counties', 'WTU', cache=True, cache_scope='iteration')
+def WTU(counties, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 4)).groupby(jobs.county_id).sum().\
+	        reindex(counties.index).fillna(0)
+
 
 @orca.column('counties', 'nonres_3_all', cache=True, cache_scope='iteration')
 def nonres_3_all(counties, buildings):

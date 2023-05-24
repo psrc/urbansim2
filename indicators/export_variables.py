@@ -28,7 +28,7 @@ def export_variables(parcels):
     #attributes = ['building_sqft_pcl', 'residential_units', 'nonres_building_sqft', 'job_capacity', 'land_area', 'parcel_sqft',
     #              'number_of_households', 'number_of_jobs', 'land_cost', 'max_dua', 'max_far', 'land_use_type_id', 'number_of_buildings',
     #              'zone_id', 'faz_id', 'growth_center_id', 'city_id', 'subreg_id']
-    attributes = ['parcel_sqft', 'growth_center_id', 'faz_id', 'city_id', 'subreg_id',
+    attributes = ['parcel_sqft', 'growth_center_id', 'faz_id', 'city_id', 'subreg_id', 'target_id', 'control_id', 'control_hct_id',
                   'county_id', 'tod_id', 'zone_id', 'plan_type_id', 'census_tract_id']    
     data = {}
     for attr in attributes:

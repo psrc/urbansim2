@@ -26,6 +26,12 @@ def city_id(households, parcels):
         return households.local.city_id
     return misc.reindex(parcels.city_id, households.parcel_id)
 
+@orca.column('households', 'county_id', cache=True, cache_scope='step')
+def county_id(households, parcels):
+    if "county_id" in households.local_columns:    
+        return households.local.county_id 
+    return misc.reindex(parcels.county_id, households.parcel_id)
+
 @orca.column('households', 'subreg_id', cache=True, cache_scope='step')
 def subreg_id(households, parcels):
     if "subreg_id" in households.local_columns:
@@ -48,8 +54,20 @@ def growth_center_id(households, parcels, parcels_geos):
         return misc.reindex(parcels.growth_center_id, households.parcel_id)	
     return misc.reindex(parcels_geos.growth_center_id, households.parcel_id)	
 
-@orca.column('households', 'income_category', cache=True, cache_scope='step')
+@orca.column('households', 'target_id', cache=True, cache_scope='step')
+def target_id(households, parcels):
+    return misc.reindex(parcels.target_id, households.parcel_id)
 
+@orca.column('households', 'control_id', cache=True, cache_scope='step')
+def control_id(households, parcels):
+    return misc.reindex(parcels.control_id, households.parcel_id)
+
+@orca.column('households', 'control_hct_id', cache=True, cache_scope='step')
+def control_id(households, parcels):
+    return misc.reindex(parcels.control_hct_id, households.parcel_id)
+
+
+@orca.column('households', 'income_category', cache=True, cache_scope='step')
 def income_category(households, settings):
     income_breaks = settings.get('income_breaks', [34000, 64000, 102000])
     res = households.income.values

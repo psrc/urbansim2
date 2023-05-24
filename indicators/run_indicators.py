@@ -13,10 +13,17 @@ datasets = {'DU_and_HH_by_bld_type_by_faz_by_year': ['DU_SF_19', 'DU_MF_12', 'DU
                                                       'DU_MH_11', 'DU_Total', 'HH_SF_19',
                                                       'HH_MF_12', 'HH_CO_4', 'HH_MH_11',
                                                       'HH_Total'],
-            'employment_by_aggr_sector': ['Natural_resources', 'Construction',
-                                         'Manuf', 'WTU', 'Retail', 'Business_Services',
+            'employment_by_sector': ['Natural_resources', 'Construction',
+                                         'Manuf', 'WTU', 'Retail_only', 'Business_Services',
                                          'Private_Ed', 'Healthcare', 'Food_Services',
                                          'Personal_Services', 'government', 'edu'],
+            'employment_by_aggr_sector': ['Con_Res', #1, 2
+                                         'Manuf_WTU', # 3, 4
+                                         'Retail', # 5, 10
+                                         'FIRES', # 7, 9, 11
+                                         'Gov', # 12
+                                         'Edu' # 13, 8
+                                         ],            
             'persons_by_5year_age_groups': ['age_0_to_5', 'age_6_to_10', 'age_11_to_15',
                                             'age_16_to_20', 'age_21_to_25', 'age_26_to_30',
                                             'age_31_to_35', 'age_36_to_40', 'age_41_to_45',
@@ -49,7 +56,8 @@ datasets = {'DU_and_HH_by_bld_type_by_faz_by_year': ['DU_SF_19', 'DU_MF_12', 'DU
             }
 
 
-geography_alias = {'cities': 'city', 'zones': 'zone', 'fazes': 'faz', 'subregs': 'subreg',
+geography_alias = {'cities': 'city', 'zones': 'zone', 'fazes': 'faz', 'subregs': 'subreg', 'targets': 'target',
+                   'controls' : 'control', 'control_hcts': 'control_hct',
                    'counties': 'county', 'growth_centers': 'growth_center', 'buildings': 'building'}
 
 table_alias = {'number_of_jobs': 'employment', 'number_of_households': 'households',
@@ -74,14 +82,23 @@ def create_tab(column_list, column_list_headers, csv_file_name):
 ind_table_dic = {} 
    
 # Define injectables
+@orca.injectable(cache=True)
+def years_to_run(settings):
+    if settings.get("years", None) is None:
+        return range(settings["years_all"][0], settings["years_all"][1]+1)
+    return settings["years"]
+        
+@orca.injectable(cache=True)
+def is_annual(settings):
+    return not "years" in settings.keys() and "years_all" in settings.keys()
 
 # replace this by passing yaml file name as argument
-@orca.injectable()
+@orca.injectable(cache=True)
 def settings_file():
     return "indicators_settings.yaml"
 
 # Read yaml config
-@orca.injectable()
+@orca.injectable(cache=True)
 def settings(settings_file):
     return yamlio.yaml_to_dict(str_or_buffer=settings_file)
     
@@ -116,8 +133,11 @@ def add_new_datasets(settings, iter_var):
         orca.add_table(dsname, orca_ds)
     
 @orca.step()
-def compute_indicators(settings, iter_var):
+def compute_indicators(settings, iter_var, is_annual):
     # loop over indicators and datasets from settings and store into file
+    suffix = ""
+    if is_annual:
+        suffix = "An"
     for ind, value in settings.get('indicators', {}).items():
         for ds in value.get('dataset', {}):
             df = orca.get_table(ds)[ind].to_frame()
@@ -127,11 +147,11 @@ def compute_indicators(settings, iter_var):
                 ds = geography_alias[ds]
                 #print 'geography_alias[ds] is %s' % ds
             if ind == 'nonres_sqft' and ds == 'alldata':
-                ds_tablename = '%s__table__%s_%s' % (ds, 'non_residential_sqft', str(iter_var))
+                ds_tablename = '%s__table__%s%s_%s' % (ds, 'non_residential_sqft', suffix, str(iter_var))
             elif ind in table_alias:
-                ds_tablename = '%s__table__%s_%s' % (ds, table_alias[ind], str(iter_var))
+                ds_tablename = '%s__table__%s%s_%s' % (ds, table_alias[ind], suffix, str(iter_var))
             else:
-                ds_tablename = '%s__table__%s_%s' % (ds, ind, str(iter_var))
+                ds_tablename = '%s__table__%s%s_%s' % (ds, ind, suffix, str(iter_var))
             #print ds_tablename
             orca.add_table(ds_tablename, df)
             ind_table_dic[ds_tablename] = value['file_type']
@@ -140,6 +160,8 @@ def compute_indicators(settings, iter_var):
 
 @orca.step()
 def compute_datasets(settings, iter_var):
+    if not settings.get("compute_dataset_tables", True):
+        return
     outdir = settings.get("output_directory", ".")
     if not os.path.exists(outdir):
         os.makedirs(outdir)
@@ -152,8 +174,13 @@ def compute_datasets(settings, iter_var):
             column_list_for_csv_table = []
             if value.get("include_condition", None) is not None:
                 subset = orca.get_table(ds).local.query(value.get("include_condition"))
-            for column in datasets[ind]:
-                df = orca.get_table(ds)[column].to_frame()
+            dsobj = orca.get_table(ds)
+            if not ind in datasets.keys():
+                columns = dsobj.columns
+            else:
+                columns = datasets[ind]
+            for column in columns:
+                df = dsobj[column].to_frame()
                 if value.get("include_condition", None) is not None:
                     df = df.loc[subset.index]
                 #print orca.get_table(ds)[column].to_frame().head()
@@ -162,16 +189,29 @@ def compute_datasets(settings, iter_var):
                 column_list_for_csv_table.append(orca.get_table(column).to_frame())
             if ds in geography_alias:
                 ds = geography_alias[ds]
+            fn = value.get("file_name", None)
             if value['file_type'] == 'csv':
-                create_csv(column_list_for_csv_table, datasets[ind], os.path.join(outdir, '%s__dataset_table__%s__%s.csv' % (ds, ind, str(iter_var))))
+                if fn is not None:
+                    file_name = '%s.csv'% fn
+                else:
+                    file_name = '%s__dataset_table__%s__%s.csv' % (ds, ind, str(iter_var))
+                create_csv(column_list_for_csv_table, columns, os.path.join(outdir, file_name))
             elif value['file_type'] == 'tab':
-                create_tab(column_list_for_csv_table, datasets[ind], os.path.join(outdir, '%s__dataset_table__%s__%s.tab' % (ds, ind, str(iter_var))))
+                if fn is not None:
+                    file_name = '%s.tab'% fn
+                else:
+                    file_name = '%s__dataset_table__%s__%s.tab' % (ds, ind, str(iter_var))   
+                create_tab(column_list_for_csv_table, datasets[ind], os.path.join(outdir, file_name))
     orca.clear_cache()
             
 
 # Compute indicators
-orca.run(['add_new_datasets', 'compute_indicators', 'compute_datasets'], iter_vars=settings(settings_file())['years'])
-#orca.run(['compute_indicators'], iter_vars=settings(settings_file())['years'])
+orca.run(['add_new_datasets', 'compute_indicators', 'compute_datasets'], iter_vars=years_to_run(settings(settings_file())))
+
+
+# While the step compute_datasets creates indicator files in each iteration, 
+# the step compute_indicators collects the results in orca tables. 
+# Therefore they need to be saved to disk in an extra step below.
 
 # Create tables to output as CSV files
 def create_tables(outdir):
@@ -195,7 +235,7 @@ def create_tables(outdir):
         for table in ind_table_list_for_csv:
             ind_df_list_for_csv.append(orca.get_table(table).to_frame())
             column_labels.append(table[table.find('table') + 7:])
-        
+            
         if filetype == 'csv':
             create_csv(ind_df_list_for_csv, column_labels, os.path.join(outdir, '%s.csv' % ind_table))
         elif filetype == 'tab':
