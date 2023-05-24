@@ -159,7 +159,7 @@ def compute_indicators(settings, iter_var, is_annual):
              
 
 @orca.step()
-def compute_datasets(settings, iter_var):
+def compute_datasets(settings, iter_var, years_to_run):
     if not settings.get("compute_dataset_tables", True):
         return
     outdir = settings.get("output_directory", ".")
@@ -167,7 +167,7 @@ def compute_datasets(settings, iter_var):
         os.makedirs(outdir)
     # Loops over dataset_tables and datasets from settings and store into file
     for ind, value in settings.get('dataset_tables', {}).items():
-        if iter_var not in value.get('year', settings['years']):
+        if iter_var not in value.get('year', years_to_run):
             continue
         for ds in value['dataset']:
             #print 'ds is %s and ind is %s' % (ds, ind)
@@ -207,7 +207,7 @@ def compute_datasets(settings, iter_var):
 
 # Compute indicators
 orca.run(['add_new_datasets', 'compute_indicators', 'compute_datasets'], iter_vars=years_to_run(settings(settings_file())))
-
+#orca.run(['compute_datasets'], iter_vars=[2050]) # can be used to create new_buildings only
 
 # While the step compute_datasets creates indicator files in each iteration, 
 # the step compute_indicators collects the results in orca tables. 

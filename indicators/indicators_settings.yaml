@@ -9,9 +9,9 @@ output_directory:  run_alloc_20230517
 base_year: 2018
 
 years_all: [2018, 2050] # for annual indicator [start_year, end_year]
-#years: [2018, 2020, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
+years: [2018, 2020, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
 
-compute_dataset_tables: false # comment this out for non-annual years (or set it to true)
+compute_dataset_tables: true # comment this out for non-annual years (or set it to true)
 
 #new_datasets:
 #    cities:
@@ -118,8 +118,8 @@ dataset_tables:
         #dataset: [counties]
         #file_type: csv
 
-    #new_buildings:
-        #dataset: [buildings]
-        #file_type: tab
-        #year: [2050]
-        #include_condition: year_built > 2018
+    new_buildings:
+        dataset: [buildings]
+        file_type: tab
+        year: [2050]
+        include_condition: year_built > 2018
