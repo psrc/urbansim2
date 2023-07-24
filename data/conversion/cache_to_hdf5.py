@@ -68,9 +68,9 @@ DIRECTORIES = {
     'employment_adhoc_sector_group_definitions',
     'employment_adhoc_sector_groups', 'employment_sectors',
     'fazes', 'gridcells', 'land_use_types', 'jobs', 'households', 
-    'households_events', 'households_zone_events', 'mpds',
+    'households_events', 'households_zone_control_hct_events', 'mpds',
     'parcels', 'persons', 'schools', 'subregs', 'targets', 'target_vacancies', 'travel_data',
-    'zones', 'zoning_heights', 'jobs_for_estimation', 'persons_for_estimation'
+    'zones', 'zone_control_hcts', 'zoning_heights', 'jobs_for_estimation', 'persons_for_estimation'
 }
 
 NO_INDEX = ['annual_household_relocation_rates', 'annual_job_relocation_rates']
