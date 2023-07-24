@@ -745,6 +745,12 @@ def households_zone_events_model(households, households_zone_events, year, build
     run_agent_events_model(households, households_zone_events, year, settings, geo_id = "zone_id", 
                            location_characteristics = ['subreg_id'], disaggregate_to = buildings, 
                            disaggregation_weight_column = "residential_units")
+    
+@orca.step('households_zone_control_hct_events_model')
+def households_zone_events_model(households, households_zone_control_hct_events, year, buildings, settings):
+    run_agent_events_model(households, households_zone_events, year, settings, geo_id = "zone_control_hct_id", 
+                           location_characteristics = ['subreg_id'], disaggregate_to = buildings, 
+                           disaggregation_weight_column = "residential_units")
 
 
 def run_agent_events_model(agents, events, year, settings, geo_id, location_characteristics = [], 

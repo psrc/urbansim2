@@ -186,6 +186,11 @@ def households_zone_events(store):
     df = store['households_zone_events']
     return df
 
+@orca.table('households_zone_control_hct_events', cache=True)
+def households_zone_control_hct_events(store):
+    df = store['households_zone_control_hct_events']
+    return df
+
 @orca.table('job_relocation_rates', cache=True)
 def job_relocation_rates(store):
     df = store['annual_job_relocation_rates']  
@@ -282,6 +287,11 @@ def travel_data(store):
 @orca.table('zones', cache=True)
 def zones(store):
     df = store['zones']
+    return df
+
+@orca.table('zone_control_hcts', cache=True)
+def zones(store):
+    df = store['zone_control_hcts']
     return df
 
 @orca.table('zoning_heights', cache=True)
