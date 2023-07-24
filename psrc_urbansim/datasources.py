@@ -176,6 +176,16 @@ def households_for_estimation(store):
         df['previous_building_id'] = np.where(df.is_inmigrant == 1, -1, df.previous_building_id)
     return df
 
+@orca.table('households_events', cache=True)
+def households_events(store):
+    df = store['households_events']
+    return df
+
+@orca.table('households_zone_events', cache=True)
+def households_zone_events(store):
+    df = store['households_zone_events']
+    return df
+
 @orca.table('job_relocation_rates', cache=True)
 def job_relocation_rates(store):
     df = store['annual_job_relocation_rates']  

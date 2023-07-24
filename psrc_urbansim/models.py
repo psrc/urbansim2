@@ -734,6 +734,150 @@ def cap_development(parcels, control_totals, year, geo_id, control_years,
     else:
         parcels.update_col(out_attribute, cap_pcl)
 
+@orca.step('households_events_model')
+def households_events_model(households, households_events, year, buildings, settings):
+    run_agent_events_model(households, households_events, year, settings, geo_id = "parcel_id", 
+                           location_characteristics = ['subreg_id', 'building_type_id'],
+                           disaggregate_to = buildings, disaggregation_weight_column = "residential_units")
+
+@orca.step('households_zone_events_model')
+def households_zone_events_model(households, households_zone_events, year, buildings, settings):
+    run_agent_events_model(households, households_zone_events, year, settings, geo_id = "zone_id", 
+                           location_characteristics = ['subreg_id'], disaggregate_to = buildings, 
+                           disaggregation_weight_column = "residential_units")
+
+
+def run_agent_events_model(agents, events, year, settings, geo_id, location_characteristics = [], 
+                           disaggregate_to = None, disaggregation_weight_column = None):
+    year_events = events.to_frame()[events.scheduled_year == year]
+    if len(year_events) == 0:
+        return
+    agents_df = agents.to_frame(list(set(agents.local_columns + [geo_id] + location_characteristics))) # the list(set()) construct ensures unique values in the list
+    other_characteristics = set(year_events.columns).difference(set(["change_type", "is_percentage", "scheduled_year", "total_number", geo_id]))
+    nagents_orig = len(agents)
+    max_agent_id = agents_df.index.max()
+    all_added_agents = {}
+    
+    year_events = year_events.sort_values("change_type", ascending=False) # sort so that "D"s are first
+    unplaced_agents = pd.Series([], dtype = agents.index.dtype)
+    
+    # iterate over rows in the events table
+    for irow in range(len(year_events)):
+        # affected location id
+        location_id = year_events.iloc[irow][geo_id]
+        
+        # find agents corresponding to the location
+        agents_to_consider = agents_df[geo_id] == location_id
+        
+        # filter by the remaining characteristics in the table
+        for characteristics in other_characteristics:
+            if year_events.iloc[irow][characteristics] != -1:
+                agents_to_consider = np.logical_and(agents_to_consider, agents_df[characteristics] == year_events.iloc[irow][characteristics])
+        agents_to_consider = agents_df[agents_to_consider]
+        
+        # what is the count to add/remove?
+        count = year_events.iloc[irow].total_number
+        if year_events.iloc[irow].is_percentage > 0:
+            count = np.round(count * len(agents_to_consider)/100)
+        elif year_events.iloc[irow].change_type == "D":
+            count = min(count, len(agents_to_consider))
+            
+        if count == 0: # if nothing to add or remove skip to the next event
+            continue
+        
+        if year_events.iloc[irow].change_type == "D":  # delete agents
+            # randomly sample the desired count 
+            agents_to_unplace = np.random.choice(agents_to_consider.index, size = count, replace = False)
+            # unplace selected agents
+            updated_locations = np.where(agents.index.isin(agents_to_unplace), -1, agents[geo_id])
+            if geo_id in agents.local_columns:
+                update_local_scope(agents, geo_id, updated_locations)
+            elif disaggregate_to is None:
+                agents.add_column(geo_id, updated_locations)
+            if not disaggregate_to is None and geo_id != disaggregate_to.index.name:
+                update_local_scope(agents, disaggregate_to.index.name, 
+                                np.where(agents.index.isin(agents_to_unplace), -1, agents[disaggregate_to.index.name]))
+            unplaced_agents = pd.concat([unplaced_agents, pd.Series(agents_to_unplace)])
+            logger.info("{} agents deleted from location {}".format(len(agents_to_unplace), location_id))
+            
+        elif year_events.iloc[irow].change_type == "A":  # add agents
+
+            # find locations to assign
+            if disaggregate_to is not None: # disaggregate from a higher geography into lower level
+                buildings_in_loc = disaggregate_to[geo_id][disaggregate_to[geo_id] == location_id].index
+                if len(buildings_in_loc) == 0:
+                    logger.warning('No %s locations found for %s=%s. %s agents not created.' % (
+                            disaggregate_to.name, geo_id, location_id, count))
+                    continue                
+                # sample disaggregated locations
+                weights = None
+                if not disaggregation_weight_column is None:
+                    weights = disaggregate_to[disaggregation_weight_column].loc[buildings_in_loc]
+                    if weights.sum() == 0:
+                        weights = None
+                    else:
+                        weights = weights/weights.sum()
+                new_locations = np.random.choice(buildings_in_loc, size = count, replace = True, p = weights)
+                location_name = disaggregate_to.index.name
+            else:
+                new_locations = np.array([location_id] * count)
+                location_name = geo_id
+                
+            
+            # determine agents with the desire characteristics to impute missing characteristics to the new agents
+            loc_indicator = pd.Series(True, index = agents_df.index)
+            loc_indicator_pool = pd.Series(True, index = unplaced_agents)
+            for locchar in location_characteristics:
+                if year_events.iloc[irow][locchar] == -1:
+                    continue
+                this_loc_indicator = np.logical_and(loc_indicator, agents[locchar] == year_events.iloc[irow][locchar])
+                loc_indicator_pool = np.logical_and(loc_indicator_pool, agents[locchar].loc[unplaced_agents] == year_events.iloc[irow][locchar])
+                if this_loc_indicator.sum() > 0 and count/this_loc_indicator.sum() < 0.33 : # accept only if enough agents remain to sample from
+                    loc_indicator = this_loc_indicator
+                    
+            new_count = count
+            if loc_indicator_pool.sum() > 0: # first use the pool of unplaced agents to be placed in the new locations
+                eligible_agents_from_pool = loc_indicator_pool[(loc_indicator_pool == True)].index
+                if loc_indicator_pool.sum() > count: # sample
+                    sampled_agents = np.random.choice(eligible_agents_from_pool, size = count, replace = False)
+                else:
+                    sampled_agents = eligible_agents_from_pool
+                
+                agents_df.loc[sampled_agents, location_name] = new_locations[0:len(sampled_agents)]
+                update_local_scope(agents, location_name, agents_df[location_name])
+                unplaced_agents = unplaced_agents[~unplaced_agents.isin(sampled_agents)]      
+                new_count = count - sampled_agents.size
+                if new_count > 0:
+                    new_locations = new_locations[len(sampled_agents):]
+                
+            logger.info('%s agents added to location %s by using previously unplaced agents' % (count - new_count, location_id))
+            if new_count <= 0: # if the pool had enough agents, skip to the next event
+                continue
+            
+            # if we need more agents to add, create new ones
+            # initiate new agents
+            data = {agents_df.index.name: np.arange(1, new_count + 1, 1) + max_agent_id,
+                    location_name: new_locations}            
+            sampled_agents = np.random.choice(loc_indicator[(loc_indicator == True)].index, size = new_count, replace = False)
+                
+            for characteristics in other_characteristics:
+                if year_events.iloc[irow][characteristics] != -1 and not characteristics in location_characteristics:
+                    data[characteristics] = np.array([year_events.iloc[irow][characteristics]] * new_count)            
+            # impute remaining attributes
+            for attr in agents.local_columns:
+                if attr not in data.keys():
+                    data[attr] = agents[attr].loc[sampled_agents].values                
+            all_added_agents[location_id] = pd.DataFrame(data).set_index(agents_df.index.name)
+            max_agent_id = all_added_agents[location_id].index.max()
+            logger.info('%s agents added to location %s (%s unplaced and %s new agents)' % (count, location_id, count - new_count, new_count))
+    
+    if len(all_added_agents) > 0:
+        new_agents = pd.concat(all_added_agents.values())
+        agents_final = pd.concat([agents.to_frame(agents.local_columns), new_agents[agents.local_columns]])
+        orca.add_table(agents.name, agents_final)
+        logger.info('%s agents added in total' % (len(agents_final)-nagents_orig))
+
+
 
 def resave_table_in_orca(table, cols):
     tbl = table.to_frame(cols)
