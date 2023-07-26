@@ -42,7 +42,7 @@ logging.basicConfig(level = loglevel, filename = log_file, format = FORMAT, date
 
 @orca.injectable('simfile')
 def simfile():
-     return "results_alloc_BY2018_20230517.h5"
+     return "results_alloc_BY2018_20230726.h5"
 
 @orca.injectable('settings', cache=True)
 def settings():
@@ -115,7 +115,7 @@ orca.run([
      # Events models
      #######
      'households_events_model',
-     'households_zone__control_hct_events_model',
+     'households_zone_control_hct_events_model',
      
      # Transition again, in case events model changed the counts
      #######     
@@ -157,10 +157,3 @@ orca.run([
 
 logging.info('Allocation finished')
 
-
-# TODO:
-# =====
-# - transition model samples agents regardless of the size of the group from which it's sampled
-#   -> if no agents of a group present nothing is sampled and the results do not match CTs 
-# - not all MPDs are contained in the mpds dataset
-# - no agent events model implemented
