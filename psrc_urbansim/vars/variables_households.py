@@ -63,9 +63,8 @@ def control_id(households, parcels):
     return misc.reindex(parcels.control_id, households.parcel_id)
 
 @orca.column('households', 'control_hct_id', cache=True, cache_scope='step')
-def control_id(households, parcels):
+def control_hct_id(households, parcels):
     return misc.reindex(parcels.control_hct_id, households.parcel_id)
-
 
 @orca.column('households', 'income_category', cache=True, cache_scope='step')
 def income_category(households, settings):
@@ -151,6 +150,9 @@ def prev_zone_id(households, buildings_lag1):
 #    return pd.Series(max_network_distance_from_home_to_work(households.worker1_zone_id, households.worker1_zone_id, households.prev_zone_id))
 
                                      
+@orca.column('households', 'zone_control_hct_id', cache=True, cache_scope='step')
+def zone_control_hct_id(households, parcels):
+    return misc.reindex(parcels.zone_control_hct_id, households.parcel_id)
 
 
 

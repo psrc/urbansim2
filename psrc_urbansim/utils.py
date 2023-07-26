@@ -5,7 +5,7 @@ import logging
 from urbansim.utils import misc, yamlio
 from urbansim_defaults.utils import to_frame, yaml_to_class, check_nas
 from urbansim.models.regression import YTRANSFORM_MAPPING
-from urbansim.models import util
+from urbansim.models import util, transition
 import os
 from psrc_urbansim.dcm_weighted_sampling import PSRC_SegmentedMNLDiscreteChoiceModel, MNLDiscreteChoiceModelWeightedSamples, resim_overfull_buildings
 
@@ -304,3 +304,64 @@ def _remove_developed_buildings(old_buildings, new_buildings, unplace_agents):
 
 def _log_number_unplaced(df, fieldname):
     logger.info("Total currently unplaced: %d" % df[fieldname].value_counts().get(-1, 0))
+    
+    
+    
+def full_transition(agents, agent_controls, year, settings, location_fname, linked_tables=None):
+    """
+    Run a transition model based on control totals specified in the usual
+    UrbanSim way
+    Passes sampling_threshold and sampling_hierarchy to the model version from Scott Bridwell
+
+    Parameters
+    ----------
+    agents : DataFrameWrapper
+        Table to be transitioned
+    agent_controls : DataFrameWrapper
+        Table of control totals
+    year : int
+        The year, which will index into the controls
+    settings : dict
+        Contains the configuration for the transition model - is specified
+        down to the yaml level with a "total_column" which specifies the
+        control total and an "add_columns" param which specified which
+        columns to add when calling to_frame (should be a list of the columns
+        needed to do the transition
+    location_fname : str
+        The field name in the resulting dataframe to set to -1 (to unplace
+        new agents)
+    linked_tables : dict of tuple, optional
+        Dictionary of table_name: (table, 'column name') pairs. The column name
+        should match the index of `agents`. Indexes in `agents` that
+        are copied or removed will also be copied and removed in
+        linked tables.
+
+    Returns
+    -------
+    Nothing
+    """
+    
+    sampling_threshold = settings.get("sampling_threshold", None)
+    sampling_hierarchy = settings.get("sampling_hierarchy", [])
+    if sampling_threshold is not None: # need to compute the various variables for the control dataset
+        for col in sampling_hierarchy:
+            agent_controls[col]  # to trigger computation
+    ct = agent_controls.to_frame()
+    hh = agents.to_frame(agents.local_columns +
+                         settings.get('add_columns', []))
+    print("Total agents before transition: {}".format(len(hh)))
+    linked_tables = linked_tables or {}
+    for table_name, (table, col) in linked_tables.items():
+        print("Total %s before transition: %s" % (table_name, len(table)))
+  
+    tran = transition.TabularTotalsTransition(ct, settings['total_column'],
+                                              sampling_threshold = sampling_threshold,
+                                              sampling_hierarchy = sampling_hierarchy)
+    model = transition.TransitionModel(tran)
+    new, added_hh_idx, new_linked = model.transition(hh, year, linked_tables=linked_tables)
+    new.loc[added_hh_idx, location_fname] = -1
+    print("Total agents after transition: {}".format(len(new)))
+    orca.add_table(agents.name, new)
+    for table_name, table in new_linked.items():
+        print("Total %s after transition: %s" % (table_name, len(table)))
+        orca.add_table(table_name, table)

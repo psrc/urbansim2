@@ -21,3 +21,5 @@ import psrc_urbansim.vars.variables_growth_centers
 import psrc_urbansim.vars.variables_targets
 import psrc_urbansim.vars.variables_controls
 import psrc_urbansim.vars.variables_control_hcts
+import psrc_urbansim.vars.variables_control_totals
+

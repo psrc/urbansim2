@@ -322,6 +322,9 @@ orca.broadcast('buildings', 'households_for_estimation', cast_index=True, onto_o
 orca.broadcast('buildings_lag1', 'households_for_estimation', cast_index=True, onto_on='building_id')
 orca.broadcast('households_for_estimation', 'persons_for_estimation', cast_index=True, onto_on='household_id')
 orca.broadcast('jobs', 'households_for_estimation', cast_index=True, onto_on='job_id')
+orca.broadcast('household_controls', 'counties', cast_index=True, onto_on='subreg_id')
+orca.broadcast('employment_controls', 'counties', cast_index=True, onto_on='subreg_id')
+
 
 # Assumptions
 

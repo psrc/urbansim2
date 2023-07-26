@@ -18,11 +18,15 @@ feasibility_model_CY:
 
 households_transition:
   remove_columns: []
-  add_columns: ["subreg_id"] # non-local (computed) columns
+  add_columns: ["subreg_id", "county_id"] # non-local (computed) columns
+  sampling_threshold_alloc: 0.3
+  sampling_hierarchy_alloc: ["county_id", "subreg_id"]
 
 jobs_transition:
   remove_columns: []
-  add_columns: ["subreg_id"] # non-local (computed) columns 
+  add_columns: ["subreg_id", "county_id"] # non-local (computed) columns 
+  sampling_threshold_alloc: 0.3
+  sampling_hierarchy_alloc: ["county_id", "subreg_id"]
   
 household_location_choice_model_CY:
   prediction_sample_size: 100

@@ -297,6 +297,10 @@ def control_id(buildings, parcels):
 def control_hct_id(buildings, parcels):
     return misc.reindex(parcels.control_hct_id, buildings.parcel_id)
 
+@orca.column('buildings', 'zone_control_hct_id', cache=True, cache_scope='iteration')
+def zone_control_hct_id(buildings, parcels):
+    return misc.reindex(parcels.zone_control_hct_id, buildings.parcel_id)
+
 # Functions
 def number_of_jobs_of_sector_from_zone(sector, buildings, zones, jobs):
     from .variables_zones import number_of_jobs_of_sector

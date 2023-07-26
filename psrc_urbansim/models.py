@@ -288,7 +288,14 @@ def run_households_transition(households, household_controls,
         for column in [config.get('remove_columns', [])]:
             if column in household_controls.local.columns:
                 household_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)
-    res = utils.full_transition(households, household_controls, year, config, "building_id",
+    if not is_allocation:
+        config["sampling_threshold"] = None
+        config["sampling_hierarchy"] = []
+    else:
+        config["sampling_threshold"] = config.get("sampling_threshold_alloc", None)
+        config["sampling_hierarchy"] = config.get("sampling_hierarchy_alloc", None)
+        
+    res = psrcutils.full_transition(households, household_controls, year, config, "building_id",
                                 linked_tables={"persons":
                                                (persons.local,
                                                 'household_id')})
@@ -343,8 +350,14 @@ def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation
             for column in [config.get('remove_columns', [])]:
                 if column in employment_controls.local.columns:
                     employment_controls.local.drop(config.get('remove_columns', []), axis = 1, inplace = True)
- 
-    res = utils.full_transition(jobs, employment_controls, year, config, "building_id")
+    if not is_allocation:
+        config["sampling_threshold"] = None
+        config["sampling_hierarchy"] = [] 
+    else:
+        config["sampling_threshold"] = config.get("sampling_threshold_alloc", None)
+        config["sampling_hierarchy"] = config.get("sampling_hierarchy_alloc", None)        
+        
+    res = psrcutils.full_transition(jobs, employment_controls, year, config, "building_id")
     
     # the transition model removes index name, so put it back
     orca.get_table("jobs").index.name = jobs.index.name
@@ -747,8 +760,8 @@ def households_zone_events_model(households, households_zone_events, year, build
                            disaggregation_weight_column = "residential_units")
     
 @orca.step('households_zone_control_hct_events_model')
-def households_zone_events_model(households, households_zone_control_hct_events, year, buildings, settings):
-    run_agent_events_model(households, households_zone_events, year, settings, geo_id = "zone_control_hct_id", 
+def households_zone_control_hct_events_model(households, households_zone_control_hct_events, year, buildings, settings):
+    run_agent_events_model(households, households_zone_control_hct_events, year, settings, geo_id = "zone_control_hct_id", 
                            location_characteristics = ['subreg_id'], disaggregate_to = buildings, 
                            disaggregation_weight_column = "residential_units")
 

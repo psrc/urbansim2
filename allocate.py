@@ -82,67 +82,74 @@ def tables_in_base_year():
 orca.run([
      'start_year',
      
-     'households_events_model',
-     'households_zone_events_model',
+     # Misc
+     #######
+     "update_household_previous_building_id",
+     "update_buildings_lag1",
      
-     ## Misc
-     ########
-     #"update_household_previous_building_id",
-     #"update_buildings_lag1",
+     # REPM
+     #######
+     "repmres_simulate",          # residential REPM
+     "repmnr_simulate",           # non-residential REPM
      
-     ## REPM
-     ########
-     #"repmres_simulate",          # residential REPM
-     #"repmnr_simulate",           # non-residential REPM
+     # Transition
+     #######
+     # (Must run hh/job transition models first in order to 
+     # determine the demand for the developer model.)
+     "households_transition_alloc",     # 
+     "jobs_transition_alloc",           #
      
-     ## Transition
-     ########
-     ## (Must run hh/job transition models first in order to 
-     ## determine the demand for the developer model.)
-     #"households_transition_alloc",     # 
-     #"jobs_transition_alloc",           #
+     # Developer 
+     #######
+     "process_mpds",
+     "cap_residential_development",
+     "cap_nonresidential_development",     
+     "proforma_feasibility_alloc",
+     "developer_picker_alloc",
      
-     ## Developer 
-     ########
-     #"process_mpds",
-     #"cap_residential_development",
-     #"cap_nonresidential_development",     
-     #"proforma_feasibility_alloc",
-     #"developer_picker_alloc",
-     
-     ## Density boosts
-     ########
-     #"boost_residential_density",
-     #"boost_nonresidential_density",
+     # Density boosts
+     #######
+     "boost_residential_density",
+     "boost_nonresidential_density",
           
-     ## Relocate and place households
-     ########
-     #"households_relocation_alloc",
-     #"hlcm_simulate_alloc",
+     # Events models
+     #######
+     'households_events_model',
+     'households_zone__control_hct_events_model',
+     
+     # Transition again, in case events model changed the counts
+     #######     
+     "households_transition_alloc",     # 
+     "jobs_transition_alloc",           #
+     
+     # Relocate and place households
+     #######
+     "households_relocation_alloc",
+     "hlcm_simulate_alloc",
     
-    ## Relocate and place jobs
-    ########
-     #"jobs_relocation_alloc",     
-     #"elcm_simulate_alloc",             # ELCM
-     #"governmental_jobs_scaling_alloc",
-     #"update_persons_jobs",
+    # Relocate and place jobs
+    #######
+     "jobs_relocation_alloc",     
+     "elcm_simulate_alloc",             # ELCM
+     "governmental_jobs_scaling_alloc",
+     "update_persons_jobs",
 
-    ## Scaling of unplaced HHs and jobs in control years
-    ########
-    #'scaling_unplaced_households',
-    #'scaling_unplaced_jobs',
+    # Scaling of unplaced HHs and jobs in control years
+    #######
+    'scaling_unplaced_households',
+    'scaling_unplaced_jobs',
     
-    ## Workplace models
-    ########
-    #"wahcm_simulate_alloc",
-    #"wplcm_simulate",
+    # Workplace models
+    #######
+    "wahcm_simulate_alloc",
+    "wplcm_simulate",
     
-    ## Cleanup city_id
-    ########
-    #"delete_subreg_geo_from_households",
-    #"delete_subreg_geo_from_jobs",
+    # Cleanup subreg_id
+    #######
+    "delete_subreg_geo_from_households",
+    "delete_subreg_geo_from_jobs",
     
-     'end_year'
+    'end_year'
 
 ], iter_vars=range(2019,2051), data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
