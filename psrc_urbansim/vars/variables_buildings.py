@@ -46,9 +46,13 @@ def building_type_name(buildings, building_types):
 def city_id(buildings, parcels):
     return misc.reindex(parcels.city_id, buildings.parcel_id)
 
-@orca.column('buildings', 'subreg_id', cache=True, cache_scope='iteration')
-def subreg_id(buildings, parcels):
-    return misc.reindex(parcels.subreg_id, buildings.parcel_id)
+@orca.column('buildings', 'control_id', cache=True, cache_scope='iteration')
+def control_id(buildings, parcels):
+    return misc.reindex(parcels.control_id, buildings.parcel_id)
+
+@orca.column('buildings', 'control_hct_id', cache=True, cache_scope='iteration')
+def control_hct_id(buildings, parcels):
+    return misc.reindex(parcels.control_hct_id, buildings.parcel_id)
 
 @orca.column('buildings', 'county_id', cache=True, cache_scope='iteration')
 def county_id(buildings, parcels):
@@ -229,6 +233,10 @@ def sqft_per_unit_imputed(buildings):
 # def faz_id(buildings, zones):
     # return misc.reindex(target_vacancies.target_vacancy_rate, buildings.index)
 
+@orca.column('buildings', 'subreg_id', cache=True, cache_scope='iteration')
+def subreg_id(buildings, parcels):
+    return misc.reindex(parcels.subreg_id, buildings.parcel_id)
+
 @orca.column('buildings', 'tractcity_id', cache=True)
 def tractcity_id(buildings, parcels):
     return misc.reindex(parcels.tractcity_id, buildings.parcel_id)
@@ -288,14 +296,6 @@ def pbsqft(buildings, parcels):
 @orca.column('buildings', 'target_id', cache=True, cache_scope='iteration')
 def target_id(buildings, parcels):
     return misc.reindex(parcels.target_id, buildings.parcel_id)
-
-@orca.column('buildings', 'control_id', cache=True, cache_scope='iteration')
-def control_id(buildings, parcels):
-    return misc.reindex(parcels.control_id, buildings.parcel_id)
-
-@orca.column('buildings', 'control_hct_id', cache=True, cache_scope='iteration')
-def control_hct_id(buildings, parcels):
-    return misc.reindex(parcels.control_hct_id, buildings.parcel_id)
 
 @orca.column('buildings', 'zone_control_hct_id', cache=True, cache_scope='iteration')
 def zone_control_hct_id(buildings, parcels):

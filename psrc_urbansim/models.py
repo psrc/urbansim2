@@ -556,7 +556,7 @@ def boost_density(buildings, attribute, year, base_year, conf):
     else:
         is_in = np.ones(len(buildings), dtype = "bool8")
     # if not first year boost new development only
-    if year > base_year:
+    if year > base_year + 1:
         is_in = np.logical_and(is_in, buildings.year_built == year)
     boost = conf.get("boost_factor", 1)
     buildings.update_col_from_series(attribute, (boost * buildings[attribute][is_in]).round(0), cast = True)  
@@ -716,14 +716,14 @@ def delete_subreg_geo_from_jobs(jobs, settings):
 @orca.step('cap_residential_development')
 def cap_residential_development(isCY, parcels, household_controls, year, control_years, settings):
     if not isCY:
-        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        subreg_geo_id = settings.get("control_geography_id", "subreg_id")
         return cap_development(parcels, household_controls, year, subreg_geo_id, control_years, 
                                "total_number_of_households", "residential_units", "cap_residential_development")
     
 @orca.step('cap_nonresidential_development')
 def cap_nonresidential_development(isCY, parcels, employment_controls, year, control_years, settings):
     if not isCY:
-        subreg_geo_id = settings.get("control_geography_id", "city_id")
+        subreg_geo_id = settings.get("control_geography_id", "subreg_id")
         return cap_development(parcels, employment_controls, year, subreg_geo_id, control_years, 
                                "total_number_of_jobs", "total_job_spaces", "cap_nonresidential_development")
 

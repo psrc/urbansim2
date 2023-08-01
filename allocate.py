@@ -81,7 +81,7 @@ def tables_in_base_year():
 # models for control years
 orca.run([
      'start_year',
-     
+  
      # Misc
      #######
      "update_household_previous_building_id",
