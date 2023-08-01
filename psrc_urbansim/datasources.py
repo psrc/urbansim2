@@ -55,9 +55,14 @@ def cities(store):
     df = store['cities']
     return df
 
-@orca.table('subregs', cache=True)
-def subregs(store):
-    df = store['subregs']
+@orca.table('controls', cache=True)
+def controls(store):
+    df = store['controls']
+    return df
+
+@orca.table('control_hcts', cache=True)
+def control_hcts(store):
+    df = store['control_hcts']
     return df
 
 @orca.table('buildings_lag1', cache=True)
@@ -263,6 +268,11 @@ def schools(store):
     df = store['schools']
     return df
 
+@orca.table('subregs', cache=True)
+def subregs(store):
+    df = store['subregs']
+    return df
+
 @orca.table('target_vacancies', cache=True)
 def target_vacancies(store):
     df = store['target_vacancies']
@@ -272,6 +282,11 @@ def target_vacancies(store):
 def target_vacancy(target_vacancies, year):
     df = target_vacancies.local[target_vacancies.index.get_level_values('year') == year]
     df.reset_index("year", drop=True, inplace=True) # remove year as index
+    return df
+
+@orca.table('targets', cache=True)
+def targets(store):
+    df = store['targets']
     return df
 
 @orca.table('tractcity', cache=True)
