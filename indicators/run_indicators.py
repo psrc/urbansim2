@@ -209,6 +209,7 @@ def compute_datasets(settings, iter_var, years_to_run):
 orca.run(['add_new_datasets', 'compute_indicators', 'compute_datasets'], iter_vars=years_to_run(settings(settings_file())))
 #orca.run(['compute_datasets'], iter_vars=[2050]) # can be used to create new_buildings only
 
+
 # While the step compute_datasets creates indicator files in each iteration, 
 # the step compute_indicators collects the results in orca tables. 
 # Therefore they need to be saved to disk in an extra step below.
