@@ -110,3 +110,24 @@ def population(fazes, households):
 def residetial_units(fazes, buildings):
     return buildings.residential_units.groupby(buildings.faz_id).sum().\
            reindex(fazes.index).fillna(0)
+
+@orca.column('fazes', 'Con_Res', cache=True, cache_scope='iteration')
+def Con_Res(fazes, zones):
+    return zones.Con_Res.groupby(zones.faz_id).sum().reindex(fazes.index).fillna(0)
+		
+@orca.column('fazes', 'Manuf_WTU', cache=True, cache_scope='iteration')
+def Manuf_WTU(fazes, zones):
+    return zones.Manuf_WTU.groupby(zones.faz_id).sum().reindex(fazes.index).fillna(0)
+
+@orca.column('fazes', 'Retail', cache=True, cache_scope='iteration')
+def Retail(fazes, zones):
+    return zones.Retail.groupby(zones.faz_id).sum().reindex(fazes.index).fillna(0)
+
+@orca.column('fazes', 'FIRES', cache=True, cache_scope='iteration')
+def FIRES(fazes):
+    return zones.FIRES.groupby(zones.faz_id).sum().reindex(fazes.index).fillna(0)
+		
+@orca.column('fazes', 'Edu', cache=True, cache_scope='iteration')
+def Edu(fazes):
+    return zones.Edu.groupby(zones.faz_id).sum().reindex(fazes.index).fillna(0)
+	
