@@ -13,7 +13,7 @@ years_all: [2018, 2050] # for annual indicator [start_year, end_year]
 years: [2018, 2020, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
 
 # Set this to false if running for annual years
-compute_dataset_tables: false # comment this out for non-annual years (or set it to true)
+compute_dataset_tables: true # comment this out for non-annual years (or set it to true)
 
 #new_datasets:
 #    cities:

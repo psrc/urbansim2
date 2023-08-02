@@ -32,3 +32,28 @@ def population(targets, households):
 def residetial_units(targets, buildings):
     return buildings.residential_units.groupby(buildings.target_id).sum().\
            reindex(targets.index).fillna(0)
+
+@orca.column('targets', 'Con_Res', cache=True, cache_scope='iteration')
+def Con_Res(targets, parcels):
+    return parcels.Con_Res.groupby(parcels.target_id).sum().reindex(targets.index).fillna(0)
+		
+@orca.column('targets', 'Manuf_WTU', cache=True, cache_scope='iteration')
+def Manuf_WTU(targets, parcels):
+    return parcels.Manuf_WTU.groupby(parcels.target_id).sum().reindex(targets.index).fillna(0)
+
+@orca.column('targets', 'Retail', cache=True, cache_scope='iteration')
+def Retail(targets, parcels):
+    return parcels.Retail.groupby(parcels.target_id).sum().reindex(targets.index).fillna(0)
+
+@orca.column('targets', 'FIRES', cache=True, cache_scope='iteration')
+def FIRES(targets, parcels):
+    return parcels.FIRES.groupby(parcels.target_id).sum().reindex(targets.index).fillna(0)
+	
+@orca.column('targets', 'Gov', cache=True, cache_scope='iteration')
+def Gov(targets, parcels):
+    return parcels.Gov.groupby(parcels.target_id).sum().reindex(targets.index).fillna(0)
+		
+@orca.column('targets', 'Edu', cache=True, cache_scope='iteration')
+def Edu(targets, parcels):
+    return parcels.Edu.groupby(parcels.target_id).sum().reindex(targets.index).fillna(0)
+	

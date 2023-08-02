@@ -124,10 +124,14 @@ def Retail(fazes, zones):
     return zones.Retail.groupby(zones.faz_id).sum().reindex(fazes.index).fillna(0)
 
 @orca.column('fazes', 'FIRES', cache=True, cache_scope='iteration')
-def FIRES(fazes):
+def FIRES(fazes, zones):
     return zones.FIRES.groupby(zones.faz_id).sum().reindex(fazes.index).fillna(0)
+	
+@orca.column('fazes', 'Gov', cache=True, cache_scope='iteration')
+def Gov(fazes, zones):
+    return zones.Gov.groupby(zones.faz_id).sum().reindex(fazes.index).fillna(0)
 		
 @orca.column('fazes', 'Edu', cache=True, cache_scope='iteration')
-def Edu(fazes):
+def Edu(fazes, zones):
     return zones.Edu.groupby(zones.faz_id).sum().reindex(fazes.index).fillna(0)
 	

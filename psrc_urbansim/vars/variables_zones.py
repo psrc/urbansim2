@@ -211,8 +211,8 @@ def residetial_units(zones, buildings):
     return buildings.residential_units.groupby(buildings.zone_id).sum().\
            reindex(zones.index).fillna(0)
 
-@orca.column('zones', 'Retail', cache=True, cache_scope='iteration')
-def Retail(zones, jobs):
+@orca.column('zones', 'Retail_only', cache=True, cache_scope='iteration')
+def Retail_only(zones, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 5)).groupby(jobs.job_zone_id).sum().\
 	        reindex(zones.index).fillna(0)
 
@@ -246,7 +246,31 @@ def trip_weighted_average_time_hbw_from_home_am_drive_alone(zones, travel_data):
 def WTU(zones, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 4)).groupby(jobs.job_zone_id).sum().\
 	        reindex(zones.index).fillna(0)
-													
+							
+@orca.column('zones', 'Con_Res', cache=True, cache_scope='iteration')
+def Con_Res(zones):
+    return zones.Natural_resources + zones.Construction							
+							
+@orca.column('zones', 'Manuf_WTU', cache=True, cache_scope='iteration')
+def Manuf_WTU(zones):
+    return zones.Manuf + zones.WTU
+
+@orca.column('zones', 'Retail', cache=True, cache_scope='iteration')
+def Retail(zones):
+    return zones.Retail_only + zones.Food_Services
+
+@orca.column('zones', 'FIRES', cache=True, cache_scope='iteration')
+def FIRES(zones):
+    return zones.Business_Services + zones.Healthcare + zones.Personal_Services
+
+@orca.column('zones', 'Gov', cache=True, cache_scope='iteration')
+def Gov(zones):
+    return zones.government
+
+@orca.column('zones', 'Edu', cache=True, cache_scope='iteration')
+def Edu(zones):
+    return zones.edu + zones.Private_Ed
+
 # Functions
 def number_of_jobs_of_sector(sector, zones, jobs):
     return (jobs.sector_id==sector).groupby(jobs.job_zone_id).sum().reindex(zones.index).fillna(0).astype("int32")

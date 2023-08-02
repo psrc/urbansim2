@@ -32,3 +32,29 @@ def population(control_hcts, households):
 def residetial_units(control_hcts, buildings):
     return buildings.residential_units.groupby(buildings.control_hct_id).sum().\
            reindex(control_hcts.index).fillna(0)
+
+
+@orca.column('control_hcts', 'Con_Res', cache=True, cache_scope='iteration')
+def Con_Res(control_hcts, parcels):
+    return parcels.Con_Res.groupby(parcels.control_hct_id).sum().reindex(control_hcts.index).fillna(0)
+		
+@orca.column('control_hcts', 'Manuf_WTU', cache=True, cache_scope='iteration')
+def Manuf_WTU(control_hcts, parcels):
+    return parcels.Manuf_WTU.groupby(parcels.control_hct_id).sum().reindex(control_hcts.index).fillna(0)
+
+@orca.column('control_hcts', 'Retail', cache=True, cache_scope='iteration')
+def Retail(control_hcts, parcels):
+    return parcels.Retail.groupby(parcels.control_hct_id).sum().reindex(control_hcts.index).fillna(0)
+
+@orca.column('control_hcts', 'FIRES', cache=True, cache_scope='iteration')
+def FIRES(control_hcts, parcels):
+    return parcels.FIRES.groupby(parcels.control_hct_id).sum().reindex(control_hcts.index).fillna(0)
+	
+@orca.column('control_hcts', 'Gov', cache=True, cache_scope='iteration')
+def Gov(control_hcts, parcels):
+    return parcels.Gov.groupby(parcels.control_hct_id).sum().reindex(control_hcts.index).fillna(0)
+		
+@orca.column('control_hcts', 'Edu', cache=True, cache_scope='iteration')
+def Edu(control_hcts, parcels):
+    return parcels.Edu.groupby(parcels.control_hct_id).sum().reindex(control_hcts.index).fillna(0)
+	

@@ -65,7 +65,7 @@ def Manuf(counties, jobs):
 	        reindex(counties.index).fillna(0)
 
 @orca.column('counties', 'Manuf_WTU', cache=True, cache_scope='iteration')
-def Manuf_WTU(counties, jobs):
+def Manuf_WTU(counties):
     return counties.Manuf + counties.WTU
 
 @orca.column('counties', 'Natural_resources', cache=True, cache_scope='iteration')

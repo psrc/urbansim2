@@ -442,6 +442,95 @@ def unit_price_trunc(parcels):
 def warehousing_job_spaces(parcels, buildings):
     return get_units_by_type(buildings.building_type_name == "warehousing", buildings, parcels, units_attribute = "job_spaces")
 
+
+# Jobs by sector
+@orca.column('parcels', 'Business_Services', cache=True, cache_scope='iteration')
+def Business_Services(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 7)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'Con_Res', cache=True, cache_scope='iteration')
+def Con_Res(parcels):
+    return parcels.Natural_resources + parcels.Construction
+
+@orca.column('parcels', 'Construction', cache=True, cache_scope='iteration')
+def Construction(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 2)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'Edu', cache=True, cache_scope='iteration')
+def Edu(parcels):
+    return parcels.edu + parcels.Private_Ed
+
+@orca.column('parcels', 'edu', cache=True, cache_scope='iteration')
+def edu(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 13)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'FIRES', cache=True, cache_scope='iteration')
+def FIRES(parcels):
+    return parcels.Business_Services + parcels.Healthcare + parcels.Personal_Services
+
+@orca.column('parcels', 'Food_Services', cache=True, cache_scope='iteration')
+def Food_Services(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 10)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'Gov', cache=True, cache_scope='iteration')
+def Gov(parcels):
+    return parcels.government
+
+@orca.column('parcels', 'government', cache=True, cache_scope='iteration')
+def government(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 12)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'Healthcare', cache=True, cache_scope='iteration')
+def Healthcare(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 9)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+
+@orca.column('parcels', 'Manuf', cache=True, cache_scope='iteration')
+def Manuf(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 3)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'Manuf_WTU', cache=True, cache_scope='iteration')
+def Manuf_WTU(parcels):
+    return parcels.Manuf + parcels.WTU
+
+@orca.column('parcels', 'Natural_resources', cache=True, cache_scope='iteration')
+def Natural_resources(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 1)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'Personal_Services', cache=True, cache_scope='iteration')
+def Personal_Services(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 11)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'Private_Ed', cache=True, cache_scope='iteration')
+def Private_Ed(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 8)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'Retail_only', cache=True, cache_scope='iteration')
+def Retail_only(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 5)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'Retail', cache=True, cache_scope='iteration')
+def Retail(parcels):
+    return parcels.Retail_only + parcels.Food_Services
+
+@orca.column('parcels', 'WTU', cache=True, cache_scope='iteration')
+def WTU(parcels, jobs):
+    return (jobs.number_of_jobs *(jobs.sector_id == 4)).groupby(jobs.parcel_id).sum().\
+           reindex(parcels.index).fillna(0)
+
+
+
 # Functions
 def get_ave_unit_size_by_zone(is_in, buildings, parcels):
     # Median building sqft per residential unit over zones

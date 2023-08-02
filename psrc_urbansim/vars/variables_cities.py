@@ -103,8 +103,8 @@ def residetial_units(cities, buildings):
     return buildings.residential_units.groupby(buildings.city_id).sum().\
            reindex(cities.index).fillna(0)
 
-@orca.column('cities', 'Retail', cache=True, cache_scope='iteration')
-def Retail(cities, jobs):
+@orca.column('cities', 'Retail_only', cache=True, cache_scope='iteration')
+def Retail_only(cities, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 5)).groupby(jobs.city_id).sum().\
 	        reindex(cities.index).fillna(0)
 
@@ -112,3 +112,27 @@ def Retail(cities, jobs):
 def WTU(cities, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 4)).groupby(jobs.city_id).sum().\
 	        reindex(cities.index).fillna(0)
+
+@orca.column('cities', 'Con_Res', cache=True, cache_scope='iteration')
+def Con_Res(cities):
+    return cities.Natural_resources + cities.Construction							
+							
+@orca.column('cities', 'Manuf_WTU', cache=True, cache_scope='iteration')
+def Manuf_WTU(cities):
+    return cities.Manuf + cities.WTU
+
+@orca.column('cities', 'Retail', cache=True, cache_scope='iteration')
+def Retail(cities):
+    return cities.Retail_only + cities.Food_Services
+
+@orca.column('cities', 'FIRES', cache=True, cache_scope='iteration')
+def FIRES(cities):
+    return cities.Business_Services + cities.Healthcare + cities.Personal_Services
+
+@orca.column('cities', 'Gov', cache=True, cache_scope='iteration')
+def Gov(cities):
+    return cities.government
+
+@orca.column('cities', 'Edu', cache=True, cache_scope='iteration')
+def Edu(cities):
+    return cities.edu + cities.Private_Ed
