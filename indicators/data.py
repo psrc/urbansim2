@@ -227,16 +227,16 @@ def parcels_geos(csv_store):
                        index_col='parcel_id')
 
 @orca.table('targets', cache=True, cache_scope='iteration')
-def targets(csv_store, year, base_year):
+def targets(store, year, base_year):
     return find_table_in_store('targets', store, year, base_year)
     #return pd.read_csv(os.path.join(csv_store, 'targets.csv'), index_col='target_id')
 
 @orca.table('controls', cache=True, cache_scope='iteration')
-def controls(csv_store, year, base_year):
+def controls(store, year, base_year):
     #return pd.read_csv(os.path.join(csv_store, 'controls.csv'), index_col='control_id')
     return find_table_in_store('controls', store, year, base_year)
 
 @orca.table('control_hcts', cache=True, cache_scope='iteration')
-def control_hcts(csv_store, year, base_year):
+def control_hcts(store, year, base_year):
     #return pd.read_csv(os.path.join(csv_store, 'control_hcts.csv'), index_col='control_hct_id')
     return find_table_in_store('control_hcts', store, year, base_year)
