@@ -117,7 +117,7 @@ def do_wahcm_simulate(persons, jobs, households, zones, subreg_geo_id = None):
             home_workers = work_at_home_prob.sample(len(home_based_jobs), weights = work_at_home_prob.values)
     else: # assign jobs located within the home-residence of workers
         home_workers = pd.Series([], dtype = work_at_home_prob.dtype)
-        selected_jobs = pd.Series([], dtype = home_based_jobs.dtype)
+        selected_jobs = pd.Series([], dtype = home_based_jobs.index.dtype)
         subregs = np.unique(persons[subreg_geo_id][work_at_home_prob.index])
         for subreg in subregs:
             this_hb_jobs = home_based_jobs[home_based_jobs[subreg_geo_id] == subreg]
