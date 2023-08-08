@@ -7,7 +7,7 @@
 # The input development_constraints table should contain column maxht (height) and lc (coverage).
 #
 # Hana Sevcikova (PSRC)
-# 2023/04/10
+# 2023/08/07
 
 library(data.table)
 
@@ -45,7 +45,10 @@ far <- constr[constraint_type == "far", .(max_far = min(maximum[maximum > 0])), 
 far[is.infinite(max_far), max_far := 0]
 
 
-allconstr <- merge(wconstr, merge(merge(dua, far, by = "plan_type_id"), htlc, by = "plan_type_id"), by = "plan_type_id")
+allconstr <- merge(wconstr, merge(merge(dua, far, by = "plan_type_id", all = TRUE), htlc, by = "plan_type_id", all = TRUE), by = "plan_type_id")
+# set missing values to 0
+for(col in c("max_du", "max_far", "max_height"))
+    allconstr[is.na(allconstr[[col]]), (col) := 0]
 
 # rename columns so that opus can translate it into the right type
 fcols <- c("max_du", "max_far", "max_coverage", "max_height") # float type
