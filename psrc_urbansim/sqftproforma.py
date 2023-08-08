@@ -527,7 +527,7 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
             min_far_ratio = 0.6
         else:
             min_far_ratio = 0.4
-        mask *= np.logical_or(np.nan_to_num(fars) > df.min_max_fars.values + .01, np.nan_to_num(fars) < df.min_max_fars.values*min_far_ratio)
+        mask *= np.logical_or(np.nan_to_num(fars) > df.min_max_fars.values + .01 * df.min_max_fars.values, np.nan_to_num(fars) < df.min_max_fars.values*min_far_ratio)
         fars[mask] = np.nan
 
         heights = np.repeat(heights, len(df.index), axis=1)
