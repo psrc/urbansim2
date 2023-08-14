@@ -412,7 +412,11 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
                 df['max_far_total'] = df.max_far_from_dua
             else:
                 # if it is a real mix of res and non-res, sum max_far and max_far_from_dua 
-                df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua, df.max_far + df.max_far_from_dua)            
+                #df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua, df.max_far + df.max_far_from_dua)
+                # if it is a real mix of res and non-res, do a linear combination of max_far and max_far_from_dua 
+                df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua, (1-resratio) * df.max_far + resratio * df.max_far_from_dua)                
+                # if it is a real mix of res and non-res, assume 
+                #df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua, df[['max_far', 'max_far_from_dua']].min(axis = 1))
             #return df[['max_far', 'max_far_from_dua', 'max_far_from_heights']].min(axis=1)
         else:
             # if max_far is given than take that otherwise max_far_from_heights

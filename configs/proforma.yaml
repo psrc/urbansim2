@@ -3,7 +3,7 @@ parcel_sizes:
 #- 20000
 
 fars:
-- 0.0003  # corresponds to 0.01 max_dua 
+#- 0.0003  # corresponds to 0.01 max_dua 
 - 0.00095 # 0.025 max_dua 
 - 0.0019 # 0.05 dua
 - 0.0035 # 0.1 dua
