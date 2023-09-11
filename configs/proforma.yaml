@@ -289,3 +289,8 @@ proposal_selection_attribute: building_sqft
 percent_of_max_profit: 80
 # is the above meant per group (True) or per parcel (False)
 percent_of_max_profit_per_group: True
+
+# maximum size of proposals
+maximum_proposal_size_restriction: True
+maximum_proposal_du: 1000
+maximum_proposal_nonres_sqft: 1000000

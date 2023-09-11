@@ -173,6 +173,9 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings['proposals_to_keep_per_form'] = all_default_settings.get('proposals_to_keep_per_form', None)
     local_settings['proposals_to_keep_per_group'] = all_default_settings.get('proposals_to_keep_per_group', None)
     local_settings['proposal_selection_attribute'] = all_default_settings.get('proposal_selection_attribute', "max_profit")
+    local_settings['maximum_proposal_size_restriction'] = all_default_settings.get('maximum_proposal_size_restriction', False)
+    local_settings['maximum_proposal_du'] = all_default_settings.get('maximum_proposal_du', 5000)
+    local_settings['maximum_proposal_nonres_sqft'] = all_default_settings.get('maximum_proposal_nonres_sqft', 5000000)
     pf = default_settings
     for attr in list(local_settings.keys()):
         setattr(pf, attr, local_settings[attr])
@@ -274,6 +277,19 @@ def run_feasibility(parcels, parcel_price_callback,
     
     # remove proposals below the minimum floor space
     feasibility = feasibility[feasibility.building_sqft > pf.minimum_floor_space]
+    
+    # remove proposals that have more units than the allowed maximum plus what is on the ground
+    if pf.maximum_proposal_size_restriction:
+        feasibility["current_nonres_sqft"] = parcels["nonres_sqft"] # includes mix-use buildings
+        feasibility["current_DU"] = parcels["residential_units"]
+        feasibility["ave_unit_size"] = 1000
+        feasibility.loc[feasibility.form == "mfr_apartment", "ave_unit_size"] = parcels["ave_unit_size_mf"]
+        feasibility.loc[feasibility.form == "sfr", "ave_unit_size"] = parcels["ave_unit_size_sf"]
+        feasibility = feasibility[np.logical_or(np.logical_and(np.in1d(feasibility.form, ["mfr_apartment", "sfr"]), feasibility.residential_sqft/feasibility.ave_unit_size <= feasibility.current_DU + pf.maximum_proposal_du),
+                                            np.logical_and(~np.in1d(feasibility.form, ["mfr_apartment", "sfr"]), feasibility.non_residential_sqft <= feasibility.current_nonres_sqft + pf.maximum_proposal_nonres_sqft)
+                                            )
+                              ]
+        feasibility.drop(["current_nonres_sqft", "current_DU", "ave_unit_size"], axis=1, inplace = True)
     
     # add form group
     feasibility = pd.merge(feasibility, pf.form_groups, left_on = "form", right_index = True)
@@ -527,11 +543,12 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
         # (so we can fillna with one of the other zoning constraints)
         fars = np.repeat(cost_sqft_index_col, len(df.index), axis=1)
         mask = ~np.isnan(fars)  # mask out existing nans for safer comparison
-        if form == "multi_family_residential":
+        if form == "mfr_apartment":
             min_far_ratio = 0.6
         else:
             min_far_ratio = 0.4
-        mask *= np.logical_or(np.nan_to_num(fars) > df.min_max_fars.values + .01 * df.min_max_fars.values, np.nan_to_num(fars) < df.min_max_fars.values*min_far_ratio)
+        mask *= np.logical_or(np.nan_to_num(fars) > df.min_max_fars.values + .01 * df.min_max_fars.values, 
+                              np.logical_and(np.nan_to_num(fars) < df.min_max_fars.values*min_far_ratio, np.nan_to_num(fars)*df.parcel_size.values < 500000))
         fars[mask] = np.nan
 
         heights = np.repeat(heights, len(df.index), axis=1)
