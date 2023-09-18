@@ -1,6 +1,6 @@
 import os
-os.sys.path.append(r'D:\udst\developer\developer')
-os.sys.path.append(r'D:\udst\developer')
+#os.sys.path.append(r'D:\udst\developer\developer')
+#os.sys.path.append(r'D:\udst\developer')
 import numpy as np
 import pandas as pd
 import orca
@@ -161,6 +161,7 @@ def do_process_mpds(mpds, buildings, remove_developed_buildings=True,
             old_buildings, mpds_df, unplace_agents)
     l2 = len(old_buildings)
     all_buildings = merge_buildings(old_buildings, mpds_df)
+    orca.add_table("buildings", all_buildings)
     logger.info("\nAdded {} buildings as MPDs. {} buildings removed.".format(len(mpds_df), l1 - l2))
     return 
     

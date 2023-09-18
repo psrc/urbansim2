@@ -395,6 +395,8 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
         """    
         
         df['max_far_from_heights_times_coverage'] = df.max_far_from_heights * df.max_coverage
+        df['max_far_times_coverage'] = df.max_far * df.max_coverage
+        
         if 'max_dua' in df.columns and resratio > 0:
             # if max_dua is in the data frame, ave_unit_size must also be there
             assert 'ave_unit_size' in df.columns
@@ -423,20 +425,24 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
                 # and it's just so much more transparent to have it in there
                 # twice
                 
-                df.parcel_size)
+                df.parcel_size
+            )
+            # times coverage
+            df['max_far_from_dua_times_coverage'] = df['max_far_from_dua'] * df.max_coverage
+            
             if resratio > 0.9999:
-                df['max_far_total'] = df.max_far_from_dua
+                df['max_far_total'] = df.max_far_from_dua_times_coverage
             else:
                 # if it is a real mix of res and non-res, sum max_far and max_far_from_dua 
                 #df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua, df.max_far + df.max_far_from_dua)
                 # if it is a real mix of res and non-res, do a linear combination of max_far and max_far_from_dua 
-                df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua, (1-resratio) * df.max_far + resratio * df.max_far_from_dua)                
+                df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua_times_coverage, (1-resratio) * df.max_far_times_coverage + resratio * df.max_far_from_dua_times_coverage)                
                 # if it is a real mix of res and non-res, assume 
                 #df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_dua, df[['max_far', 'max_far_from_dua']].min(axis = 1))
             #return df[['max_far', 'max_far_from_dua', 'max_far_from_heights']].min(axis=1)
         else:
             # if max_far is given than take that otherwise max_far_from_heights
-            df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_heights_times_coverage, df.max_far)
+            df['max_far_total'] = np.where(np.isnan(df.max_far), df.max_far_from_heights_times_coverage, df.max_far_times_coverage)
         # cap at max_far_from_heights
         return df[['max_far_total', 'max_far_from_heights_times_coverage']].min(axis=1)
         
@@ -530,9 +536,7 @@ class PSRCSqFtProForma(sqftproforma.SqFtProForma):
 
         # ZONING FILTERS
         # Minimize between max_fars and max_heights
-        df['max_far_from_heights'] = (df.max_height
-                                      / self.height_per_story
-                                      * self.parcel_coverage)
+        df['max_far_from_heights'] = df.max_height / self.height_per_story
 
         df['min_max_fars'] = self._min_max_fars(df, resratio)
 
