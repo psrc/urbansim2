@@ -728,10 +728,10 @@ class PSRCDeveloper(develop.Developer):
         # need to index by feasibility_id
         df["parcel_id"] = df.index
         dfc = df.set_index("feasibility_id", drop = False)
-        dfc['net_units_res'] = self.net_units[self.building_types.name[self.building_types.is_residential == 1]].sum(axis = 1)
-        dfc['net_units_nonres'] = self.net_units[self.building_types.name[self.building_types.is_residential == 0]].sum(axis = 1)
+        dfc['net_units_res'] = self.net_units[self.building_types.name[self.building_types.is_residential == 1]].sum(axis = 1).round()
+        dfc['net_units_nonres'] = self.net_units[self.building_types.name[self.building_types.is_residential == 0]].sum(axis = 1).round()
         # This is needed for some outputs (but does not make sense as we're adding DUs and job spaces)
-        dfc['net_units'] = self.net_units.sum(axis = 1)
+        dfc['net_units'] = self.net_units.sum(axis = 1).round()
         return dfc[(dfc.net_units_res > 0) | (dfc.net_units_nonres > 0)].set_index("parcel_id")
 
     

@@ -64,15 +64,14 @@ def building_sqft_wwd(parcels, gridcells, settings):
     from .abstract_variables import abstract_within_walking_distance_parcels
     return abstract_within_walking_distance_parcels("building_sqft_pcl", parcels, gridcells, settings)
 
-
-@orca.column('parcels', 'county_id', cache=True, cache_scope='iteration')
+@orca.column('parcels', 'county_id', cache=True, cache_scope='forever')
 def county_id(parcels, cities):
     return misc.reindex(cities.county_id, parcels.city_id)
 
 @orca.column('parcels', 'capacity_opportunity_non_gov', cache=True, cache_scope='iteration')
 def capacity_opportunity_non_gov(parcels):
     # use as a redevelopment filter (includes vacant parcels)
-    return np.logical_or(parcels.building_sqft_pcl == 0, # if no buildings on parcels return True
+    return np.logical_or(parcels.has_vacant_land, # has vacancy
         # OR the following chain of ANDs
         ((parcels.max_developable_capacity/parcels.building_sqft_pcl) > 3) & # parcel is not utilized
         (parcels.number_of_governmental_buildings == 0) & # no governmental buildings
@@ -88,7 +87,7 @@ def capacity_opportunity_non_gov(parcels):
 @orca.column('parcels', 'capacity_opportunity_non_gov_relaxed', cache=True, cache_scope='step')
 def capacity_opportunity_non_gov_relaxed(parcels):
     # use as a redevelopment filter in allocation mode (includes vacant parcels)
-    return np.logical_or(parcels.building_sqft_pcl == 0, # if no buildings on parcels return True
+    return np.logical_or(parcels.has_vacant_land, # has vacancy
         # OR the following chain of ANDs
         ((parcels.max_developable_capacity/parcels.building_sqft_pcl) > 1.1) & # parcel is not utilized
         (parcels.number_of_governmental_buildings == 0) & # no governmental buildings
@@ -143,6 +142,11 @@ def faz_id(parcels, zones):
     # print 'in parcels - growth_center_id'
     # return misc.reindex(parcels_geos.growth_center_id, parcels.faz_id)	
 
+
+@orca.column('parcels', 'generic_land_use_type_id', cache=True, cache_scope='iteration')
+def county_id(parcels, land_use_types):
+    return misc.reindex(land_use_types.generic_land_use_type_id, parcels.land_use_type_id)
+
 @orca.column('parcels', 'industrial_job_spaces', cache=True, cache_scope='step')
 def industrial_job_spaces(parcels, buildings):
     return get_units_by_type(buildings.building_type_name == "industrial", buildings, parcels, units_attribute = "job_spaces")
@@ -194,7 +198,7 @@ def max_developable_capacity(parcels, parcel_zoning):
     med_bld_sqft_per_du = 1870 # median of building sqft per unit in 2014
     values = parcel_zoning.local.loc[:, ["max_du", "max_far"]]
     values.loc[:, "max_far_from_dua"] = values.max_du / 43560.0 * med_bld_sqft_per_du
-    return (values[["max_far", "max_far_from_dua"]].max(axis = 1)*parcels.parcel_sqft).reindex(parcels.index).fillna(0)
+    return (values[["max_far", "max_far_from_dua"]].max(axis = 1)*parcels.parcel_sqft * parcels.max_coverage).reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'max_developable_nonresidential_capacity', cache=True, cache_scope='forever')
 def max_developable_nonresidential_capacity(parcels, parcel_zoning):
@@ -203,7 +207,7 @@ def max_developable_nonresidential_capacity(parcels, parcel_zoning):
     #values = parcel_zoning.local.loc[:, ["max_du", "max_far"]]
     values = parcel_zoning.local.loc[:, ["max_far"]]
     #values.loc[:, "max_far_from_dua"] = values.max_du / 43560.0 * med_bld_sqft_per_du
-    return (values.max_far * parcels.parcel_sqft).reindex(parcels.index).fillna(0)
+    return (values.max_far * parcels.parcel_sqft * parcels.max_coverage).reindex(parcels.index).fillna(0)
 	#return (parcel_zoning.max_far * parcels.parcel_sqft).reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'max_developable_residential_capacity', cache=True, cache_scope='forever')
@@ -212,7 +216,7 @@ def max_developable_residential_capacity(parcels, parcel_zoning):
     med_bld_sqft_per_du = 1870 # median of building sqft per unit in 2014
     values = parcel_zoning.local.loc[:, ["max_du"]]
     values.loc[:, "max_far_from_dua"] = values.max_du / 43560.0 * med_bld_sqft_per_du
-    return (values.max_far_from_dua * parcels.parcel_sqft).reindex(parcels.index).fillna(0)
+    return (values.max_far_from_dua * parcels.parcel_sqft * parcels.max_coverage).reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'max_dua', cache=True, cache_scope='forever')
 def max_dua(parcels, zoning_heights):
@@ -225,6 +229,11 @@ def max_far(parcels, zoning_heights):
 @orca.column('parcels', 'max_height', cache=True, cache_scope='forever')
 def max_height(parcels, zoning_heights):
     return misc.reindex(zoning_heights.max_height, parcels.plan_type_id)
+
+@orca.column('parcels', 'max_improvement_value', cache=True, cache_scope='step')
+def max_improvement_value(parcels, buildings):
+    return buildings.improvement_value.groupby(buildings.parcel_id).max().\
+           reindex(parcels.index).fillna(0)
 
 @orca.column('parcels', 'multi_family_residential_units', cache=True, cache_scope='step')
 def multi_family_residential_units(parcels, buildings):
@@ -484,6 +493,16 @@ def Gov(parcels):
 def government(parcels, jobs):
     return (jobs.number_of_jobs *(jobs.sector_id == 12)).groupby(jobs.parcel_id).sum().\
            reindex(parcels.index).fillna(0)
+
+@orca.column('parcels', 'has_vacant_land', cache=True, cache_scope='step')
+def has_vacant_land(parcels):
+    return np.logical_and(
+        np.logical_or(parcels.land_area == 0, # no built sqft 
+                      (np.in1d(parcels.generic_land_use_type_id, [1,2]) & # residential land use
+                         (parcels.parcel_sqft / parcels.land_area > 2.5) &  # the footprint is vary small
+                         (parcels.max_improvement_value < 200000)  # has small value
+                        )), 
+        parcels.number_of_governmental_buildings == 0) # does not have governmental buildings
 
 @orca.column('parcels', 'Healthcare', cache=True, cache_scope='iteration')
 def Healthcare(parcels, jobs):
