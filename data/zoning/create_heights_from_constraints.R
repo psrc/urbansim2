@@ -40,7 +40,7 @@ for(col in colnames(wconstr)[-1]) {
 htlc <- constr[, .(max_height = min(maxht), max_coverage = min(lc)), by = plan_type_id]
 
 dua <- constr[constraint_type == "units_per_acre", .(max_du = min(maximum[maximum > 0])), by = plan_type_id]
-dua[is.infinite(max_du), max_du := 0]
+dua[is.infinite(max_du), max_du := 0] # it happens if there are no maximum that are > 0 (used for lockouts)
 far <- constr[constraint_type == "far", .(max_far = min(maximum[maximum > 0])), by = plan_type_id]
 far[is.infinite(max_far), max_far := 0]
 
@@ -64,5 +64,5 @@ for(col in icols)
 fwrite(allconstr, file = "zoning_heights.csv")
 
 # export to Opus cache with 
-# python -m opus_core.tools.convert_table csv flt -d . -o  {dir}/opusgit/urbansim_data/data/psrc_parcel/base_year_2018_inputs/urbansim2_cache/2018 -t zoning_heights
+# python -m opus_core.tools.convert_table csv flt -d . -o  {dir}/base_year_2023_inputs/urbansim2_cache/2023_alloc -t zoning_heights
 
