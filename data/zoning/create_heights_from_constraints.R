@@ -7,13 +7,13 @@
 # The input development_constraints table should contain column maxht (height) and lc (coverage).
 #
 # Hana Sevcikova (PSRC)
-# 2023/08/07
+# 2024/12/17
 
 library(data.table)
 
 # read the constraints table (which includes coverage and max height)
 #constr.file <- "devconstr_2021-06-17.csv"
-constr.file <- "~/n$/base_year_2018_inputs/urbansim2_cache/additional_tables/devconstr_v2_2023-01-10.csv"
+constr.file <- "~/N/base_year_2023_inputs/urbansim2_cache/additional_tables/devconstr_v2_2024-09-17.csv"
 
 constr <- fread(constr.file)
 constr[, maxht := pmax(maxht, 12)] # minimum height
