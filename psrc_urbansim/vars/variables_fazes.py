@@ -15,7 +15,10 @@ def avg_school_score(fazes, schools):
     from the computation. Missing values are those that are less or equal zero.
     """    
     valid_idx = schools.total_score > 0
-    res = ndi.mean(schools.total_score.values[valid_idx.values], labels=schools.faz_id.values[valid_idx.values], index=fazes.index)
+    if valid_idx.sum() > 0:
+        res = ndi.mean(schools.total_score.values[valid_idx.values], labels=schools.faz_id.values[valid_idx.values], index=fazes.index)
+    else:
+        res = 0.0
     return pd.Series(res, index=fazes.index).fillna(0)
  
 @orca.column('fazes', 'building_sqft', cache=True, cache_scope='iteration')

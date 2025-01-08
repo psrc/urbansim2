@@ -61,9 +61,12 @@ In addition to Anaconda Python, three other packages (zbox, prettytable and pylo
   a) (recommended) If you are working with a conda environment, one can do the setting as follows:
 
    ```
-  conda env config vars set PYHTONPATH="D:/udst/psrc_urbansim;D:/udst/urbansim;D:/udst/urbansim_defaults;D:/udst/orca;D:/udst/choicemodels;D:/udst/developer;D:/udst/pandana"
-  conda env config vars set DATA_HOME="D:/udst/psrc_urbansim"
+  UDSTPATH="/d/udst"
+  conda env config vars set PYTHONPATH="$UDSTPATH/psrc_urbansim:$UDSTPATH/urbansim:$UDSTPATH/urbansim_defaults:$UDSTPATH/orca:$UDSTPATH/choicemodels:$UDSTPATH/developer:$UDSTPATH/pandana"
+  conda env config vars set DATA_HOME="$UDSTPATH/psrc_urbansim"
   ```
+  
+  Note that on Windows, if UDSTPATH is in a form of "D:/udst", use semicolons (;) as the path separators instead of colons (:) above.
      
    To check if it worked, re-activate the environment and list all environment variables in it:
      
@@ -76,8 +79,9 @@ In addition to Anaconda Python, three other packages (zbox, prettytable and pylo
    b) If you plan to switch between Opus and UrbanSim-2, but do not work with a conda environment, put these settings into a file that can be executed prior to working in the UrbanSim-2 environment. E.g. create a file ``setpath.bat`` with 
 
    ```
-   SET PYTHONPATH=D:/udst/psrc_urbansim;D:/udst/urbansim;D:/udst/urbansim_defaults;D:/udst/orca;D:/udst/choicemodels;D:/udst/developer;D:/udst/pandana
-   SET DATA_HOME=D:/udst/psrc_urbansim
+   UDSTPATH="D:/udst"
+   SET PYTHONPATH=$UDSTPATH/psrc_urbansim;$UDSTPATH/urbansim;$UDSTPATH/urbansim_defaults;$UDSTPATH/orca;$UDSTPATH/choicemodels;$UDSTPATH/developer;$UDSTPATH/pandana
+   SET DATA_HOME=$UDSTPATH/psrc_urbansim
    SET PATH=c:/Anaconda;c:/Anaconda/Scripts;%PATH%
    ```
    

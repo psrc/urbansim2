@@ -277,6 +277,8 @@ def psrc_to_frame(tbl, join_tbls, cfg, additional_columns=[], check_na = True):
 def _remove_developed_buildings(old_buildings, new_buildings, unplace_agents):
     # this is a copy from urbansim_defaults.utils, with prints changed to logger.info
     redev_buildings = old_buildings.parcel_id.isin(new_buildings.parcel_id)
+    if "not_demolish" in old_buildings.columns:
+        redev_buildings = redev_buildings & (old_buildings.not_demolish == False)
     l = len(old_buildings)
     drop_buildings = old_buildings[redev_buildings]
 
