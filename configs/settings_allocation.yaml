@@ -20,7 +20,7 @@ households_transition:
   remove_columns: []
   add_columns: ["subreg_id", "county_id"] # non-local (computed) columns
   sampling_threshold_alloc: 0.3
-  sampling_hierarchy_alloc: ["county_id", "subreg_id"]
+  sampling_hierarchy_alloc: ["persons_max", "persons_min", "county_id", "subreg_id"]
 
 jobs_transition:
   remove_columns: []
