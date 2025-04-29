@@ -527,6 +527,11 @@ def update_buildings_lag1(buildings):
     df = buildings.to_frame(buildings.local_columns)
     orca.add_table('buildings_lag1', df, cache=True)
 
+@orca.step('update_building_type_condo')
+def update_building_type_condo(buildings):
+    buildings.update_col_from_series("building_type_id",
+                                     pd.Series(np.where((buildings.building_type_id == 4).values, 12, buildings.building_type_id.values),
+                                               index = buildings.index))
 
 #@orca.step('clear_cache')
 ##def clear_cache():
@@ -570,7 +575,9 @@ def proforma_feasibility_alloc(isCY, parcels, uses_and_forms, parcel_price_place
                          parcel_is_allowed_func, set_ave_unit_size_func, settings)
     logger.info("Running proforma_feasibility for non-control year")
     return proforma_feasibility(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 
-                         parcel_is_allowed_func_with_cap, set_ave_unit_size_func, settings)
+                         #parcel_is_allowed_func_with_cap,
+                         parcel_is_allowed_func,
+                         set_ave_unit_size_func, settings)
 
 @orca.step('proforma_feasibility_CY') # for running in control years, should have relaxed redevelopment filter
 def proforma_feasibility_CY(parcels, uses_and_forms, parcel_price_placeholder, parcel_sales_price_func, 

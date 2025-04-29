@@ -103,17 +103,26 @@ def compute_target_units(vacancy_rate, unlimited = False):
         vac = pd.concat((pfbt, vacancy_rate.local, pf.residential_uses), axis=1)
         vac = vac.loc[~np.isnan(vac.is_residential.values),:]
         bld = orca.get_table("buildings")
-        agents_attr = {0: "number_of_jobs", 1: "number_of_households"}
+        agents_attr = {0: "number_of_non_home_based_jobs", 1: "number_of_households"}
         units_attr = {0: "job_spaces", 1: "residential_units"}
+        total_agents = {0: (orca.get_table("jobs").home_based_status == 0).sum(), 1: orca.get_table("households").local.shape[0]}
+        # to be used in denominator; needed for the proportions to sum to 1
+        number_of_agents_in_bld_types = {0: (bld[agents_attr[0]] * np.in1d(bld["building_type_id"], vac.index)).sum(),
+                                         1: (bld[agents_attr[1]] * np.in1d(bld["building_type_id"], vac.index)).sum()
+                                         }        
         target_units = {}
         for bt in vac.index:
-            agentattr = agents_attr[vac.loc[bt].is_residential]
-            unitattr = units_attr[vac.loc[bt].is_residential]
-            is_builting_type = bld["building_type_id"] == bt
-            number_of_agents = (bld[agentattr] * is_builting_type).sum()
-            existing_units =  (bld[unitattr] * is_builting_type).sum()
+            is_res = vac.loc[bt].is_residential
+            agentattr = agents_attr[is_res]
+            unitattr = units_attr[is_res]
+            is_building_type = bld["building_type_id"] == bt
+            number_of_agents_placed = (bld[agentattr] * is_building_type).sum() # these are placed agents
+            proportion = number_of_agents_placed / number_of_agents_in_bld_types[is_res]
+            # how many agents are to be added without taking into account vacancy rate
+            new_demand_no_vacancy = (total_agents[is_res] - bld[agentattr].sum()) * proportion
+            existing_units =  (bld[unitattr] * is_building_type).sum()
             target_units[vac.loc[bt].use] = np.round(max(
-                (number_of_agents / (1 - vac.loc[bt].target_vacancy_rate) - existing_units), 0))
+                (new_demand_no_vacancy + number_of_agents_placed) / (1 - vac.loc[bt].target_vacancy_rate) - existing_units, 0))
     tu = pd.DataFrame({'building_type_name': list(target_units.keys()),
                        "target_units": list(target_units.values())})
     tu = tu.set_index('building_type_name')
@@ -123,29 +132,32 @@ def compute_target_units_for_subarea(id, subreg_geo = "city_id", vacancy_factor 
     pf = orca.get_injectable("pf_config")
     pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
     pfbt = pd.concat((pfbt, pf.residential_uses), axis=1)
-    agents_attr = {0: "number_of_jobs", 1: "number_of_households"}
+    agents_attr = {0: "number_of_non_home_based_jobs", 1: "number_of_households"}
     units_attr = {0: "job_spaces", 1: "residential_units"}
     bld = orca.get_table("buildings")
     is_in_subarea = bld[subreg_geo] == id
-    number_of_agents_in_subarea = {0: (bld[agents_attr[0]] * is_in_subarea).sum(),
-                                   1: (bld[agents_attr[1]] * is_in_subarea).sum()
+    number_of_agents_in_subarea = {0: (bld[agents_attr[0]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.index)).sum(),
+                                   1: (bld[agents_attr[1]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.index)).sum()
                                    }
-    demand = {0: np.round(vacancy_factor * ( orca.get_table("jobs")[subreg_geo] == id).sum()),
+    number_of_units_in_subarea = {0: (bld[units_attr[0]] * is_in_subarea).sum(),
+                                  1: (bld[units_attr[1]] * is_in_subarea).sum()
+                                  }
+    demand = {0: np.round(vacancy_factor * ( (orca.get_table("jobs")[subreg_geo] == id) & (orca.get_table("jobs").home_based_status == 0)).sum()),
               1: np.round(vacancy_factor * ( orca.get_table("households")[subreg_geo] == id).sum())
               }
     target_units = {}
     for bt in pfbt.index:
         is_res = pfbt.loc[bt].is_residential
         agentattr = agents_attr[is_res]
-        unitattr = units_attr[is_res]
+        #unitattr = units_attr[is_res]
         is_building_type_in_subarea = (bld["building_type_id"] == bt) & is_in_subarea
-        existing_units_in_bt_subarea =  (bld[unitattr] * is_building_type_in_subarea).sum()
+        #existing_units_in_bt_subarea =  (bld[unitattr] * is_building_type_in_subarea).sum()
         if number_of_agents_in_subarea[is_res] == 0: # get regional proportion
-            proportion = (bld[agentattr] * (bld["building_type_id"] == bt)).sum()/float(bld[agentattr].sum())
+            proportion = (bld[agentattr] * (bld["building_type_id"] == bt)).sum()/float((bld[agentattr] * np.in1d(bld["building_type_id"], pfbt.index)).sum())
         else: # get subregional proportion            
             number_of_agents_in_bt_subarea = (bld[agentattr] * is_building_type_in_subarea).sum()            
             proportion = max(number_of_agents_in_bt_subarea, 1) / float(number_of_agents_in_subarea[is_res])
-        target_units[pfbt.loc[bt].use] = max(np.round(proportion * demand[is_res]) - existing_units_in_bt_subarea, 0)
+        target_units[pfbt.loc[bt].use] = max(np.round(proportion * (demand[is_res] - number_of_units_in_subarea[is_res])), 0)
     tu = pd.DataFrame({'building_type_name': list(target_units.keys()),
                         "target_units": list(target_units.values())})
     tu = tu.set_index('building_type_name')

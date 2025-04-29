@@ -1,10 +1,10 @@
 #store: results_alloc_footloose_cap_20200205.h5
 #store: results_alloc_BY2018_20221220.h5
-store: results_alloc_20250421.h5
+store: results_alloc_20250428.h5
 #store: /Volumes/Model\ Data\ 2/vision2050/opusgit/urbansim_data/data/psrc_parcel/runs/awsmodel07/runUS2_20191125_alloc_stc/results_alloc_stc_20191125.h5
 #output_directory:  run_20200210_JF
 #output_directory:  run_20200210_JF_62pseudo
-output_directory:  run_alloc_20250421/indicators
+output_directory:  run_alloc_20250428_no_cap/indicators
 
 base_year: 2023
 

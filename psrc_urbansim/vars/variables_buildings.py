@@ -131,7 +131,7 @@ def is_warehouse(buildings):
 @orca.column('buildings', 'job_spaces', cache=False)
 def job_spaces(buildings):
     # TODO: get base year as an argument
-    base_year = 2014
+    base_year = 2023
     results = np.zeros(buildings.local.shape[0],dtype=np.int32)
     is_existing = np.logical_or(buildings.year_built <= base_year, buildings.job_capacity > 0)
     iexisting = np.where(is_existing)[0]

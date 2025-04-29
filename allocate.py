@@ -86,6 +86,7 @@ orca.run([
      #######
      "update_household_previous_building_id",
      "update_buildings_lag1",
+     "update_building_type_condo",
      
      # REPM
      #######
@@ -102,8 +103,8 @@ orca.run([
      # Developer 
      #######
      "process_mpds",
-     "cap_residential_development",
-     "cap_nonresidential_development",     
+     #"cap_residential_development",
+     #"cap_nonresidential_development",     
      "proforma_feasibility_alloc",
      "developer_picker_alloc",
      

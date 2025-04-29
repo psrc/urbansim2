@@ -8,7 +8,7 @@ from urbansim_defaults import datasources
 import warnings
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 
-orca.add_injectable('base_year', 2018)
+orca.add_injectable('base_year', 2023)
 @orca.injectable()
 def year(base_year):
     if 'iter_var' in orca.list_injectables():

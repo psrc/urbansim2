@@ -109,7 +109,7 @@ cap_rate: 1
 
 parking_rates:
     single_family_residential: 1.
-#    condo_residential: 0.75
+    #condo_residential: 0.75
     multi_family_residential: 1.
     commercial: 2.
     #commercial: 0.75
