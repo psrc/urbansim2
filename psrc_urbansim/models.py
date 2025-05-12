@@ -317,10 +317,10 @@ def run_households_transition(households, household_controls,
     logger.info("Net change: {} persons (before: {}, after: {})".format(persons.local.shape[0] - orig_size_pers, orig_size_pers, persons.local.shape[0]))
     
     # need to make some updates to the persons & households table
-    households = update_local_scope(households, "is_inmigrant", 
-                                    np.where(~households.index.isin (orig_hh_index), 1, 0))
     households = update_local_scope(households, "previous_building_id", 
                                     np.where(~households.index.isin (orig_hh_index), -1, households.previous_building_id))
+    households = update_local_scope(households, "is_inmigrant", 
+                                    np.where(households.previous_building_id < 0, 1, 0))
     
     # new workers dont have jobs yet, set job_id to -1
     persons = update_local_scope(persons, "job_id", 
@@ -458,7 +458,7 @@ def run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeho
     
 @orca.step('developer_picker')
 def developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, proposal_selection, building_sqft_per_job):
-    target_units = psrcdev.compute_target_units(target_vacancy, unlimited = False)
+    target_units = psrcdev.compute_target_units(target_vacancy, unlimited = False, vacancy_rate_value = 0.02)
     new_buildings = psrcdev.run_developer(forms = [],
                         agents = None,
                         buildings = buildings,

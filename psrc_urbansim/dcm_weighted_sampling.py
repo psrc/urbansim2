@@ -129,11 +129,11 @@ def lcm_simulate_sample(cfg, choosers, sample_field, buildings, min_overfull_bui
     # sometimes there are vacant units for buildings that are not in the
     # locations_df, which happens for reasons explained in the warning below
     indexes = np.repeat(vacant_units.index.values,
-                        vacant_units.values.astype('int'))
+                        vacant_units.values.astype('int')) # one element per vacant unit
     isin = pd.Series(indexes).isin(locations_df.index)
     missing = len(isin[isin == False])
     indexes = indexes[isin.values]
-    units = locations_df.loc[indexes].reset_index()
+    units = locations_df.loc[indexes].reset_index() # data frame with one row per vacant unit
     #check_nas(units)
 
     logger.info("    for a total of %d temporarily empty units" % vacant_units.sum())
@@ -147,7 +147,7 @@ def lcm_simulate_sample(cfg, choosers, sample_field, buildings, min_overfull_bui
     movers = choosers_df[choosers_df[out_fname] == -1]
     logger.info("There are %d total movers for this LCM" % len(movers))
 
-    units, movers = sample_weights(units, movers, sample_field, percent_sample)
+    units, movers = sample_weights(units, movers, sample_field, percent_sample) # add columns to the datasets of units and movers
     weight_columns_map = {}
 
     for large_area in movers[sample_field].unique():
@@ -156,7 +156,7 @@ def lcm_simulate_sample(cfg, choosers, sample_field, buildings, min_overfull_bui
     mnl = yaml_to_class(cfg).from_yaml(None, cfg)
     dcm_weighted = MNLDiscreteChoiceModelWeightedSamples(sample_field, mnl, weight_columns_map)
     
-    start_time = timeit.default_timer()
+    #start_time = timeit.default_timer()
    
     new_units, probabilities = dcm_weighted.predict_weighted(movers, units)
 
@@ -167,7 +167,8 @@ def lcm_simulate_sample(cfg, choosers, sample_field, buildings, min_overfull_bui
     choosers.update_col_from_series(out_fname, new_buildings, cast=cast)
     _log_number_unplaced(choosers, out_fname)
 
-    resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units, cast = cast)
+    # this is commented out because it's not working as it should (vacant units seems to be computed wrong)
+    #resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_overfull_buildings, new_buildings, probabilities, new_units, units, cast = cast)
 
     if enable_supply_correction is not None:
         new_prices = buildings[price_col]
@@ -400,7 +401,7 @@ def resim_overfull_buildings(buildings, vacant_fname, choosers, out_fname, min_o
     # choosers_filter and location_filter should be logical arrays, if given
     from psrc_urbansim.utils import _log_number_unplaced
     
-    # buildings in this sample set
+    # buildings in this sample set (regardless if they were selected or not)
     loc_filter = buildings.index.isin(units[out_fname].loc[probabilities.index.get_level_values('alternative_id')])
     if location_filter is not None:
         loc_filter = np.logical_and(loc_filter, location_filter)
@@ -810,6 +811,17 @@ class  PSRC_MNLDiscreteChoiceModel(dcm.MNLDiscreteChoiceModel):
                     probs.index.values, p=probs.values / probs.sum())
             choices = probabilities.groupby(level='chooser_id', sort=False)\
                 .apply(mkchoice)
+            dupl =  choices.duplicated()
+            i = 0
+            while dupl.sum() > 0 and i < 5: # duplicates were selected; resample
+                if i == 0:
+                    new_prob = probabilities
+                new_prob = new_prob[np.logical_and(~new_prob.index.get_level_values('alternative_id').isin(choices),
+                                                        new_prob.index.get_level_values('chooser_id').isin(dupl[dupl == True].index))]
+                new_choices = new_prob.groupby(level='chooser_id', sort=False).apply(mkchoice)
+                choices.loc[new_choices.index] = new_choices
+                dupl =  new_choices.duplicated()
+                i = i + 1
         else:
             raise ValueError(
                 'Unrecognized choice_mode option: {}'.format(self.choice_mode))

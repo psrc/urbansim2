@@ -24,6 +24,7 @@ estimation_sample_size: null # #choosers in estimation
 
 prediction_sample_size: 30 # #alternatives in prediction 
 
+
 default_config: 
     # inmigrants
     model_expression: I((income>0)*1):I(1*(np.logical_or(mortgage_cost/income < 0.1, mortgage_cost/income > 0.3))) + 
@@ -94,6 +95,6 @@ fitted: false
 
 choice_mode: individual
 
-remove_alts: false
+remove_alts: true
 
 probability_mode: full_product

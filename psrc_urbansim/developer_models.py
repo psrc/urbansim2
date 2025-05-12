@@ -36,6 +36,9 @@ def proposal_selection(self, proposals, p, targets):
     pf = self.pf_config
     all_choices = pd.Series([], dtype = "int32")
     
+    #bld = orca.get_table("buildings")
+    #units_attr = {0: "job_spaces", 1: "residential_units"}
+    
     # working proposal dataset - to be reduced in each iteration
     df = proposals.copy()
     
@@ -58,6 +61,16 @@ def proposal_selection(self, proposals, p, targets):
     while len(df) > 0:        
         # Sample by chunks and check vacancy after each step
         choice_idx = pd.Series(weighted_random_choice_multiparcel_by_count(df, p, count = min(chunksize, df.shape[0])))
+        #existing buildings
+        #exist_bld = bld["building_type_id"][np.in1d(bld["parcel_id"], df.loc[choice_idx].parcel_id)]
+        ## add demolished units to targets
+        #for bidx in exist_bld.index:
+            #bt =  exist_bld.loc[bidx]
+            #is_res = pf.residential_uses.loc[bt]
+            #unitattr = units_attr[is_res]            
+            #targets.loc[pf.uses[pf.residential_uses.index == bt][0]] = targets.loc[pf.uses[pf.residential_uses.index == bt][0]] + bld[unitattr].loc[bidx]
+            
+        # add to already chosen proposals
         all_choices = pd.concat([all_choices, choice_idx])
         # remove proposals that:
         proposals_to_remove = pd.concat([pd.Series( 
@@ -94,7 +107,7 @@ def filter_by_vacancy(df, uses, targets, net_units, choices = None):
     return vacancy_met.unique()
 
     
-def compute_target_units(vacancy_rate, unlimited = False):
+def compute_target_units(vacancy_rate, unlimited = False, vacancy_rate_value = None):
     pf = orca.get_injectable("pf_config")
     if unlimited:
         target_units = dict.fromkeys(pf.uses)
@@ -102,6 +115,10 @@ def compute_target_units(vacancy_rate, unlimited = False):
         pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
         vac = pd.concat((pfbt, vacancy_rate.local, pf.residential_uses), axis=1)
         vac = vac.loc[~np.isnan(vac.is_residential.values),:]
+        
+        if vacancy_rate_value is not None:
+            vac.target_vacancy_rate = vacancy_rate_value
+
         bld = orca.get_table("buildings")
         agents_attr = {0: "number_of_non_home_based_jobs", 1: "number_of_households"}
         units_attr = {0: "job_spaces", 1: "residential_units"}
@@ -123,12 +140,13 @@ def compute_target_units(vacancy_rate, unlimited = False):
             existing_units =  (bld[unitattr] * is_building_type).sum()
             target_units[vac.loc[bt].use] = np.round(max(
                 (new_demand_no_vacancy + number_of_agents_placed) / (1 - vac.loc[bt].target_vacancy_rate) - existing_units, 0))
+                
     tu = pd.DataFrame({'building_type_name': list(target_units.keys()),
                        "target_units": list(target_units.values())})
     tu = tu.set_index('building_type_name')
     return tu
     
-def compute_target_units_for_subarea(id, subreg_geo = "city_id", vacancy_factor = 1.05):
+def compute_target_units_for_subarea(id, subreg_geo = "city_id", vacancy_factor = 1.02):
     pf = orca.get_injectable("pf_config")
     pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
     pfbt = pd.concat((pfbt, pf.residential_uses), axis=1)

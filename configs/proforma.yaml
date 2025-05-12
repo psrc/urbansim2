@@ -278,8 +278,8 @@ proposals_to_keep: 57 # should be not larger than the number of FARs (currently 
 #proposals_to_keep_per_form: 1
 proposals_to_keep_per_group: 5
 proposals_to_keep_per_parcel: 20
-#proposal_selection_attribute: max_profit
-proposal_selection_attribute: building_sqft
+proposal_selection_attribute: max_profit
+#proposal_selection_attribute: building_sqft
 
 
 # exclude proposals based on percentage of max profit

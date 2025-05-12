@@ -27,6 +27,7 @@ estimation_sample_size: null
 
 prediction_sample_size: 30
 
+
 default_config:
     model_expression: I((income>0)*1):I(1*(np.logical_or(mortgage_cost/income < 0.1,
         mortgage_cost/income > 0.3))) + ln_price_residual_residential + multifamily_generic_type
@@ -145,6 +146,6 @@ fitted: true
 
 choice_mode: individual
 
-remove_alts: false
+remove_alts: true
 
 probability_mode: full_product
