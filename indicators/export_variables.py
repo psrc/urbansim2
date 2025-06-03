@@ -9,7 +9,7 @@ import re
 
 @orca.injectable('input_file')
 def input_file():
-    return "psrc_base_year_2018_alloc_py3.h5"
+    return "psrc_base_year_2023_alloc_py3.h5"
 
 
 @orca.injectable('settings', cache=True)

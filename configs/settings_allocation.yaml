@@ -34,6 +34,6 @@ household_location_choice_model_CY:
 employment_location_choice_model_CY:
   prediction_sample_size: 100
   
-hlcmcoef_file: hlcmcoef.yaml
+hlcmcoef_file: hlcmcoef_opus.yaml
 #hlcmcoef_file: hlcmcoef_alloc_luv.yaml
 hlcmcoefCY_file: hlcmcoef_alloc_luv.yaml

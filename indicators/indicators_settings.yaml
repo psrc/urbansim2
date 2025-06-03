@@ -1,16 +1,16 @@
 #store: results_alloc_footloose_cap_20200205.h5
 #store: results_alloc_BY2018_20221220.h5
-store: results_alloc_20250507.h5
+store: results_alloc_20250602.h5
 #store: /Volumes/Model\ Data\ 2/vision2050/opusgit/urbansim_data/data/psrc_parcel/runs/awsmodel07/runUS2_20191125_alloc_stc/results_alloc_stc_20191125.h5
 #output_directory:  run_20200210_JF
 #output_directory:  run_20200210_JF_62pseudo
-output_directory:  run_alloc_20250507_as0505_vac2pc_hlcm_remalts/indicators
+output_directory:  run_alloc_20250602_as0507_opus_hlcmcoefs/indicators
 
 base_year: 2023
 
 # Note: for the dashboard run run_indicators.py twice, once with "years" commented out and once without. 
-years_all: [2023, 2050] # for annual indicator [start_year, end_year]
-#years: [2023, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
+#years_all: [2023, 2050] # for annual indicator [start_year, end_year]
+years: [2023, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
 
 compute_dataset_tables: true # non-annual years 
 #compute_dataset_tables: false # annual years
