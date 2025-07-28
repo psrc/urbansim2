@@ -6,6 +6,7 @@ from urbansim.utils import misc, yamlio
 from urbansim_defaults.utils import to_frame, yaml_to_class, check_nas
 from urbansim.models.regression import YTRANSFORM_MAPPING
 from urbansim.models import util, transition
+from psrc_urbansim.transition import PSRCTabularTotalsTransition
 import os
 from psrc_urbansim.dcm_weighted_sampling import PSRC_SegmentedMNLDiscreteChoiceModel, MNLDiscreteChoiceModelWeightedSamples, resim_overfull_buildings
 
@@ -359,11 +360,13 @@ def full_transition(agents, agent_controls, year, settings, location_fname, link
     tran = transition.TabularTotalsTransition(ct, settings['total_column'],
                                               sampling_threshold = sampling_threshold,
                                               sampling_hierarchy = sampling_hierarchy)
-    model = transition.TransitionModel(tran)
+    model = PSRCTabularTotalsTransition(tran)
     new, added_hh_idx, new_linked = model.transition(hh, year, linked_tables=linked_tables)
+    
     new.loc[added_hh_idx, location_fname] = -1
     print("Total agents after transition: {}".format(len(new)))
     orca.add_table(agents.name, new)
     for table_name, table in new_linked.items():
         print("Total %s after transition: %s" % (table_name, len(table)))
         orca.add_table(table_name, table)
+
