@@ -758,23 +758,28 @@ def cap_development(parcels, control_totals, year, geo_id, control_years,
 def households_events_model(households, households_events, year, buildings, settings):
     run_agent_events_model(households, households_events, year, settings, geo_id = "parcel_id", 
                            location_characteristics = ['subreg_id', 'building_type_id'],
-                           disaggregate_to = buildings, disaggregation_weight_column = "residential_units")
+                           disaggregate_to = buildings, disaggregation_weight_column = "residential_units",
+                           linked_tables={"persons": 'household_id'})
 
 @orca.step('households_zone_events_model')
 def households_zone_events_model(households, households_zone_events, year, buildings, settings):
     run_agent_events_model(households, households_zone_events, year, settings, geo_id = "zone_id", 
                            location_characteristics = ['subreg_id'], disaggregate_to = buildings, 
-                           disaggregation_weight_column = "residential_units")
+                           disaggregation_weight_column = "residential_units",
+                           linked_tables={"persons": 'household_id'})
     
 @orca.step('households_zone_control_hct_events_model')
 def households_zone_control_hct_events_model(households, households_zone_control_hct_events, year, buildings, settings):
     run_agent_events_model(households, households_zone_control_hct_events, year, settings, geo_id = "zone_control_hct_id", 
                            location_characteristics = ['subreg_id'], disaggregate_to = buildings, 
-                           disaggregation_weight_column = "residential_units")
+                           disaggregation_weight_column = "residential_units",
+                           linked_tables={"persons": 'household_id'})
 
 
 def run_agent_events_model(agents, events, year, settings, geo_id, location_characteristics = [], 
-                           disaggregate_to = None, disaggregation_weight_column = None):
+                           disaggregate_to = None, disaggregation_weight_column = None, linked_tables = None):
+    from  psrc_urbansim.transition import _update_linked_table
+    
     year_events = events.to_frame()[events.scheduled_year == year]
     if len(year_events) == 0:
         return
@@ -783,6 +788,7 @@ def run_agent_events_model(agents, events, year, settings, geo_id, location_char
     nagents_orig = len(agents)
     max_agent_id = agents_df.index.max()
     all_added_agents = {}
+    linked_tables = linked_tables or {}
     
     year_events = year_events.sort_values("change_type", ascending=False) # sort so that "D"s are first
     unplaced_agents = pd.Series([], dtype = agents.index.dtype)
@@ -824,7 +830,7 @@ def run_agent_events_model(agents, events, year, settings, geo_id, location_char
                 update_local_scope(agents, disaggregate_to.index.name, 
                                 np.where(agents.index.isin(agents_to_unplace), -1, agents[disaggregate_to.index.name]))
             unplaced_agents = pd.concat([unplaced_agents, pd.Series(agents_to_unplace)])
-            logger.info("{} agents deleted from location {}".format(len(agents_to_unplace), location_id))
+            logger.info("{} agents unplaced from location {}".format(len(agents_to_unplace), location_id))
             
         elif year_events.iloc[irow].change_type == "A":  # add agents
 
@@ -849,7 +855,6 @@ def run_agent_events_model(agents, events, year, settings, geo_id, location_char
                 new_locations = np.array([location_id] * count)
                 location_name = geo_id
                 
-            
             # determine agents with the desire characteristics to impute missing characteristics to the new agents
             loc_indicator = pd.Series(True, index = agents_df.index)
             loc_indicator_pool = pd.Series(True, index = unplaced_agents)
@@ -896,7 +901,13 @@ def run_agent_events_model(agents, events, year, settings, geo_id, location_char
             all_added_agents[location_id] = pd.DataFrame(data).set_index(agents_df.index.name)
             max_agent_id = all_added_agents[location_id].index.max()
             logger.info('%s agents added to location %s (%s unplaced and %s new agents)' % (count, location_id, count - new_count, new_count))
-    
+            # sync linked tables (e.g. households and persons)
+            for table_name, col in linked_tables.items():
+                table = orca.get_table(table_name).local
+                logger.debug('updating linked table {}'.format(table_name))
+                new_table = _update_linked_table(table, col, data[agents_df.index.name], sampled_agents, [])
+                orca.add_table(table_name, new_table)
+
     if len(all_added_agents) > 0:
         new_agents = pd.concat(all_added_agents.values())
         agents_final = pd.concat([agents.to_frame(agents.local_columns), new_agents[agents.local_columns]])
