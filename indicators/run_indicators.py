@@ -206,7 +206,8 @@ def compute_datasets(settings, iter_var, years_to_run):
             
 
 # Compute indicators
-orca.run(['add_new_datasets', 'compute_indicators', 'compute_datasets'], iter_vars=years_to_run(settings(settings_file())))
+#orca.run(['add_new_datasets', 'compute_indicators', 'compute_datasets'], iter_vars=years_to_run(settings(settings_file())))
+orca.run(['compute_datasets'], iter_vars=years_to_run(settings(settings_file())))
 #orca.run(['compute_datasets'], iter_vars=[2050]) # can be used to create new_buildings only
 #orca.run(['add_new_datasets', 'compute_datasets'], iter_vars=years_to_run(settings(settings_file()))) # use this if only datasets should be created
 

@@ -124,9 +124,12 @@ def compute_target_units(vacancy_rate, unlimited = False, vacancy_rate_value = N
         units_attr = {0: "job_spaces", 1: "residential_units"}
         total_agents = {0: (orca.get_table("jobs").home_based_status == 0).sum(), 1: orca.get_table("households").local.shape[0]}
         # to be used in denominator; needed for the proportions to sum to 1
-        number_of_agents_in_bld_types = {0: (bld[agents_attr[0]] * np.in1d(bld["building_type_id"], vac.index)).sum(),
-                                         1: (bld[agents_attr[1]] * np.in1d(bld["building_type_id"], vac.index)).sum()
-                                         }        
+        #number_of_agents_in_bld_types = {0: (bld[agents_attr[0]] * np.in1d(bld["building_type_id"], vac.loc[vac.is_residential == 0].index)).sum(),
+        #                                 1: (bld[agents_attr[1]] * np.in1d(bld["building_type_id"], vac.loc[vac.is_residential == 1].index)).sum()
+        #                                 }
+        tot_units_of_bld_types = {0: (bld[units_attr[0]] * np.in1d(bld["building_type_id"], vac.loc[vac.is_residential == 0].index)).sum(),
+                                  1: (bld[units_attr[1]] * np.in1d(bld["building_type_id"], vac.loc[vac.is_residential == 1].index)).sum()
+                                         }           
         target_units = {}
         for bt in vac.index:
             is_res = vac.loc[bt].is_residential
@@ -134,10 +137,10 @@ def compute_target_units(vacancy_rate, unlimited = False, vacancy_rate_value = N
             unitattr = units_attr[is_res]
             is_building_type = bld["building_type_id"] == bt
             number_of_agents_placed = (bld[agentattr] * is_building_type).sum() # these are placed agents
-            proportion = number_of_agents_placed / number_of_agents_in_bld_types[is_res]
-            # how many agents are to be added without taking into account vacancy rate
-            new_demand_no_vacancy = (total_agents[is_res] - bld[agentattr].sum()) * proportion
             existing_units =  (bld[unitattr] * is_building_type).sum()
+            proportion = existing_units / tot_units_of_bld_types[is_res]
+            # how many agents are to be added without taking into account vacancy rate
+            new_demand_no_vacancy = (total_agents[is_res] - (bld[agentattr] * np.in1d(bld["building_type_id"], vac.loc[vac.is_residential == is_res].index)).sum()) * proportion
             target_units[vac.loc[bt].use] = np.round(max(
                 (new_demand_no_vacancy + number_of_agents_placed) / (1 - vac.loc[bt].target_vacancy_rate) - existing_units, 0))
                 
@@ -150,31 +153,38 @@ def compute_target_units_for_subarea(id, subreg_geo = "city_id", vacancy_factor 
     pf = orca.get_injectable("pf_config")
     pfbt = pd.DataFrame({"use": pf.uses}, index=pf.residential_uses.index)
     pfbt = pd.concat((pfbt, pf.residential_uses), axis=1)
-    agents_attr = {0: "number_of_non_home_based_jobs", 1: "number_of_households"}
+    #agents_attr = {0: "number_of_non_home_based_jobs", 1: "number_of_households"}
     units_attr = {0: "job_spaces", 1: "residential_units"}
     bld = orca.get_table("buildings")
     is_in_subarea = bld[subreg_geo] == id
-    number_of_agents_in_subarea = {0: (bld[agents_attr[0]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.index)).sum(),
-                                   1: (bld[agents_attr[1]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.index)).sum()
-                                   }
-    number_of_units_in_subarea = {0: (bld[units_attr[0]] * is_in_subarea).sum(),
-                                  1: (bld[units_attr[1]] * is_in_subarea).sum()
+    #number_of_agents_in_subarea = {0: (bld[agents_attr[0]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.index)).sum(),
+    #                               1: (bld[agents_attr[1]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.index)).sum()
+    #                               }
+    number_of_units_in_subarea = {0: (bld[units_attr[0]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 0].index)).sum(),
+                                  1: (bld[units_attr[1]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 1].index)).sum()
                                   }
+    number_of_units = {0: (bld[units_attr[0]] * np.in1d(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 0].index)).sum(),
+                       1: (bld[units_attr[1]] * np.in1d(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 1].index)).sum()
+                        }    
     demand = {0: np.round(vacancy_factor * ( (orca.get_table("jobs")[subreg_geo] == id) & (orca.get_table("jobs").home_based_status == 0)).sum()),
               1: np.round(vacancy_factor * ( orca.get_table("households")[subreg_geo] == id).sum())
               }
     target_units = {}
     for bt in pfbt.index:
         is_res = pfbt.loc[bt].is_residential
-        agentattr = agents_attr[is_res]
-        #unitattr = units_attr[is_res]
+        #agentattr = agents_attr[is_res]
+        unitattr = units_attr[is_res]
         is_building_type_in_subarea = (bld["building_type_id"] == bt) & is_in_subarea
-        #existing_units_in_bt_subarea =  (bld[unitattr] * is_building_type_in_subarea).sum()
-        if number_of_agents_in_subarea[is_res] == 0: # get regional proportion
-            proportion = (bld[agentattr] * (bld["building_type_id"] == bt)).sum()/float((bld[agentattr] * np.in1d(bld["building_type_id"], pfbt.index)).sum())
+        existing_units_in_bt_subarea =  (bld[unitattr] * is_building_type_in_subarea).sum()
+        if existing_units_in_bt_subarea == 0: # get regional proportion
+            proportion = (bld[unitattr] * (bld["building_type_id"] == bt)).sum()/float(number_of_units[is_res])
         else: # get subregional proportion            
-            number_of_agents_in_bt_subarea = (bld[agentattr] * is_building_type_in_subarea).sum()            
-            proportion = max(number_of_agents_in_bt_subarea, 1) / float(number_of_agents_in_subarea[is_res])
+            proportion = existing_units_in_bt_subarea / number_of_units_in_subarea[is_res]
+        #if number_of_agents_in_subarea[is_res] == 0: # get regional proportion
+        #    proportion = (bld[agentattr] * (bld["building_type_id"] == bt)).sum()/float((bld[agentattr] * np.in1d(bld["building_type_id"], pfbt.index)).sum())
+        #else: # get subregional proportion            
+        #    number_of_agents_in_bt_subarea = (bld[agentattr] * is_building_type_in_subarea).sum()            
+        #    proportion = max(number_of_agents_in_bt_subarea, 1) / float(number_of_agents_in_subarea[is_res])
         target_units[pfbt.loc[bt].use] = max(np.round(proportion * (demand[is_res] - number_of_units_in_subarea[is_res])), 0)
     tu = pd.DataFrame({'building_type_name': list(target_units.keys()),
                         "target_units": list(target_units.values())})
@@ -276,13 +286,21 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     buildings with available debugging information on each new building
     """
     cfg = misc.config(cfg)
-
-    if num_units_to_build is not None:
-        target_units = num_units_to_build
+    cfg_dict = devutils.yaml_to_dict(yaml_str = None, str_or_buffer=cfg)
+    
+    if num_units_to_build is None:
+        target_units = compute_target_units(target_vacancy, unlimited = cfg_dict.get("unlimited", False),
+                                            vacancy_rate_value = cfg_dict.get("vacancy_rate_value", None))
     else:
-        #compute_units_to_build(agents, supply_fname, target_vacancy)
-        compute_units_to_build(len(agents), buildings[supply_fname].sum(),
-                               target_vacancy)        
+        target_units = num_units_to_build
+        
+
+    #if num_units_to_build is not None:
+#        target_units = num_units_to_build
+    #else:
+#        #compute_units_to_build(agents, supply_fname, target_vacancy)
+#        compute_units_to_build(len(agents), buildings[supply_fname].sum(),
+#                               target_vacancy)        
     #dev = develop.Developer.from_yaml(
     dev = PSRCDeveloper.from_yaml(
                                       feasibility.to_frame(), forms,
@@ -292,6 +310,7 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
                                       keep_suboptimal=keep_suboptimal)
     # keep developer config
     dev.config = devutils.yaml_to_dict(yaml_str = None, str_or_buffer=cfg)
+
     
     logger.info("{:,} feasible proposals on {:,} parcels before running developer".format( 
         len(dev.feasibility), len(np.unique(dev.feasibility.parcel_id))))
@@ -322,7 +341,7 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     return new_buildings
 
 
-def run_developer_CY(subreg_geo_id, feasibility, buildings, **kwargs):
+def run_developer_CY(subreg_geo_id, feasibility, buildings, cfg, **kwargs):
     """
     Run the developer model by subarea.
 
@@ -330,6 +349,10 @@ def run_developer_CY(subreg_geo_id, feasibility, buildings, **kwargs):
     # disaggregate subreg_geo
     parcels = orca.get_table("parcels")
     feasibility[subreg_geo_id] = misc.reindex(parcels[subreg_geo_id], feasibility.parcel_id)
+
+    cfg = misc.config(cfg)
+    cfg_dict = devutils.yaml_to_dict(yaml_str = None, str_or_buffer=cfg)
+
 
     # loop over subregions
     subregs = np.unique(feasibility[subreg_geo_id])
@@ -342,11 +365,11 @@ def run_developer_CY(subreg_geo_id, feasibility, buildings, **kwargs):
     for subreg in subregs:
         logger.info("\n---- Subregion {} ----".format(subreg))
         print("\n---- Subregion {} ----".format(subreg))
-        target_units = compute_target_units_for_subarea(subreg, subreg_geo_id)
+        target_units = compute_target_units_for_subarea(subreg, subreg_geo_id, vacancy_factor = cfg_dict.get("vacancy_factor", 1.02))
         feas = feasibility.local.loc[feasibility[subreg_geo_id] == subreg]
         orca.add_table("feasibility", feas) # this is to create an orca table
         newbldgs = run_developer(feasibility = orca.get_table("feasibility"), num_units_to_build = target_units, 
-                                 buildings = buildings, **kwargs)
+                                 buildings = buildings, cfg = cfg, **kwargs)
         if new_buildings is None:
             new_buildings = newbldgs
         else:

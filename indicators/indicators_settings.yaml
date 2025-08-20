@@ -1,10 +1,10 @@
 #store: results_alloc_footloose_cap_20200205.h5
 #store: results_alloc_BY2018_20221220.h5
-store: results_alloc_20250728.h5
+store: results_alloc_20250819.h5
 #store: /Volumes/Model\ Data\ 2/vision2050/opusgit/urbansim_data/data/psrc_parcel/runs/awsmodel07/runUS2_20191125_alloc_stc/results_alloc_stc_20191125.h5
-output_directory:  run_test
+#output_directory:  run_test
 #output_directory:  run_20200210_JF_62pseudo
-output_directory:  run_alloc_20250728_as0602_transmod_fixed/indicators
+output_directory:  run_alloc_20250819_as0729_fixedvac3p/indicators
 
 base_year: 2023
 
@@ -12,8 +12,8 @@ base_year: 2023
 years_all: [2023, 2050] # for annual indicator [start_year, end_year]
 #years: [2023, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
 
-#compute_dataset_tables: true # non-annual years 
-compute_dataset_tables: false # annual years
+compute_dataset_tables: true # non-annual years 
+#compute_dataset_tables: false # annual years
 
 #new_datasets:
 #    cities:

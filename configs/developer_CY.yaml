@@ -15,3 +15,5 @@ residential: None
 # because we sample this number of proposals and do not 
 # remove those that are above the vacancy need
 chunk_size: 10
+
+vacancy_factor: 1.02

@@ -10,3 +10,7 @@ max_parcel_size: 50000000
 drop_after_build: True
 
 residential: None
+
+unlimited: False
+
+vacancy_rate_value: 0.03

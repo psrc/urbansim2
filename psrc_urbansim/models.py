@@ -458,7 +458,6 @@ def run_proforma_feasibility_model(parcels, uses_and_forms, parcel_price_placeho
     
 @orca.step('developer_picker')
 def developer_picker(feasibility, buildings, parcels, year, target_vacancy, proposal_selection_probabilities, proposal_selection, building_sqft_per_job):
-    target_units = psrcdev.compute_target_units(target_vacancy, unlimited = False, vacancy_rate_value = 0.02)
     new_buildings = psrcdev.run_developer(forms = [],
                         agents = None,
                         buildings = buildings,
@@ -470,7 +469,8 @@ def developer_picker(feasibility, buildings, parcels, year, target_vacancy, prop
                                          "condo_residential": parcels.ave_unit_size_condo},
                         cfg = 'developer.yaml',
                         year = year,
-                        num_units_to_build = target_units,
+                        target_vacancy = target_vacancy, 
+                        num_units_to_build = None,
                         add_more_columns_callback = add_extra_columns,
                         #profit_to_prob_func = proposal_selection_probabilities,
                         custom_selection_func = proposal_selection,
