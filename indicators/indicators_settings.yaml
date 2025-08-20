@@ -9,11 +9,11 @@ output_directory:  run_alloc_20250819_as0729_fixedvac3p/indicators
 base_year: 2023
 
 # Note: for the dashboard run run_indicators.py twice, once with "years" commented out and once without. 
-years_all: [2023, 2050] # for annual indicator [start_year, end_year]
-#years: [2023, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
+#years_all: [2023, 2050] # for annual indicator [start_year, end_year]
+years: [2023, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
 
-compute_dataset_tables: true # non-annual years 
-#compute_dataset_tables: false # annual years
+#compute_dataset_tables: true # annual years 
+compute_dataset_tables: false # non-annual years
 
 #new_datasets:
 #    cities:
