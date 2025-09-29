@@ -58,3 +58,23 @@ def Gov(controls, parcels):
 def Edu(controls, parcels):
     return parcels.Edu.groupby(parcels.control_id).sum().reindex(controls.index).fillna(0)
 	
+@orca.column('controls', 'building_sqft', cache=True, cache_scope='iteration')
+def building_sqft(controls, parcels):
+    return parcels.building_sqft_pcl.groupby(parcels.subreg_id).sum().\
+	        reindex(controls.index).fillna(0)
+	
+	
+@orca.column('controls', 'max_developable_capacity', cache=True, cache_scope='iteration')
+def max_developable_capacity(controls, parcels):
+    return parcels.max_developable_capacity.groupby(parcels.subreg_id).sum().\
+	        reindex(controls.index).fillna(0)
+
+@orca.column('controls', 'max_developable_nonresidential_capacity', cache=True, cache_scope='iteration')
+def max_developable_nonresidential_capacity(controls, parcels):
+    return parcels.max_developable_nonresidential_capacity.groupby(parcels.subreg_id).sum().\
+	        reindex(controls.index).fillna(0)
+
+@orca.column('controls', 'max_developable_residential_capacity', cache=True, cache_scope='iteration')
+def max_developable_residential_capacity(controls, parcels):
+    return parcels.max_developable_residential_capacity.groupby(parcels.subreg_id).sum().\
+	        reindex(controls.index).fillna(0)

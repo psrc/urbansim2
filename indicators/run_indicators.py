@@ -133,12 +133,14 @@ def add_new_datasets(settings, iter_var):
         orca.add_table(dsname, orca_ds)
     
 @orca.step()
-def compute_indicators(settings, iter_var, is_annual):
+def compute_indicators(settings, iter_var, is_annual, years_to_run):
     # loop over indicators and datasets from settings and store into file
     suffix = ""
     if is_annual:
         suffix = "An"
     for ind, value in settings.get('indicators', {}).items():
+        if iter_var not in value.get('year', years_to_run):
+            continue
         for ds in value.get('dataset', {}):
             df = orca.get_table(ds)[ind].to_frame()
             #print 'ds is %s, ind is %s and iter_var is %s' % (ds, ind, iter_var)
