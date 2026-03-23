@@ -372,7 +372,7 @@ def run_jobs_transition(jobs, employment_controls, year, settings, is_allocation
 
 @orca.step('governmental_jobs_scaling')
 def governmental_jobs_scaling(jobs, buildings, year, settings):
-    jobs_to_place_bool = np.logical_and(np.in1d(jobs.sector_id,
+    jobs_to_place_bool = np.logical_and(np.isin(jobs.sector_id,
                                               [12, 13]), jobs.building_id < 0)
     logger.info("Locating {} governmental jobs".format(sum(jobs_to_place_bool)))
     loc_ids = run_scaling('number_of_governmental_jobs', jobs, jobs_to_place_bool, buildings, year, settings)
@@ -557,7 +557,7 @@ def boost_nonresidential_density(buildings, year, settings):
 def boost_density(buildings, attribute, year, base_year, conf):
     filter = conf.get("filter", None)
     if filter:
-        is_in = buildings[filter].astype('bool8')
+        is_in = buildings[filter].astype('bool')
     else:
         is_in = np.ones(len(buildings), dtype = "bool8")
     # if not first year boost new development only
@@ -678,7 +678,7 @@ def elcm_simulate_alloc(isCY, jobs, buildings, parcels, zones, gridcells, settin
 @orca.step('governmental_jobs_scaling_alloc')
 def governmental_jobs_scaling_alloc(isCY, jobs, buildings, year, settings):
     if isCY:
-        jobs_to_place_bool = np.logical_and(np.in1d(jobs.sector_id,
+        jobs_to_place_bool = np.logical_and(np.isin(jobs.sector_id,
                                                   [12, 13]), jobs.building_id < 0)
         logger.info("Locating {} governmental jobs by subregion".format(sum(jobs_to_place_bool)))
         loc_ids = run_scaling('number_of_governmental_jobs', jobs, jobs_to_place_bool, buildings, year, settings, is_allocation = True)

@@ -371,7 +371,9 @@ def total_job_spaces(parcels, buildings):
 
 @orca.column('parcels', 'total_land_value_per_sqft', cache=True, cache_scope='step')
 def total_land_value_per_sqft(parcels):
-    return (parcels.land_cost/parcels.parcel_sqft).replace(np.inf, 0).fillna(0)
+    col = (parcels.land_cost/parcels.parcel_sqft).replace(np.inf, 0).fillna(0)
+    col.clip(lower=0, inplace=True)
+    return col
 
 @orca.column('parcels', 'unit_name', cache=True)
 def unit_name(parcels, land_use_types):
@@ -498,8 +500,8 @@ def government(parcels, jobs):
 def has_vacant_land(parcels):
     return np.logical_and(
         np.logical_or(parcels.land_area == 0, # no built sqft 
-                      (np.in1d(parcels.generic_land_use_type_id, [1,2]) & # residential land use
-                         (parcels.parcel_sqft / parcels.land_area > 2.5) &  # the footprint is vary small
+                      (np.isin(parcels.generic_land_use_type_id, [1,2]) & # residential land use
+                         (parcels.parcel_sqft / parcels.land_area > 2.5) &  # the footprint is very small
                          (parcels.max_improvement_value < 200000)  # has small value
                         )), 
         parcels.number_of_governmental_buildings == 0) # does not have governmental buildings

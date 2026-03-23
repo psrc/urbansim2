@@ -7,7 +7,7 @@ from urbansim.utils import misc
 @orca.injectable('store', cache=True)
 def store(settings):
     #print os.path.join(os.getenv('DATA_HOME'), settings["store"])
-    return pd.HDFStore(os.path.join(os.getenv('DATA_HOME'), settings["store"]), mode='r')
+    return pd.HDFStore(os.path.join(os.getenv('DATA_HOME'), "data", settings["store"]), mode='r')
 
 @orca.injectable('csv_store', cache=True)
 def csv_store():
@@ -61,7 +61,7 @@ def find_table_in_store(table, store, year, base_year):
 #        print 'returning /%s/%s' % ("base", table) #for debugging purposes only
 #        print store['%s/%s' % ("base", table)].head()
 #            return store['/%s/%s' % ("base", table)]
-        return store['/%s/%s' % ("base", table)]
+        return store[table]
     
 def find_cities_in_store(table, store, year, base_year, csv_store):
     searchyear = year

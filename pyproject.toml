@@ -1,0 +1,21 @@
+[project]
+name = "urbansim2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "developer",
+    "patsy",
+    "pylogit",
+    "urbansim",
+    "urbansim-defaults",
+    "zbox>=1.2.0",
+]
+
+[tool.uv.sources]
+urbansim = { path = "../urbansim", editable = true }
+urbansim-defaults = { path = "../urbansim_defaults", editable = true }
+developer = { path = "../developer", editable = true }
+pylogit = { path = "../pylogit", editable = true }
+patsy = { path = "../patsy", editable = true }

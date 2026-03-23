@@ -161,6 +161,8 @@ def households(store):
         df['previous_building_id'] = df['building_id']
     if not 'is_inmigrant' in df.columns:
         df['is_inmigrant'] = 0
+    if not 'subreg_id' in df.columns:
+        df['subreg_id'] = -1
     return df
 
 @orca.table('households_lag1', cache=True)
@@ -208,6 +210,8 @@ def jobs(store):
     # below needed to run urbansim_utilties.lcm_simulate
     df['number_of_jobs'] = 1
     df['vacant_jobs'] = 1
+    if not 'subreg_id' in df.columns:
+        df['subreg_id'] = -1
     return df
 
 @orca.table('jobs_for_estimation', cache=True)
@@ -313,7 +317,7 @@ def zones(store):
 def zoning_heights(store, generic_land_use_types):
     df = store['zoning_heights']
     # set max_far to nan for records that do not allow non-res
-    is_allowed = np.zeros(df.shape[0], dtype = "bool8")
+    is_allowed = np.zeros(df.shape[0], dtype = "bool")
     for glu in generic_land_use_types.local.loc[generic_land_use_types.is_residential == False].generic_land_use_type_name.values:
         if glu in df.columns:
             is_allowed = is_allowed + (df[glu] > 0).values

@@ -285,10 +285,9 @@ def run_feasibility(parcels, parcel_price_callback,
         feasibility["ave_unit_size"] = 1000
         feasibility.loc[feasibility.form == "mfr_apartment", "ave_unit_size"] = parcels["ave_unit_size_mf"]
         feasibility.loc[feasibility.form == "sfr", "ave_unit_size"] = parcels["ave_unit_size_sf"]
-        feasibility = feasibility[np.logical_or(np.logical_and(np.in1d(feasibility.form, ["mfr_apartment", "sfr"]), feasibility.residential_sqft/feasibility.ave_unit_size <= feasibility.current_DU + pf.maximum_proposal_du),
-                                            np.logical_and(~np.in1d(feasibility.form, ["mfr_apartment", "sfr"]), feasibility.non_residential_sqft <= feasibility.current_nonres_sqft + pf.maximum_proposal_nonres_sqft)
-                                            )
-                              ]
+        feasibility = feasibility[np.logical_or(np.logical_and(np.isin(feasibility.form, ["mfr_apartment", "sfr"]), feasibility.residential_sqft/feasibility.ave_unit_size <= feasibility.current_DU + pf.maximum_proposal_du),
+                            np.logical_and(~np.isin(feasibility.form, ["mfr_apartment", "sfr"]), feasibility.non_residential_sqft <= feasibility.current_nonres_sqft + pf.maximum_proposal_nonres_sqft)
+                            )]
         feasibility.drop(["current_nonres_sqft", "current_DU", "ave_unit_size"], axis=1, inplace = True)
     
     # add form group

@@ -127,8 +127,8 @@ def compute_target_units(vacancy_rate, unlimited = False, vacancy_rate_value = N
         #number_of_agents_in_bld_types = {0: (bld[agents_attr[0]] * np.in1d(bld["building_type_id"], vac.loc[vac.is_residential == 0].index)).sum(),
         #                                 1: (bld[agents_attr[1]] * np.in1d(bld["building_type_id"], vac.loc[vac.is_residential == 1].index)).sum()
         #                                 }
-        tot_units_of_bld_types = {0: (bld[units_attr[0]] * np.in1d(bld["building_type_id"], vac.loc[vac.is_residential == 0].index)).sum(),
-                                  1: (bld[units_attr[1]] * np.in1d(bld["building_type_id"], vac.loc[vac.is_residential == 1].index)).sum()
+        tot_units_of_bld_types = {0: (bld[units_attr[0]] * np.isin(bld["building_type_id"], vac.loc[vac.is_residential == 0].index)).sum(),
+                      1: (bld[units_attr[1]] * np.isin(bld["building_type_id"], vac.loc[vac.is_residential == 1].index)).sum()
                                          }           
         target_units = {}
         for bt in vac.index:
@@ -140,7 +140,7 @@ def compute_target_units(vacancy_rate, unlimited = False, vacancy_rate_value = N
             existing_units =  (bld[unitattr] * is_building_type).sum()
             proportion = existing_units / tot_units_of_bld_types[is_res]
             # how many agents are to be added without taking into account vacancy rate
-            new_demand_no_vacancy = (total_agents[is_res] - (bld[agentattr] * np.in1d(bld["building_type_id"], vac.loc[vac.is_residential == is_res].index)).sum()) * proportion
+            new_demand_no_vacancy = (total_agents[is_res] - (bld[agentattr] * np.isin(bld["building_type_id"], vac.loc[vac.is_residential == is_res].index)).sum()) * proportion
             target_units[vac.loc[bt].use] = np.round(max(
                 (new_demand_no_vacancy + number_of_agents_placed) / (1 - vac.loc[bt].target_vacancy_rate) - existing_units, 0))
                 
@@ -160,11 +160,11 @@ def compute_target_units_for_subarea(id, subreg_geo = "city_id", vacancy_factor 
     #number_of_agents_in_subarea = {0: (bld[agents_attr[0]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.index)).sum(),
     #                               1: (bld[agents_attr[1]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.index)).sum()
     #                               }
-    number_of_units_in_subarea = {0: (bld[units_attr[0]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 0].index)).sum(),
-                                  1: (bld[units_attr[1]] * is_in_subarea * np.in1d(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 1].index)).sum()
+    number_of_units_in_subarea = {0: (bld[units_attr[0]] * is_in_subarea * np.isin(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 0].index)).sum(),
+                                  1: (bld[units_attr[1]] * is_in_subarea * np.isin(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 1].index)).sum()
                                   }
-    number_of_units = {0: (bld[units_attr[0]] * np.in1d(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 0].index)).sum(),
-                       1: (bld[units_attr[1]] * np.in1d(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 1].index)).sum()
+    number_of_units = {0: (bld[units_attr[0]] * np.isin(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 0].index)).sum(),
+                       1: (bld[units_attr[1]] * np.isin(bld["building_type_id"], pfbt.loc[pfbt.is_residential == 1].index)).sum()
                         }    
     demand = {0: np.round(vacancy_factor * ( (orca.get_table("jobs")[subreg_geo] == id) & (orca.get_table("jobs").home_based_status == 0)).sum()),
               1: np.round(vacancy_factor * ( orca.get_table("households")[subreg_geo] == id).sum())

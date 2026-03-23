@@ -9,7 +9,9 @@ fit_filters:
 - total_land_value_per_sqft >= 1
 - total_land_value_per_sqft < 1096.63
 
-predict_filters: null
+predict_filters:
+- parcel_sqft > 0
+
 
 min_segment_size: 10
 

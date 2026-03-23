@@ -79,7 +79,7 @@ def is_office(buildings_lag1):
 
 @orca.column('buildings_lag1', 'is_residential', cache=True, cache_scope='iteration')
 def is_residential(buildings_lag1, building_types):
-    return (misc.reindex(building_types.is_residential, buildings_lag1.building_type_id) == 1).astype("bool8")
+    return (misc.reindex(building_types.is_residential, buildings_lag1.building_type_id) == 1).astype("bool")
 
 @orca.column('buildings_lag1', 'is_tcu', cache=True, cache_scope='iteration')
 def is_tcu(buildings_lag1):
@@ -124,7 +124,7 @@ def multifamily_generic_type(buildings_lag1):
 
 @orca.column('buildings_lag1', 'number_of_governmental_jobs', cache=True, cache_scope='step')
 def number_of_governmental_jobs(buildings_lag1, jobs):
-    return jobs.sector_id.groupby(jobs.building_id[np.in1d(jobs.sector_id, [18, 19])]).size().reindex(buildings_lag1.index).fillna(0).astype("int32")
+    return jobs.sector_id.groupby(jobs.building_id[np.isin(jobs.sector_id, [18, 19])]).size().reindex(buildings_lag1.index).fillna(0).astype("int32")
 
 @orca.column('buildings_lag1', 'number_of_households', cache=True, cache_scope='step')
 def number_of_households(buildings_lag1, households):

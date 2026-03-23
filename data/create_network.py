@@ -45,7 +45,7 @@ def add_lightrail(outputfile, bbox, network, mode='a'):
     
 def add_intersections(outputfile, bbox, network, network_type="drive", mode='a'):
     nodes, ways, waynodes = osm.ways_in_bbox(*bbox, network_type=network_type)
-    waynodes = waynodes[np.in1d(waynodes["node_id"], network.node_ids)]
+    waynodes = waynodes[np.isin(waynodes["node_id"], network.node_ids)]
     intersections = x_node_intersections(waynodes, x=[1, 3, 4], last_open=True)
     intersections["node_id"] = intersections.index.values
     with pd.HDFStore(outputfile, mode=mode) as store:

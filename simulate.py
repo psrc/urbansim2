@@ -11,6 +11,8 @@ import psrc_urbansim.vars.variables_generic
 from urbansim.utils import yamlio
 from urbansim.utils import misc
 
+os.environ['DATA_HOME'] = "C:\\Stefan\\urbansim_update_test\\urbansim2"
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -70,7 +72,7 @@ orca.run([
     "wplcm_simulate",
 
 ], #iter_vars= range(2015,2051), 
-         iter_vars= range(2019,2020), 
+         iter_vars= range(2024,2051), 
          data_out=outfile, out_base_tables=tables_in_base_year(),
    compress=True, out_run_local=True)
 

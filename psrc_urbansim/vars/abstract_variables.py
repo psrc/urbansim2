@@ -33,10 +33,10 @@ def abstract_logsum_interaction_variable(travel_data_attribute_dict, agent_categ
         home_zone = location_zone_id
         work_zone = agent_zone_id
 
-    idx = pd.MultiIndex.from_arrays([home_zone.values, work_zone.values], names=["from_zone_id", "to_zone_id"])    
+    idx = pd.MultiIndex.from_arrays([home_zone.values, work_zone.values], names=["from_zone_id", "to_zone_id"])
     max_choices = agent_categories.values.max() + 1
-    tmlist = [np.nan] * max_choices
-    for i in range(max_choices): # iterate over income categories
+    tmlist = [np.nan] * int(max_choices)
+    for i in range(int(max_choices)):
         if i in travel_data_attribute_dict:
             tmlist[i] = pd.Series(np.nan, index = idx, dtype = travel_data_attribute_dict[i].dtype)
             tmp = travel_data_attribute_dict[i].loc[idx[idx.isin(travel_data_attribute_dict[i].index)]]
