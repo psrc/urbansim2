@@ -61,7 +61,7 @@ def find_table_in_store(table, store, year, base_year):
 #        print 'returning /%s/%s' % ("base", table) #for debugging purposes only
 #        print store['%s/%s' % ("base", table)].head()
 #            return store['/%s/%s' % ("base", table)]
-        return store[table]
+        return store['/base/%s' % table]
     
 def find_cities_in_store(table, store, year, base_year, csv_store):
     searchyear = year
