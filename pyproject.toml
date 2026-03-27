@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "urbansim2"
 version = "0.1.0"
@@ -5,17 +9,18 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "developer",
+    "developer @ git+https://github.com/stefancoe/developer.git",
+    "mock>=5.2.0",
     "patsy",
-    "pylogit",
-    "urbansim",
-    "urbansim-defaults",
+    "pylogit @ git+https://github.com/stefancoe/pylogit.git@pandas_23_max",
+    "pytest>=9.0.2",
+    "urbansim @ git+https://github.com/stefancoe/urbansim.git@transition_updates",
+    "urbansim_defaults @ git+https://github.com/stefancoe/urbansim_defaults.git",
     "zbox>=1.2.0",
 ]
 
-[tool.uv.sources]
-urbansim = { path = "../urbansim", editable = true }
-urbansim-defaults = { path = "../urbansim_defaults", editable = true }
-developer = { path = "../developer", editable = true }
-pylogit = { path = "../pylogit", editable = true }
-patsy = { path = "../patsy", editable = true }
+[tool.setuptools.packages.find]
+include = ["psrc_urbansim*"]
+
+[project.scripts]
+psrc_urbansim = "psrc_urbansim.cli.main:main"

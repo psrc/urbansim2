@@ -1,9 +1,15 @@
 import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pandas as pd
 import orca
 from urbansim.utils import yamlio, misc
 import psrc_urbansim.variables
 import data
+from pathlib import Path
+import yaml
+
+os.environ['DATA_HOME'] = "C:\\Stefan\\urbansim_update_test\\urbansim2"
 
 # Indicators script
 # ==================
@@ -100,7 +106,12 @@ def settings_file():
 # Read yaml config
 @orca.injectable(cache=True)
 def settings(settings_file):
-    return yamlio.yaml_to_dict(str_or_buffer=settings_file)
+    settings_path = Path(os.environ['DATA_HOME']) / "configs" / settings_file
+    with open(settings_path, 'r') as file:
+        # Use safe_load to safely parse the YAML data
+        data = yaml.safe_load(file)
+    return data
+    return yamlio.yaml_to_dict(str_or_buffer=settings_path)
     
 @orca.step()
 def add_new_datasets(settings, iter_var):

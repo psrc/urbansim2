@@ -9,7 +9,7 @@ from developer import develop
 import developer.utils as devutils
 from urbansim.utils import misc
 from urbansim_defaults.utils import yaml_to_class, to_frame, check_nas
-from psrc_urbansim.utils import _remove_developed_buildings
+from psrc_urbansim.src.utils import _remove_developed_buildings
 #from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
 
 MAXlog = np.log(np.finfo('f').max) # max limit of float32 - for using with np.exp()

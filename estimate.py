@@ -1,4 +1,4 @@
-import psrc_urbansim.models
+import psrc_urbansim.src.models
 import psrc_urbansim.vars.variables_interactions
 import psrc_urbansim.vars.variables_generic
 import orca

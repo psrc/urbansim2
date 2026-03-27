@@ -9,9 +9,9 @@
 
 import os
 import time
-import psrc_urbansim.models
+import psrc_urbansim.src.models
 import psrc_urbansim.workplace_models
-import psrc_urbansim.developer_models
+import psrc_urbansim.src.developer_models
 import orca
 import yaml
 import logging
@@ -20,7 +20,7 @@ import psrc_urbansim.vars.variables_interactions
 import psrc_urbansim.vars.variables_generic
 from urbansim.utils import yamlio
 from urbansim.utils import misc
-from psrc_urbansim.utils import deep_merge
+from psrc_urbansim.src.utils import deep_merge
 os.environ['DATA_HOME'] = "C:\\Stefan\\urbansim_update_test\\urbansim2"
 debug = False # switch this to True for detailed debug messages
 log_into_file = True # should log messages go into a file (True) or be printed into the console (False)

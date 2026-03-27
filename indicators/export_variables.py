@@ -3,7 +3,7 @@ import yaml
 import orca
 from urbansim.utils import misc
 import psrc_urbansim.variables
-import psrc_urbansim.datasources
+import psrc_urbansim.src.datasources
 import pandas as pd
 import re
 

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import orca
@@ -8,6 +9,8 @@ from urbansim.utils import misc
 from urbansim_defaults.utils import to_frame
 from developer.utils import yaml_to_dict
 from developer.utils import columnize
+from psrc_urbansim.src.utils import get_yaml_spec_path, get_data_file_path
+
 
 #from urbansim_defaults.utils import apply_parcel_callbacks, lookup_by_form
 logger = logging.getLogger(__name__)
@@ -15,7 +18,8 @@ logger = logging.getLogger(__name__)
 @orca.injectable("uses_and_forms")
 def uses_and_forms(building_types, #land_use_types, development_templates, development_template_components, generic_land_use_types
                       ):
-    formfile = os.path.join(misc.data_dir(), "forms.csv")
+    #formfile = os.path.join(misc.data_dir(), "forms.csv")
+    formfile = get_data_file_path("forms.csv")
     forms = pd.read_csv(formfile)
     forms = forms.set_index("form_name")
     #uses =  pd.merge(development_template_components.local[["building_type_id", "template_id", "description", "percent_building_sqft"]],
@@ -126,7 +130,7 @@ def update_sqftproforma(default_settings, yaml_file, proforma_uses, **kwargs):
     local_settings["residential_uses"].index = blduses.building_type_id
     # get coefficient file for modeling price
     #coeffile = os.path.join(misc.data_dir(), "expected_sales_unit_price_component_model_coefficients.csv")
-    coeffile = os.path.join(misc.data_dir(), "total_value_psf_coefficients.csv")
+    coeffile = Path(orca.get_injectable('settings')['data_dir']) / "total_value_psf_coefficients.csv"
     coefs = pd.read_csv(coeffile)
     #coefs = pd.merge(coefs, proforma_uses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
     coefs = pd.merge(coefs, blduses[['building_type_name', "building_type_id"]].drop_duplicates(), right_on="building_type_id", left_on="sub_model_id", how="left")
@@ -216,7 +220,8 @@ def run_feasibility(parcels, parcel_price_callback,
         The name of the yaml file to read pro forma configurations from
     """
 
-    cfg = misc.config(cfg)
+    #cfg = misc.config(cfg)
+    cfg = str(get_yaml_spec_path(cfg))
     
     # Create default SqFtProForma
     pf = (PSRCSqFtProForma.from_yaml(str_or_buffer=cfg)

@@ -9,17 +9,17 @@ import time
 import urbansim_defaults.utils as utils
 import urbansim.developer as dev
 from urbansim.utils import misc, yamlio
-import psrc_urbansim.utils as psrcutils
-import psrc_urbansim.datasources
+import psrc_urbansim.src.utils as psrcutils
+import psrc_urbansim.src.datasources
 import psrc_urbansim.variables
 import psrc_urbansim.vars.variables_persons as variables_persons
 import psrc_urbansim.vars.variables_households as variables_households
 from psrc_urbansim.vars.variables_interactions import network_distance_from_home_to_work
 from psrc_urbansim.mod.allocation import AgentAllocationModel
-import psrc_urbansim.developer_models as psrcdev
-import psrc_urbansim.dcm_weighted_sampling as psrc_dcm
-import psrc_urbansim.sqftproforma as sqftproforma
-from psrc_urbansim.binary_discrete_choice import BinaryDiscreteChoiceModel
+import psrc_urbansim.src.developer_models as psrcdev
+import psrc_urbansim.src.dcm_weighted_sampling as psrc_dcm
+import psrc_urbansim.src.sqftproforma as sqftproforma
+from psrc_urbansim.src.binary_discrete_choice import BinaryDiscreteChoiceModel
 
 logger = logging.getLogger(__name__)
 
@@ -778,7 +778,7 @@ def households_zone_control_hct_events_model(households, households_zone_control
 
 def run_agent_events_model(agents, events, year, settings, geo_id, location_characteristics = [], 
                            disaggregate_to = None, disaggregation_weight_column = None, linked_tables = None):
-    from  psrc_urbansim.transition import _update_linked_table
+    from  psrc_urbansim.src.transition import _update_linked_table
     
     year_events = events.to_frame()[events.scheduled_year == year]
     if len(year_events) == 0:

@@ -1,8 +1,8 @@
 import os
 #import urbansim_defaults.models
-import psrc_urbansim.models
+import psrc_urbansim.src.models
 import psrc_urbansim.workplace_models
-import psrc_urbansim.developer_models
+import psrc_urbansim.src.developer_models
 import orca
 import logging
 import pandas as pd

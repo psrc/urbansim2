@@ -6,17 +6,25 @@ from urbansim.utils import misc, yamlio
 from urbansim_defaults.utils import to_frame, yaml_to_class, check_nas
 from urbansim.models.regression import YTRANSFORM_MAPPING
 from urbansim.models import util, transition
-from psrc_urbansim.transition import PSRCTabularTotalsTransition
+from psrc_urbansim.src.transition import PSRCTabularTotalsTransition
 import os
-from psrc_urbansim.dcm_weighted_sampling import PSRC_SegmentedMNLDiscreteChoiceModel, MNLDiscreteChoiceModelWeightedSamples, resim_overfull_buildings
-
+from psrc_urbansim.src.dcm_weighted_sampling import PSRC_SegmentedMNLDiscreteChoiceModel, MNLDiscreteChoiceModelWeightedSamples, resim_overfull_buildings
+from pathlib import Path
 logger = logging.getLogger(__name__)
 
 def change_store(store_name):
     orca.add_injectable("store",
                        pd.HDFStore(os.path.join(misc.data_dir(),
                                                 store_name), mode="r"))
+    
+def get_yaml_spec_path(yaml_name):
+    configs_path = Path(orca.get_injectable('settings')['configs_dir'])
+    return configs_path/yaml_name
 
+def get_data_file_path(yaml_name):
+    data_path = Path(orca.get_injectable('settings')['data_dir'])
+    return data_path/yaml_name
+    
 def reduce_df_size(df):
     df_float = df.select_dtypes(include=['float'])
     for col in df_float.columns:
@@ -140,7 +148,7 @@ def lcm_simulate_CY(subreg_geo_id, cfg, choosers, buildings, join_tbls, out_fnam
         Above this ratio of alternatives to choosers (default of 2.0), the
         alternatives will be sampled to improve computational performance
     """
-    import psrc_urbansim.dcm_weighted_sampling as dcmsampl
+    import psrc_urbansim.src.dcm_weighted_sampling as dcmsampl
     
     cfg = misc.config(cfg)
 

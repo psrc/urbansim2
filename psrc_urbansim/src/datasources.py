@@ -91,7 +91,9 @@ def development_template_components(store):
 def employment_controls(store):
     df = store["annual_employment_control_totals"]
     # remove rows that have negative totals
-    df = df.loc[df.total_number_of_jobs >= 0,:]    
+    df = df.loc[df.total_number_of_jobs >= 0,:]
+    if not 'subreg_id' in df.columns:
+        df['subreg_id'] = -1 
     df[df < 0] = np.nan
     return df
 
@@ -146,6 +148,8 @@ def household_controls(store):
     # remove rows that have negative totals
     df = df.loc[df.total_number_of_households >= 0,:]
     df[df < 0] = np.nan
+    if not 'subreg_id' in df.columns:
+        df['subreg_id'] = -1
     return df
 
 @orca.table('household_relocation_rates', cache=True)

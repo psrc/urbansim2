@@ -1,4 +1,4 @@
-import psrc_urbansim.datasources
+import psrc_urbansim.src.datasources
 import psrc_urbansim.vars.variables_parcels
 import psrc_urbansim.vars.variables_buildings
 import psrc_urbansim.vars.variables_buildings_lag1

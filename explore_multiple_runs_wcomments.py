@@ -50,9 +50,9 @@ if __name__ == "__main__":
         if tbl in tables[geo]:
             variables2[tbl] = common_vars2 
         
-    import psrc_urbansim.models
+    import psrc_urbansim.src.models
     import urbansim.sim.simulation as sim
-    from psrc_urbansim.utils import change_store
+    from psrc_urbansim.src.utils import change_store
     change_store(data_file)
     #import psrc_urbansim.accessibility.variables
     

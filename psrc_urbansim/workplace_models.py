@@ -3,22 +3,22 @@ import sys
 import orca
 import logging
 import urbansim_defaults.utils as utils
-import psrc_urbansim.utils as psrcutils
-from . import datasources
+import psrc_urbansim.src.utils as psrcutils
+from .src import datasources
 from . import variables
 import numpy as np
 import pandas as pd
 from psrc_urbansim.mod.allocation import AgentAllocationModel
 import urbansim.developer as dev
-from . import developer_models as psrcdev
+from .src import developer_models as psrcdev
 import os 
 from urbansim.utils import misc
 import statsmodels.api as sm
 from statsmodels.formula.api import logit, probit, poisson, ols
 import random
 from urbansim.utils import misc
-from psrc_urbansim.binary_discrete_choice import BinaryDiscreteChoiceModel
-from . import dcm_weighted_sampling as psrc_dcm
+from psrc_urbansim.src.binary_discrete_choice import BinaryDiscreteChoiceModel
+from .src import dcm_weighted_sampling as psrc_dcm
 
 logger = logging.getLogger(__name__)
 

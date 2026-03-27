@@ -35,9 +35,9 @@ if __name__ == "__main__":
     geo = options.geo
     port = options.port
             
-    import psrc_urbansim.models
+    import psrc_urbansim.src.models
     import urbansim.sim.simulation as sim
-    from psrc_urbansim.utils import change_store
+    from psrc_urbansim.src.utils import change_store
     change_store(data_file)
     import psrc_urbansim.accessibility.variables
     
