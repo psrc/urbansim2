@@ -6,7 +6,7 @@
 #store: psrc_base_year_2018.h5
 #store: psrc_estimation_2018.h5
 data_dir: C:/Stefan/urbansim_update_test/data
-configs_dir: C:/Stefan/urbansim_update_test/urbansim2/configs
+#configs_dir: C:/Stefan/urbansim_update_test/urbansim2/configs
 output_dir: C:/Stefan/urbansim_update_test/output
 store: psrc_base_year_2023_py3.h5
 output_store: simresult20220222test.h5

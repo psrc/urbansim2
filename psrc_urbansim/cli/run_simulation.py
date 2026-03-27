@@ -72,6 +72,7 @@ def run_model(configs_dir):
      orca.injectable('settings', cache=True)(lambda: config)
      my_store = pd.HDFStore(Path(config['data_dir']) / config["store"],mode='r')
      orca.add_injectable('store', my_store, cache=True)
+     orca.add_injectable('configs_dir', configs_dir, cache=True)
      #config = settings(configs_dir)
      #os.environ['DATA_HOME'] = config['data_dir']
      outfile = simfile(config)
