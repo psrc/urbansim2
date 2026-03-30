@@ -5,9 +5,9 @@
 #store: psrc_base_year_JF_2014.h5
 #store: psrc_base_year_2018.h5
 #store: psrc_estimation_2018.h5
-data_dir: C:/Stefan/urbansim_update_test/data
-configs_dir: C:/Stefan/urbansim_update_test/urbansim2/configs
-output_dir: C:/Stefan/urbansim_update_test/output
+data_dir: C:/Users/JKolberg/PythonProjects/urbansim2/data
+configs_dir: C:/Users/JKolberg/PythonProjects/urbansim2/configs
+output_dir: C:/Users/JKolberg/PythonProjects/urbansim2/output
 store: psrc_base_year_2023_py3.h5
 output_store: simresult20220222test.h5
 base_year: 2023

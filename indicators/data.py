@@ -11,6 +11,7 @@ def store(settings):
 
 @orca.injectable('csv_store', cache=True)
 def csv_store():
+    print(os.getenv('DATA_HOME'))
     return os.path.join(os.getenv('DATA_HOME'), 'indicators/csv_store')
 #    return pd.read_csv(os.path.join(os.getenv('DATA_HOME'), 'indicators/csv_store/growth_centers.csv'),
 #                       index_col='growth_center_id')
@@ -61,7 +62,7 @@ def find_table_in_store(table, store, year, base_year):
 #        print 'returning /%s/%s' % ("base", table) #for debugging purposes only
 #        print store['%s/%s' % ("base", table)].head()
 #            return store['/%s/%s' % ("base", table)]
-        return store[table]
+        return store['/base/%s' % table]
     
 def find_cities_in_store(table, store, year, base_year, csv_store):
     searchyear = year

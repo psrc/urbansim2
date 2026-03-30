@@ -1,11 +1,11 @@
 #store: results_alloc_footloose_cap_20200205.h5
-store: results_alloc_20250826.h5
+store: C:\Users\JKolberg\PythonProjects\urbansim2\output\simresult20220222test.h5
 #store: results_alloc_20250902.h5
 #store: /Volumes/Model\ Data\ 2/vision2050/opusgit/urbansim_data/data/psrc_parcel/runs/awsmodel07/runUS2_20191125_alloc_stc/results_alloc_stc_20191125.h5
 #output_directory:  run_test
 #output_directory:  run_20200210_JF_62pseudo
 #output_directory:  run_alloc_20250902_as0826_devw_bsize/indicators
-output_directory:  run_alloc_20250826_as0819_newCTpph/indicators
+output_directory:  C:\Users\JKolberg\PythonProjects\urbansim2\output
 
 base_year: 2023
 

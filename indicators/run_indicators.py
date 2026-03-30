@@ -9,7 +9,7 @@ import data
 from pathlib import Path
 import yaml
 
-os.environ['DATA_HOME'] = "C:\\Stefan\\urbansim_update_test\\urbansim2"
+os.environ['DATA_HOME'] = "C:/Users/JKolberg/PythonProjects/urbansim2"
 
 # Indicators script
 # ==================
@@ -106,7 +106,7 @@ def settings_file():
 # Read yaml config
 @orca.injectable(cache=True)
 def settings(settings_file):
-    settings_path = Path(os.environ['DATA_HOME']) / "configs" / settings_file
+    settings_path = Path(os.environ['DATA_HOME']) / "indicators" / settings_file
     with open(settings_path, 'r') as file:
         # Use safe_load to safely parse the YAML data
         data = yaml.safe_load(file)
