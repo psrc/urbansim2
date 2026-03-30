@@ -18,7 +18,7 @@ def change_store(store_name):
                                                 store_name), mode="r"))
     
 def get_yaml_spec_path(yaml_name):
-    configs_path = Path(orca.get_injectable('settings')['configs_dir'])
+    configs_path = Path(orca.get_injectable('configs_dir'))
     return configs_path/yaml_name
 
 def get_data_file_path(yaml_name):
