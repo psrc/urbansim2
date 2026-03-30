@@ -29,7 +29,8 @@ def export_variables(parcels):
     #              'number_of_households', 'number_of_jobs', 'land_cost', 'max_dua', 'max_far', 'land_use_type_id', 'number_of_buildings',
     #              'zone_id', 'faz_id', 'growth_center_id', 'city_id', 'subreg_id']
     attributes = ['parcel_sqft', 'growth_center_id', 'faz_id', 'city_id', 'subreg_id', 'target_id', 'control_id', 'control_hct_id',
-                  'county_id', 'tod_id', 'zone_id', 'plan_type_id', 'census_tract_id']    
+                  'county_id', 'tod_id', 'zone_id', 'plan_type_id'#, 'census_tract_id'
+                  ]    
     data = {}
     for attr in attributes:
         data[re.sub('_pcl$', '', attr)] = parcels[attr]
@@ -39,4 +40,4 @@ def export_variables(parcels):
 
 
 # Export parcels attributes from the base year into a csv file
-orca.run(['export_variables'], iter_vars=[2018])
+orca.run(['export_variables'], iter_vars=[2023])
