@@ -285,7 +285,6 @@ def run_developer(forms, agents, buildings, supply_fname, feasibility,
     Writes the result back to the buildings table and returns the new
     buildings with available debugging information on each new building
     """
-    cfg = misc.config(cfg)
     cfg_dict = devutils.yaml_to_dict(yaml_str = None, str_or_buffer=cfg)
     
     if num_units_to_build is None:
@@ -350,7 +349,6 @@ def run_developer_CY(subreg_geo_id, feasibility, buildings, cfg, **kwargs):
     parcels = orca.get_table("parcels")
     feasibility[subreg_geo_id] = misc.reindex(parcels[subreg_geo_id], feasibility.parcel_id)
 
-    cfg = misc.config(cfg)
     cfg_dict = devutils.yaml_to_dict(yaml_str = None, str_or_buffer=cfg)
 
 

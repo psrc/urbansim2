@@ -22,13 +22,14 @@ from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
 
+timestr = pd.Timestamp.now().strftime("%Y%m%d")
 
 @orca.injectable('simfile')
 def simfile(config):
-     outfile = Path(config['output_dir']) / config['output_store']
+     outfile = Path(config['output_dir']) / ("results_sim_" + timestr + ".h5")
      if os.path.exists(outfile):
           os.remove(outfile)
-     return str(outfile)  
+     return str(outfile)
 
 # @orca.injectable('settings', cache=True)
 # def settings(configs_dir):
