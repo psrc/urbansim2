@@ -46,11 +46,15 @@ This is an urbansim-2 implementation of the PSRC land use model. It is a python 
       ```
    - Allocation mode:
       ```
-      psrc_urbansim run_allocation -c "<path to config directory>"
+      psrc_urbansim run_allocation -c "<path to configs directory>"
       ```
    - Simulation mode:
       ```
-      psrc_urbansim run_simulation -c "<path to config directory>"
+      psrc_urbansim run_simulation -c "<path to configs directory>"
+      ```
+   - Generate run result indicators:
+      ```
+      psrc_urbansim run_indicators -c "<path to configs directory>"
       ```
 
 ### Estimation
