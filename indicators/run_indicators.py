@@ -259,5 +259,8 @@ def create_tables(outdir):
 
 create_tables(settings(settings_file()).get("output_directory", "."))
 
+# Close the HDF5 store
+orca.get_injectable('store').close()
+
 # test find_table_in_store()
 #print orca.get_table('land_use_types').to_frame().head()

@@ -12,7 +12,7 @@ store: psrc_base_year_2023_py3.h5
 
 base_year: 2023
 start_year: 2024
-end_year: 2026
+end_year: 2050
 
 households_transition:
   total_column: total_number_of_households
