@@ -40,6 +40,10 @@ This is an urbansim-2 implementation of the PSRC land use model. It is a python 
 ### Using UrbanSim2
 
 1. Run UrbanSim
+   - Activate the venv if it isn't already by navigating to the UrbanSim2 repo then running:
+      ```
+      .venv\Scripts\activate
+      ```
    - Allocation mode:
       ```
       psrc_urbansim run_allocation -c "<path to config directory>"
