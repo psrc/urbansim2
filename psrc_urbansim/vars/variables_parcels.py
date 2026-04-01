@@ -371,7 +371,9 @@ def total_job_spaces(parcels, buildings):
 
 @orca.column('parcels', 'total_land_value_per_sqft', cache=True, cache_scope='step')
 def total_land_value_per_sqft(parcels):
-    return (parcels.land_cost/parcels.parcel_sqft).replace(np.inf, 0).fillna(0)
+    col = (parcels.land_cost/parcels.parcel_sqft).replace(np.inf, 0).fillna(0)
+    col.clip(lower=0, inplace=True)
+    return col
 
 @orca.column('parcels', 'unit_name', cache=True)
 def unit_name(parcels, land_use_types):

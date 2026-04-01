@@ -76,6 +76,10 @@ def logsum_hbw_am_from_home_to_work_wzone_logsum(work_zones, location_zones, age
                                                           twa_logsum_1, twa_logsum_2, twa_logsum_3, twa_logsum_4,
                                                           zonal_threshold=-20):
     """If max_logsum_hbw_am_from_home_to_work < zonal_threshold, use avg_trip_weighted_zone_logsum."""
+    work_zones = work_zones.astype("int32")
+    location_zones = location_zones.astype("int32")
+    agent_income_categories = agent_income_categories.astype("int32")
+    
     res = logsum_hbw_am_from_home_to_work(work_zones, location_zones, agent_income_categories)
     avg_trip = avg_trip_weighted_zone_logsum(agent_income_categories, twa_logsum_1, twa_logsum_2, twa_logsum_3, twa_logsum_4)
     fillidx = np.where(np.logical_or(np.isnan(res), res < zonal_threshold))
