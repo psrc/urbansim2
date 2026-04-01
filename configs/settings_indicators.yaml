@@ -1,15 +1,15 @@
-#store: results_alloc_footloose_cap_20200205.h5
-store: C:\Users\JKolberg\PythonProjects\urbansim2\output\results_alloc_20260330.h5
-#store: results_alloc_20250902.h5
-#store: /Volumes/Model\ Data\ 2/vision2050/opusgit/urbansim_data/data/psrc_parcel/runs/awsmodel07/runUS2_20191125_alloc_stc/results_alloc_stc_20191125.h5
-#output_directory:  run_test
-#output_directory:  run_20200210_JF_62pseudo
-#output_directory:  run_alloc_20250902_as0826_devw_bsize/indicators
-output_directory:  C:\Users\JKolberg\PythonProjects\urbansim2\output
+# Indicators settings
+# This file is merged with settings.yaml when running:
+#   psrc_urbansim run_indicators -c "<path to configs>"
+#
+# The following settings are inherited from settings.yaml:
+#   data_dir, output_dir, base_year
+#
+# The store field is the results HDF5 filename, resolved relative to output_dir.
 
-base_year: 2023
+store: results_alloc_20260330.h5
 
-# Note: for the dashboard run run_indicators.py twice, once with "years" commented out and once without. 
+# Note: for the dashboard run run_indicators twice, once with "years" commented out and once without. 
 #years_all: [2023, 2050] # for annual indicator [start_year, end_year]
 years: [2023, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
 
