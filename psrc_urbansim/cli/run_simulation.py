@@ -18,11 +18,16 @@ import argparse
 import yaml
 from pathlib import Path
 
-#os.environ['DATA_HOME'] = "C:\\Stefan\\urbansim_update_test\\urbansim2"
+debug = False # switch this to True for detailed debug messages
+log_into_file = True # should log messages go into a file (True) or be printed into the console (False)
 
-logging.basicConfig(level=logging.INFO)
-
+FORMAT = '%(asctime)s %(name)s %(levelname)s %(message)s'
 timestr = pd.Timestamp.now().strftime("%Y%m%d")
+
+if debug:
+     loglevel = logging.DEBUG
+else:
+     loglevel = logging.INFO
 
 @orca.injectable('simfile')
 def simfile(config):
@@ -69,6 +74,17 @@ def add_run_args(parser, multiprocess=True):
 
 def run_model(configs_dir):
      config = yaml.safe_load(open(Path(f"{configs_dir}/settings.yaml")))
+
+     # Set up logging into the output directory
+     log_file = None
+     if log_into_file:
+          output_dir = Path(config['output_dir'])
+          if debug:
+               log_file = str(output_dir / ("log_simulation_debug_" + timestr + ".txt"))
+          else:
+               log_file = str(output_dir / ("log_simulation_" + timestr + ".txt"))
+     logging.basicConfig(level = loglevel, filename = log_file, format = FORMAT, datefmt = '%H:%M:%S', filemode = 'w', force = True)
+
      orca.settings = config
      orca.injectable('settings', cache=True)(lambda: config)
      my_store = pd.HDFStore(Path(config['data_dir']) / config["store"],mode='r')

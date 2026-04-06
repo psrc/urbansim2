@@ -18,18 +18,11 @@ log_into_file = True # should log messages go into a file (True) or be printed i
 
 FORMAT = '%(asctime)s %(name)s %(levelname)s %(message)s'
 timestr = pd.Timestamp.now().strftime("%Y%m%d")
-log_file = None
 
 if debug:
-     if log_into_file:
-          log_file = "log_allocation_debug_" + timestr + ".txt"
      loglevel = logging.DEBUG
 else:
-     if log_into_file:
-          log_file = "log_allocation_" + timestr + ".txt"
-     loglevel = logging.INFO   
-
-logging.basicConfig(level = loglevel, filename = log_file, format = FORMAT, datefmt = '%H:%M:%S', filemode = 'w')
+     loglevel = logging.INFO
 
 
 @orca.injectable('simfile')
@@ -65,6 +58,16 @@ def run_allocation(configs_dir):
           config = yaml.safe_load(f)
           with open(Path(f"{configs_dir}/settings_allocation.yaml")) as af:
                deep_merge(yaml.safe_load(af), config)
+
+     # Set up logging into the output directory
+     log_file = None
+     if log_into_file:
+          output_dir = Path(config['output_dir'])
+          if debug:
+               log_file = str(output_dir / ("log_allocation_debug_" + timestr + ".txt"))
+          else:
+               log_file = str(output_dir / ("log_allocation_" + timestr + ".txt"))
+     logging.basicConfig(level = loglevel, filename = log_file, format = FORMAT, datefmt = '%H:%M:%S', filemode = 'w', force = True)
 
      orca.settings = config
      orca.injectable('settings', cache=True)(lambda: config)
