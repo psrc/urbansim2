@@ -26,7 +26,8 @@ This is an urbansim-2 implementation of the PSRC land use model. It is a python 
    ```
    cd urbansim2
    uv sync
-   .venv\Scripts\activate
+   .venv\Scripts\activate (Windows)
+   source .venv/bin/activate (MacOS, Linux)
    ```
 
 6. Create a base year dataset as an hdf5 file by running the script [``data/conversion/cache_to_hdf5.py``](https://github.com/psrc/urbansim2/tree/master/data/conversion/cache_to_hdf5.py) (see [more info](https://github.com/psrc/urbansim2/tree/master/data/conversion)). Move the resulting file into ``data/``.
@@ -42,7 +43,8 @@ This is an urbansim-2 implementation of the PSRC land use model. It is a python 
 1. Run UrbanSim
    - Activate the venv if it isn't already by navigating to the UrbanSim2 repo then running:
       ```
-      .venv\Scripts\activate
+      .venv\Scripts\activate (Windows)
+      source .venv/bin/activate (MacOS, Linux)
       ```
    - Allocation mode:
       ```
