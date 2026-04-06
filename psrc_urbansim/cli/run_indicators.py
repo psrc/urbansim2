@@ -5,7 +5,6 @@ import logging
 import pandas as pd
 import psrc_urbansim.variables
 from psrc_urbansim.src.utils import deep_merge
-import psrc_urbansim.mod.indicators as ind_mod
 import argparse
 import yaml
 from pathlib import Path
@@ -30,6 +29,10 @@ def add_run_args(parser, multiprocess=True):
 
 def run_indicators(configs_dir):
     """Run indicators from simulation results."""
+    # Import here to avoid registering indicator Orca tables when this module
+    # is imported only for CLI argument wiring.
+    import psrc_urbansim.mod.indicators as ind_mod
+
     # Load and merge settings
     with open(Path(f"{configs_dir}/settings.yaml")) as f:
         config = yaml.safe_load(f)
