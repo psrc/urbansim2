@@ -15,14 +15,15 @@ from urbansim.utils import yamlio
 from urbansim.utils import misc
 from os import sys
 import argparse
+import shutil
 import yaml
 from pathlib import Path
+from psrc_urbansim.src.cli_utils import timestr, get_username, unique_output_dir, add_run_args, tables_in_base_year
 
 debug = False # switch this to True for detailed debug messages
 log_into_file = True # should log messages go into a file (True) or be printed into the console (False)
 
 FORMAT = '%(asctime)s %(name)s %(levelname)s %(message)s'
-timestr = pd.Timestamp.now().strftime("%Y%m%d")
 
 if debug:
      loglevel = logging.DEBUG
@@ -30,8 +31,9 @@ else:
      loglevel = logging.INFO
 
 @orca.injectable('simfile')
-def simfile(config):
-     outfile = Path(config['output_dir']) / ("results_sim_" + timestr + ".h5")
+def simfile(config, output_run_dir):
+     outfile = output_run_dir / ("results_sim_" + timestr + ".h5")
+     outfile.parent.mkdir(parents=True, exist_ok=True)
      if os.path.exists(outfile):
           os.remove(outfile)
      return str(outfile)
@@ -52,37 +54,20 @@ def simfile(config):
 # if os.path.exists(outfile):
 #      os.remove(outfile)
 
-     
-# get tables from input file
-def tables_in_base_year(config):
-     h5store_path = Path(config['data_dir']) / config['store']
-     h5store = pd.HDFStore(h5store_path, mode="r")
-     store_table_names = orca.get_injectable('store_table_names_dict')
-     return [t for t in orca.list_tables() if t in h5store or store_table_names.get(t, ' ') in h5store]
-
-def add_run_args(parser, multiprocess=True):
-    """
-    Run command args
-    """
-    parser.add_argument(
-        "-c",
-        "--configs_dir",
-        type=str,
-        metavar="PATH",
-        help="path to configs dir",
-    )
 
 def run_model(configs_dir):
      config = yaml.safe_load(open(Path(f"{configs_dir}/settings.yaml")))
+     output_run_dir = unique_output_dir(Path(config['output_dir']) / ("run_sim_" + timestr + "_" + get_username()))
 
      # Set up logging into the output directory
      log_file = None
      if log_into_file:
-          output_dir = Path(config['output_dir'])
+          output_run_dir.mkdir(parents=True, exist_ok=True)
+
           if debug:
-               log_file = str(output_dir / ("log_simulation_debug_" + timestr + ".txt"))
+               log_file = str(output_run_dir / ("log_simulation_debug_" + timestr + ".txt"))
           else:
-               log_file = str(output_dir / ("log_simulation_" + timestr + ".txt"))
+               log_file = str(output_run_dir / ("log_simulation_" + timestr + ".txt"))
      logging.basicConfig(level = loglevel, filename = log_file, format = FORMAT, datefmt = '%H:%M:%S', filemode = 'w', force = True)
 
      orca.settings = config
@@ -92,7 +77,8 @@ def run_model(configs_dir):
      orca.add_injectable('configs_dir', configs_dir, cache=True)
      #config = settings(configs_dir)
      #os.environ['DATA_HOME'] = config['data_dir']
-     outfile = simfile(config)
+     orca.add_injectable('output_run_dir', output_run_dir, cache=True)
+     outfile = simfile(config, output_run_dir)
      
      orca.run([
      # Misc
@@ -135,6 +121,12 @@ def run_model(configs_dir):
     out_base_tables=tables_in_base_year(config),
     compress=True, out_run_local=True)
 
+
+     # Copy settings.yaml to the output folder
+     settings_src = Path(configs_dir) / "settings.yaml"
+     settings_dst = output_run_dir / "settings.yaml"
+     shutil.copy2(settings_src, settings_dst)
+     logging.info('Copied settings.yaml to %s', settings_dst)
 
      logging.info('Simulation finished')
 

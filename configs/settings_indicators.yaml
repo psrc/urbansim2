@@ -4,17 +4,18 @@
 #
 # The following settings are inherited from settings.yaml:
 #   data_dir, output_dir, base_year
-#
-# The store field is the results HDF5 filename, resolved relative to output_dir.
 
-store: results_alloc_20260330.h5
+# The store field is the results HDF5 filename, resolved relative to output_dir
+# By default the store is set to the most recent run in the output_dir.
+# uncomment only if you need to run indicators for a specific older run.
+# store: run_alloc_20260330_jk/results_alloc_20260330.h5
 
 # Note: for the dashboard run run_indicators twice, once with "years" commented out and once without. 
 #years_all: [2023, 2050] # for annual indicator [start_year, end_year]
 years: [2023, 2025, 2030, 2035, 2040, 2044, 2050] # if uncommented, this has priority over years_all
 
-#compute_dataset_tables: true # annual years 
-compute_dataset_tables: false # non-annual years
+compute_dataset_tables: true # annual years 
+# compute_dataset_tables: false # non-annual years
 
 #new_datasets:
 #    cities:

@@ -8,23 +8,9 @@ from psrc_urbansim.src.utils import deep_merge
 import argparse
 import yaml
 from pathlib import Path
+from psrc_urbansim.src.cli_utils import timestr, add_run_args, find_latest_results
 
 logging.basicConfig(level=logging.INFO)
-
-timestr = pd.Timestamp.now().strftime("%Y%m%d")
-
-
-def add_run_args(parser, multiprocess=True):
-    """
-    Run command args
-    """
-    parser.add_argument(
-        "-c",
-        "--configs_dir",
-        type=str,
-        metavar="PATH",
-        help="path to configs dir",
-    )
 
 
 def run_indicators(configs_dir):
@@ -37,14 +23,26 @@ def run_indicators(configs_dir):
     with open(Path(f"{configs_dir}/settings.yaml")) as f:
         config = yaml.safe_load(f)
     with open(Path(f"{configs_dir}/settings_indicators.yaml")) as f:
-        deep_merge(yaml.safe_load(f), config)
+        ind_config = yaml.safe_load(f) or {}
+        deep_merge(ind_config, config)
+
+    # Resolve the results store: use explicit 'store' from settings_indicators.yaml
+    # if provided, otherwise auto-detect the most recent results h5.
+    if 'store' in ind_config and ind_config['store']:
+        store_path = Path(config['output_dir']) / ind_config['store']
+        config['store'] = ind_config['store']
+    else:
+        store_path = Path(find_latest_results(config['output_dir']))
+        # Set store in config so downstream code (e.g. indicators_outdir) can use it
+        config['store'] = str(store_path.relative_to(config['output_dir']))
+
+    logging.info('Using results store: %s', store_path)
 
     # Inject settings into orca
     orca.settings = config
     orca.injectable('settings', cache=True)(lambda: config)
 
     # Open results HDF5 store
-    store_path = Path(config['output_dir']) / config['store']
     my_store = pd.HDFStore(str(store_path), mode='r')
     orca.add_injectable('store', my_store, cache=True)
     orca.add_injectable('configs_dir', configs_dir, cache=True)
@@ -52,7 +50,8 @@ def run_indicators(configs_dir):
     # Compute years to run
     years = ind_mod.years_to_run(config)
 
-    # Run indicator orca steps
+    # Validate years, then run indicator orca steps
+    ind_mod.validate_years(config, my_store, years)
     orca.run(['add_new_datasets', 'compute_indicators', 'compute_datasets'],
              iter_vars=years)
 

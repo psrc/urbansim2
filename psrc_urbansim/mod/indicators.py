@@ -1,4 +1,5 @@
 import os
+import logging
 import numpy as np
 import pandas as pd
 import orca
@@ -276,6 +277,29 @@ def is_annual(settings):
     return not "years" in settings.keys() and "years_all" in settings.keys()
 
 
+def validate_years(settings, store, years_to_run):
+    """Check that all requested years exist in the results h5 store."""
+    store_keys = store.keys()
+    # Extract years present in the store (keys are like /2024/buildings, /base/buildings)
+    available_years = set()
+    for key in store_keys:
+        parts = key.strip('/').split('/')
+        if parts[0].isdigit():
+            available_years.add(int(parts[0]))
+    # base year is stored under /base, add it from settings
+    base_year = settings.get('base_year')
+    if base_year is not None:
+        available_years.add(base_year)
+    missing = [y for y in years_to_run if y not in available_years]
+    if missing:
+        raise ValueError(
+            f"Years {missing} not found in results store. "
+            f"Available years: {sorted(available_years)}. "
+            "Update 'years' or 'years_all' in settings_indicators.yaml."
+        )
+    logging.info('Validated years: all requested years found in store.')
+
+
 @orca.step()
 def add_new_datasets(settings, iter_var):
     # Add additional datasets (stored in csv files) to orca.
@@ -324,10 +348,9 @@ def compute_indicators(settings, iter_var, is_annual, years_to_run):
              
 
 def indicators_outdir(settings):
-    """Return the output subdirectory for indicator files, derived from the store filename."""
-    store_stem = os.path.splitext(settings['store'])[0]
-    store_stem = store_stem.replace('results', 'indicators', 1)
-    outdir = os.path.join(settings.get('output_dir', '.'), store_stem)
+    """Return the indicators subdirectory alongside the results h5 file."""
+    store_path = os.path.join(settings.get('output_dir', '.'), settings['store'])
+    outdir = os.path.join(os.path.dirname(store_path), 'indicators')
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     return outdir

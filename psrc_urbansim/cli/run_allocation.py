@@ -10,14 +10,15 @@ import psrc_urbansim.vars.variables_generic
 from psrc_urbansim.src.utils import deep_merge
 from os import sys
 import argparse
+import shutil
 import yaml
 from pathlib import Path
+from psrc_urbansim.src.cli_utils import timestr, get_username, unique_output_dir, add_run_args, tables_in_base_year
 
 debug = False # switch this to True for detailed debug messages
 log_into_file = True # should log messages go into a file (True) or be printed into the console (False)
 
 FORMAT = '%(asctime)s %(name)s %(levelname)s %(message)s'
-timestr = pd.Timestamp.now().strftime("%Y%m%d")
 
 if debug:
      loglevel = logging.DEBUG
@@ -26,31 +27,13 @@ else:
 
 
 @orca.injectable('simfile')
-def simfile(config):
-     outfile = Path(config['output_dir']) / ("results_alloc_" + timestr + ".h5")
+def simfile(config, output_run_dir):
+     outfile = output_run_dir / ("results_alloc_" + timestr + ".h5")
+     outfile.parent.mkdir(parents=True, exist_ok=True)
      if os.path.exists(outfile):
           os.remove(outfile)
      return str(outfile)
 
-
-def tables_in_base_year(config):
-     h5store_path = Path(config['data_dir']) / config['store']
-     h5store = pd.HDFStore(h5store_path, mode="r")
-     store_table_names = orca.get_injectable('store_table_names_dict')
-     return [t for t in orca.list_tables() if t in h5store or store_table_names.get(t, "UnknownTable") in h5store]
-
-
-def add_run_args(parser, multiprocess=True):
-    """
-    Run command args
-    """
-    parser.add_argument(
-        "-c",
-        "--configs_dir",
-        type=str,
-        metavar="PATH",
-        help="path to configs dir",
-    )
 
 def run_allocation(configs_dir):
      # merge settings.yaml with settings_allocation.yaml
@@ -58,15 +41,16 @@ def run_allocation(configs_dir):
           config = yaml.safe_load(f)
           with open(Path(f"{configs_dir}/settings_allocation.yaml")) as af:
                deep_merge(yaml.safe_load(af), config)
+     output_run_dir = unique_output_dir(Path(config['output_dir']) / ("run_alloc_" + timestr + "_" + get_username()))
 
      # Set up logging into the output directory
      log_file = None
      if log_into_file:
-          output_dir = Path(config['output_dir'])
+          output_run_dir.mkdir(parents=True, exist_ok=True)
           if debug:
-               log_file = str(output_dir / ("log_allocation_debug_" + timestr + ".txt"))
+               log_file = str(output_run_dir / ("log_allocation_debug_" + timestr + ".txt"))
           else:
-               log_file = str(output_dir / ("log_allocation_" + timestr + ".txt"))
+               log_file = str(output_run_dir / ("log_allocation_" + timestr + ".txt"))
      logging.basicConfig(level = loglevel, filename = log_file, format = FORMAT, datefmt = '%H:%M:%S', filemode = 'w', force = True)
 
      orca.settings = config
@@ -83,7 +67,8 @@ def run_allocation(configs_dir):
      def isCY(year, control_years):
           return year in control_years
 
-     outfile = simfile(config)
+     orca.add_injectable('output_run_dir', output_run_dir, cache=True)
+     outfile = simfile(config, output_run_dir)
 
      orca.run([
           'start_year',
@@ -161,6 +146,13 @@ def run_allocation(configs_dir):
      ], iter_vars=range(config['start_year'], config['end_year'] + 1),
         data_out=outfile, out_base_tables=tables_in_base_year(config),
         compress=True, out_run_local=True)
+
+     # Copy settings files to the output folder
+     for settings_file in ["settings.yaml", "settings_allocation.yaml"]:
+          src = Path(configs_dir) / settings_file
+          if src.exists():
+               shutil.copy2(src, output_run_dir / settings_file)
+     logging.info('Copied settings files to %s', output_run_dir)
 
      logging.info('Allocation finished')
 
