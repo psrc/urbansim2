@@ -13,7 +13,7 @@ library(data.table)
 
 # read the constraints table (which includes coverage and max height)
 #constr.file <- "devconstr_2021-06-17.csv"
-constr.file <- "~/N/base_year_2023_inputs/urbansim2_cache/additional_tables/devconstr_v2_2024-09-17.csv"
+constr.file <- "~/L/base_year_2023_inputs/urbansim2_cache/additional_tables/devconstr_final_2026-08-19.csv"
 
 constr <- fread(constr.file)
 constr[, maxht := pmax(maxht, 12)] # minimum height
@@ -41,13 +41,19 @@ htlc <- constr[, .(max_height = min(maxht), max_coverage = min(lc)), by = plan_t
 
 dua <- constr[constraint_type == "units_per_acre", .(max_du = min(maximum[maximum > 0])), by = plan_type_id]
 dua[is.infinite(max_du), max_du := 0] # it happens if there are no maximum that are > 0 (used for lockouts)
+lot <- constr[constraint_type == "units_per_lot", .(du_lot = min(maximum[maximum > 0])), by = plan_type_id]
+lot[is.infinite(du_lot), du_lot := 0] # it happens if there are no maximum that are > 0 (used for lockouts)
 far <- constr[constraint_type == "far", .(max_far = min(maximum[maximum > 0])), by = plan_type_id]
 far[is.infinite(max_far), max_far := 0]
 
 
-allconstr <- merge(wconstr, merge(merge(dua, far, by = "plan_type_id", all = TRUE), htlc, by = "plan_type_id", all = TRUE), by = "plan_type_id")
+allconstr <- merge(wconstr, 
+                   merge(merge(merge(dua, lot, by = "plan_type_id", all = TRUE), 
+                               far, by = "plan_type_id", all = TRUE),
+                                  htlc, by = "plan_type_id", all = TRUE), 
+                   by = "plan_type_id")
 # set missing values to 0
-for(col in c("max_du", "max_far", "max_height"))
+for(col in c("max_du", "du_lot", "max_far", "max_height"))
     allconstr[is.na(allconstr[[col]]), (col) := 0]
 
 # rename columns so that opus can translate it into the right type
